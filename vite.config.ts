@@ -58,7 +58,7 @@ export default defineConfig({
     },
     dedupe: ["react", "react-dom", "three", "@react-three/fiber"],
   },
-  base: "/",
+  base: "/PersonalWebsite/",
   build: {
     outDir: "dist",
     sourcemap: false,
