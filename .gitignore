@@ -1,0 +1,13 @@
+node_modules
+dist
+.cursor
+.npm-cache
+.tools
+.cache
+
+.DS_Store
+
+*.log
+.env
+.env.*
+
