@@ -10,6 +10,10 @@ export default defineConfig({
       registerType: "autoUpdate",
       injectRegister: null,
       includeAssets: [],
+      manifest: {
+        scope: "/PersonalWebsite/",
+        start_url: "/PersonalWebsite/"
+      },
       workbox: {
         maximumFileSizeToCacheInBytes: 80 * 1024 * 1024,
         runtimeCaching: [
