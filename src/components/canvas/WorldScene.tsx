@@ -12,20 +12,21 @@ import { MODEL_PATHS } from "@/hooks/useIslandModels"
 import { useQualityTier, type QualityTier } from "@/hooks/useQualityTier"
 import { supportsKtx2Textures, toKtx2Url } from "@/hooks/usePbrTextureSet"
 import { useWorldStore } from "@/store/worldStore"
+import { withBase } from "@/config/assets"
 
 const PRELOAD_TEXTURES = [
-  "/textures/hq/cliff_side/cliff_side_diff_2k.jpg",
-  "/textures/hq/cliff_side/cliff_side_nor_gl_2k.jpg",
-  "/textures/hq/cliff_side/cliff_side_arm_2k.jpg",
-  "/textures/hq/cobblestone_pavement/cobblestone_pavement_diff_2k.jpg",
-  "/textures/hq/cobblestone_pavement/cobblestone_pavement_nor_gl_2k.jpg",
-  "/textures/hq/cobblestone_pavement/cobblestone_pavement_arm_2k.jpg",
-  "/textures/hq/sparse_grass/sparse_grass_diff_2k.jpg",
-  "/textures/hq/sparse_grass/sparse_grass_nor_gl_2k.jpg",
-  "/textures/hq/sparse_grass/sparse_grass_arm_2k.jpg"
+  withBase("/textures/hq/cliff_side/cliff_side_diff_2k.jpg"),
+  withBase("/textures/hq/cliff_side/cliff_side_nor_gl_2k.jpg"),
+  withBase("/textures/hq/cliff_side/cliff_side_arm_2k.jpg"),
+  withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_diff_2k.jpg"),
+  withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_nor_gl_2k.jpg"),
+  withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_arm_2k.jpg"),
+  withBase("/textures/hq/sparse_grass/sparse_grass_diff_2k.jpg"),
+  withBase("/textures/hq/sparse_grass/sparse_grass_nor_gl_2k.jpg"),
+  withBase("/textures/hq/sparse_grass/sparse_grass_arm_2k.jpg")
 ]
 
-const FIRST_FRAME_TEXTURES = ["/textures/waternormals.jpg", "/textures/cloud.png"]
+const FIRST_FRAME_TEXTURES = [withBase("/textures/waternormals.jpg"), withBase("/textures/cloud.png")]
 
 const PRELOAD_GLTFS = [
   MODEL_PATHS.earth.hqGrassMedium01,
@@ -86,7 +87,7 @@ function EarthPreload({ qualityTier }: { qualityTier: QualityTier }) {
       if (useKtx2) {
         useLoader.preload(KTX2Loader, toKtx2Url(tex), (loader) => {
           const ktx2 = loader as KTX2Loader
-          ktx2.setTranscoderPath("/examples/jsm/libs/basis/")
+          ktx2.setTranscoderPath(withBase("/examples/jsm/libs/basis/"))
           ktx2.detectSupport(gl)
         })
       } else {
@@ -175,7 +176,7 @@ function WorldContent({
       <IslandTrail section={section} />
 
       <Suspense fallback={null}>
-        <Clouds texture="/textures/cloud.png" limit={600} frustumCulled={false}>
+        <Clouds texture={withBase("/textures/cloud.png")} limit={600} frustumCulled={false}>
           <Cloud
             position={[0, 260, -120]}
             bounds={[260, 80, 220]}
@@ -256,7 +257,7 @@ export function WorldScene({
   useEffect(() => {
     let cancelled = false
 
-    fetch("/intro/island-loop.mp4", { method: "HEAD" })
+    fetch(withBase("/intro/island-loop.mp4"), { method: "HEAD" })
       .then((res) => {
         if (cancelled) return
         const contentType = res.headers.get("content-type") ?? ""
@@ -331,7 +332,7 @@ export function WorldScene({
 
         <img
           className="absolute inset-0 w-full h-full object-cover"
-          src="/intro/island-loop-poster.svg"
+          src={withBase("/intro/island-loop-poster.svg")}
           alt=""
           style={{ filter: "brightness(1.1) saturate(1.1)" }}
         />
@@ -339,8 +340,8 @@ export function WorldScene({
         {enableIntroVideo && !didVideoFail ? (
           <video
             className="absolute inset-0 w-full h-full object-cover"
-            src="/intro/island-loop.mp4"
-            poster="/intro/island-loop-poster.svg"
+            src={withBase("/intro/island-loop.mp4")}
+            poster={withBase("/intro/island-loop-poster.svg")}
             muted
             playsInline
             autoPlay

@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 import { Water } from "three/examples/jsm/objects/Water.js"
+import { withBase } from "@/config/assets"
 
 interface OceanProps {
   sunElevation?: number
@@ -63,7 +64,7 @@ export function Ocean({
     let cancelled = false
     const loader = new THREE.TextureLoader()
 
-    loader.load("/textures/waternormals.jpg", (tex) => {
+    loader.load(withBase("/textures/waternormals.jpg"), (tex) => {
       if (cancelled) {
         tex.dispose()
         return
