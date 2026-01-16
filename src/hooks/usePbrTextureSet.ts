@@ -2,6 +2,7 @@ import { useLoader, useThree } from "@react-three/fiber"
 import { useEffect, useMemo } from "react"
 import * as THREE from "three"
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js"
+import { withBase } from "@/config/assets"
 
 export type PbrTextureSetId =
   | "forestGround04"
@@ -22,49 +23,49 @@ export type PbrTextureSet = {
 
 const PBR_TEXTURE_URLS: Record<PbrTextureSetId, { map: string; normalMap: string; armMap: string }> = {
   forestGround04: {
-    map: "/textures/hq/forest_ground_04/forest_ground_04_diff_2k.jpg",
-    normalMap: "/textures/hq/forest_ground_04/forest_ground_04_nor_gl_2k.jpg",
-    armMap: "/textures/hq/forest_ground_04/forest_ground_04_arm_2k.jpg"
+    map: withBase("/textures/hq/forest_ground_04/forest_ground_04_diff_2k.jpg"),
+    normalMap: withBase("/textures/hq/forest_ground_04/forest_ground_04_nor_gl_2k.jpg"),
+    armMap: withBase("/textures/hq/forest_ground_04/forest_ground_04_arm_2k.jpg")
   },
   burnedGround01: {
-    map: "/textures/hq/burned_ground_01/burned_ground_01_diff_2k.jpg",
-    normalMap: "/textures/hq/burned_ground_01/burned_ground_01_nor_gl_2k.jpg",
-    armMap: "/textures/hq/burned_ground_01/burned_ground_01_arm_2k.jpg"
+    map: withBase("/textures/hq/burned_ground_01/burned_ground_01_diff_2k.jpg"),
+    normalMap: withBase("/textures/hq/burned_ground_01/burned_ground_01_nor_gl_2k.jpg"),
+    armMap: withBase("/textures/hq/burned_ground_01/burned_ground_01_arm_2k.jpg")
   },
   sand: {
-    map: "/textures/hq/coast_sand_02/coast_sand_02_diff_2k.jpg",
-    normalMap: "/textures/hq/coast_sand_02/coast_sand_02_nor_gl_2k.jpg",
-    armMap: "/textures/hq/coast_sand_02/coast_sand_02_arm_2k.jpg"
+    map: withBase("/textures/hq/coast_sand_02/coast_sand_02_diff_2k.jpg"),
+    normalMap: withBase("/textures/hq/coast_sand_02/coast_sand_02_nor_gl_2k.jpg"),
+    armMap: withBase("/textures/hq/coast_sand_02/coast_sand_02_arm_2k.jpg")
   },
   dampSand: {
-    map: "/textures/hq/damp_sand/damp_sand_diff_2k.jpg",
-    normalMap: "/textures/hq/damp_sand/damp_sand_nor_gl_2k.jpg",
-    armMap: "/textures/hq/damp_sand/damp_sand_arm_2k.jpg"
+    map: withBase("/textures/hq/damp_sand/damp_sand_diff_2k.jpg"),
+    normalMap: withBase("/textures/hq/damp_sand/damp_sand_nor_gl_2k.jpg"),
+    armMap: withBase("/textures/hq/damp_sand/damp_sand_arm_2k.jpg")
   },
   cliffSide: {
-    map: "/textures/hq/cliff_side/cliff_side_diff_2k.jpg",
-    normalMap: "/textures/hq/cliff_side/cliff_side_nor_gl_2k.jpg",
-    armMap: "/textures/hq/cliff_side/cliff_side_arm_2k.jpg"
+    map: withBase("/textures/hq/cliff_side/cliff_side_diff_2k.jpg"),
+    normalMap: withBase("/textures/hq/cliff_side/cliff_side_nor_gl_2k.jpg"),
+    armMap: withBase("/textures/hq/cliff_side/cliff_side_arm_2k.jpg")
   },
   cobblestonePavement: {
-    map: "/textures/hq/cobblestone_pavement/cobblestone_pavement_diff_2k.jpg",
-    normalMap: "/textures/hq/cobblestone_pavement/cobblestone_pavement_nor_gl_2k.jpg",
-    armMap: "/textures/hq/cobblestone_pavement/cobblestone_pavement_arm_2k.jpg"
+    map: withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_diff_2k.jpg"),
+    normalMap: withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_nor_gl_2k.jpg"),
+    armMap: withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_arm_2k.jpg")
   },
   leafyGrass: {
-    map: "/textures/hq/leafy_grass/leafy_grass_diff_2k.jpg",
-    normalMap: "/textures/hq/leafy_grass/leafy_grass_nor_gl_2k.jpg",
-    armMap: "/textures/hq/leafy_grass/leafy_grass_arm_2k.jpg"
+    map: withBase("/textures/hq/leafy_grass/leafy_grass_diff_2k.jpg"),
+    normalMap: withBase("/textures/hq/leafy_grass/leafy_grass_nor_gl_2k.jpg"),
+    armMap: withBase("/textures/hq/leafy_grass/leafy_grass_arm_2k.jpg")
   },
   sparseGrass: {
-    map: "/textures/hq/sparse_grass/sparse_grass_diff_2k.jpg",
-    normalMap: "/textures/hq/sparse_grass/sparse_grass_nor_gl_2k.jpg",
-    armMap: "/textures/hq/sparse_grass/sparse_grass_arm_2k.jpg"
+    map: withBase("/textures/hq/sparse_grass/sparse_grass_diff_2k.jpg"),
+    normalMap: withBase("/textures/hq/sparse_grass/sparse_grass_nor_gl_2k.jpg"),
+    armMap: withBase("/textures/hq/sparse_grass/sparse_grass_arm_2k.jpg")
   },
   marbleTiles: {
-    map: "/textures/hq/marble_tiles/marble_tiles_diff_2k.jpg",
-    normalMap: "/textures/hq/marble_tiles/marble_tiles_nor_gl_2k.jpg",
-    armMap: "/textures/hq/marble_tiles/marble_tiles_arm_2k.jpg"
+    map: withBase("/textures/hq/marble_tiles/marble_tiles_diff_2k.jpg"),
+    normalMap: withBase("/textures/hq/marble_tiles/marble_tiles_nor_gl_2k.jpg"),
+    armMap: withBase("/textures/hq/marble_tiles/marble_tiles_arm_2k.jpg")
   }
 }
 
@@ -125,7 +126,7 @@ export function usePbrTextureSet(id: PbrTextureSetId): PbrTextureSet {
     useKtx2
       ? (loader) => {
           const ktx2 = loader as KTX2Loader
-          ktx2.setTranscoderPath("/examples/jsm/libs/basis/")
+          ktx2.setTranscoderPath(withBase("/examples/jsm/libs/basis/"))
           ktx2.detectSupport(gl)
         }
       : undefined
