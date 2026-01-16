@@ -5,6 +5,7 @@ interface WorldState {
   overviewBlend: number
   titleCardBlend: number
   isEarthTexturedReady: boolean
+  isLoaderBypassed: boolean
   travelDir: 1 | -1
   mousePosition: { x: number; y: number }
 }
@@ -14,6 +15,7 @@ interface WorldActions {
   setOverviewBlend: (t: number) => void
   setTitleCardBlend: (t: number) => void
   setEarthTexturedReady: (ready: boolean) => void
+  setLoaderBypassed: (bypassed: boolean) => void
   setTravelDir: (dir: 1 | -1) => void
   setMousePosition: (x: number, y: number) => void
 }
@@ -25,6 +27,7 @@ export const useWorldStore = create<WorldStore>((set) => ({
   overviewBlend: 0,
   titleCardBlend: 0,
   isEarthTexturedReady: false,
+  isLoaderBypassed: false,
   travelDir: 1,
   mousePosition: { x: 0, y: 0 },
 
@@ -42,6 +45,10 @@ export const useWorldStore = create<WorldStore>((set) => ({
 
   setEarthTexturedReady: (ready) => {
     set({ isEarthTexturedReady: ready })
+  },
+
+  setLoaderBypassed: (bypassed) => {
+    set({ isLoaderBypassed: bypassed })
   },
 
   setTravelDir: (dir) => {
