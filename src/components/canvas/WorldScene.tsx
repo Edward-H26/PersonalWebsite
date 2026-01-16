@@ -240,13 +240,18 @@ export function WorldScene({
   const maxDpr = qualityTier === "low" ? 1 : qualityTier === "medium" ? 1.1 : 1.25
   const enableShadows = qualityTier !== "low"
   const isEarthTexturedReady = useWorldStore((state) => state.isEarthTexturedReady)
+  const setLoaderBypassed = useWorldStore((state) => state.setLoaderBypassed)
   const isLoadingActive = useProgress((state) => state.active)
   const loadingProgress = useProgress((state) => state.progress)
+  const loadingErrors = useProgress((state) => state.errors)
 
   const [isFirstFrameReady, setIsFirstFrameReady] = useState(false)
   const hasReadyFiredRef = useRef(false)
   const [enableIntroVideo, setEnableIntroVideo] = useState(false)
   const [didVideoFail, setDidVideoFail] = useState(false)
+  const [forceReady, setForceReady] = useState(false)
+  const lastProgressRef = useRef(0)
+  const lastProgressTimeRef = useRef(0)
 
   const markReady = useCallback(() => {
     if (hasReadyFiredRef.current) return
@@ -284,7 +289,34 @@ export function WorldScene({
     markReady()
   }, [isEarthTexturedReady, isLoadingActive, markReady])
 
-  const shouldHideOverlay = isFirstFrameReady
+  useEffect(() => {
+    if (!isLoadingActive) {
+      setForceReady(false)
+      setLoaderBypassed(false)
+      return
+    }
+    if (loadingProgress !== lastProgressRef.current) {
+      lastProgressRef.current = loadingProgress
+      lastProgressTimeRef.current = performance.now()
+    }
+  }, [isLoadingActive, loadingProgress, setLoaderBypassed])
+
+  useEffect(() => {
+    if (!isLoadingActive) return
+    const intervalId = window.setInterval(() => {
+      const now = performance.now()
+      const stagnantMs = now - lastProgressTimeRef.current
+      const hasErrors = loadingErrors.length > 0
+      const isStalled = loadingProgress >= 99 && stagnantMs > 4000
+      if (hasErrors || isStalled) {
+        setForceReady(true)
+        setLoaderBypassed(true)
+      }
+    }, 500)
+    return () => window.clearInterval(intervalId)
+  }, [isLoadingActive, loadingErrors.length, loadingProgress, setLoaderBypassed])
+
+  const shouldHideOverlay = isFirstFrameReady || forceReady
   const showOverlay = !shouldHideOverlay
 
   const clampedProgress = Math.max(0, Math.min(100, loadingProgress))
