@@ -252,6 +252,9 @@ export function WorldScene({
   const [forceReady, setForceReady] = useState(false)
   const lastProgressRef = useRef(0)
   const lastProgressTimeRef = useRef(0)
+  const progressRef = useRef(0)
+  const rafProgressRef = useRef<number | null>(null)
+  const [displayProgress, setDisplayProgress] = useState(0)
 
   const markReady = useCallback(() => {
     if (hasReadyFiredRef.current) return
@@ -320,10 +323,54 @@ export function WorldScene({
   const showOverlay = !shouldHideOverlay
 
   const clampedProgress = Math.max(0, Math.min(100, loadingProgress))
+  const targetProgress = forceReady ? 100 : clampedProgress
+
+  useEffect(() => {
+    if (!isLoadingActive) return
+    progressRef.current = 0
+    setDisplayProgress(0)
+  }, [isLoadingActive])
+
+  useEffect(() => {
+    if (!showOverlay) {
+      progressRef.current = targetProgress
+      setDisplayProgress(targetProgress)
+      return
+    }
+
+    const tick = () => {
+      const current = progressRef.current
+      const desired = isLoadingActive ? Math.max(targetProgress, current) : targetProgress
+      const diff = desired - current
+      if (Math.abs(diff) < 0.2) {
+        progressRef.current = desired
+        setDisplayProgress(desired)
+        rafProgressRef.current = null
+        return
+      }
+      const next = current + diff * 0.12
+      progressRef.current = next
+      setDisplayProgress(next)
+      rafProgressRef.current = requestAnimationFrame(tick)
+    }
+
+    if (rafProgressRef.current != null) {
+      cancelAnimationFrame(rafProgressRef.current)
+    }
+    rafProgressRef.current = requestAnimationFrame(tick)
+
+    return () => {
+      if (rafProgressRef.current != null) {
+        cancelAnimationFrame(rafProgressRef.current)
+        rafProgressRef.current = null
+      }
+    }
+  }, [isLoadingActive, showOverlay, targetProgress])
+
   const progressLineStyle: CSSProperties = {
-    ["--world-loader-progress" as string]: `${clampedProgress}%`
+    ["--world-loader-progress" as string]: `${displayProgress}%`
   }
-  const progressLabel = `${Math.round(clampedProgress)}%`
+  const progressLabel = `${Math.round(displayProgress)}%`
 
   return (
     <div className="fixed inset-0 w-full h-full">
