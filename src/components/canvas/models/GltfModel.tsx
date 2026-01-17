@@ -3,10 +3,11 @@ import { GroupProps } from "@react-three/fiber"
 import { useMemo } from "react"
 import { Box3, Mesh, Object3D, SkinnedMesh, Vector3 } from "three"
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js"
+import { withBase } from "@/config/assets"
 
 type Pivot = "origin" | "center" | "center-bottom"
 
-useGLTF.setDecoderPath("/draco/")
+useGLTF.setDecoderPath(withBase("/draco/"))
 
 interface GltfModelProps extends Omit<GroupProps, "scale"> {
   path: string
