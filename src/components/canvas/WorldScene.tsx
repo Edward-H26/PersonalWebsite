@@ -79,7 +79,7 @@ function EarthPreload({ qualityTier }: { qualityTier: QualityTier }) {
   const { gl } = useThree()
 
   useEffect(() => {
-    const gltfs = qualityTier === "low" ? [] : Array.from(new Set(PRELOAD_GLTFS))
+    const gltfs = Array.from(new Set(PRELOAD_GLTFS))
     const textures = Array.from(new Set(PRELOAD_TEXTURES))
     const useKtx2 = supportsKtx2Textures(gl)
 
@@ -110,7 +110,7 @@ function WorldContent({
   section: number
   qualityTier: QualityTier
 }) {
-  const showProps = qualityTier !== "low"
+  const showProps = true
   const overviewBlend = useWorldStore((state) => state.overviewBlend)
   const isEarthTexturedReady = useWorldStore((state) => state.isEarthTexturedReady)
   const isLoadingActive = useProgress((state) => state.active)
