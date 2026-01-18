@@ -13,6 +13,7 @@ interface UseSmoothScrollOptions {
   syncTouch?: boolean
   syncTouchLerp?: number
   touchInertiaMultiplier?: number
+  touchMultiplier?: number
   infinite?: boolean
   autoResize?: boolean
 }
@@ -40,7 +41,7 @@ export function useSmoothScroll(options: UseSmoothScrollOptions = {}) {
       smoothWheel: options.smoothWheel ?? true,
       syncTouch: options.syncTouch ?? false,
       syncTouchLerp: options.syncTouchLerp ?? 0.075,
-      touchInertiaMultiplier: options.touchInertiaMultiplier ?? 35,
+      touchMultiplier: options.touchMultiplier ?? options.touchInertiaMultiplier ?? 2,
       infinite: options.infinite ?? false,
       autoResize: options.autoResize ?? true,
       wrapper: options.wrapper ?? undefined,
@@ -71,7 +72,7 @@ export function useSmoothScroll(options: UseSmoothScrollOptions = {}) {
     options.smoothWheel,
     options.syncTouch,
     options.syncTouchLerp,
-    options.touchInertiaMultiplier,
+    options.touchMultiplier,
     options.infinite,
     options.autoResize,
   ])

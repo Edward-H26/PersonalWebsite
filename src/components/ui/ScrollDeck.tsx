@@ -163,7 +163,10 @@ function StoryCardPanel({ card }: { card: DisplayCard }) {
   }
 
   return (
-    <div className="liquid-glass-panel flex flex-col w-[600px] max-w-[86vw] h-[360px] pointer-events-auto" style={glassStyle}>
+    <div
+      className="liquid-glass-panel glass-card glass-card-hover-lift flex flex-col w-[600px] max-w-[86vw] h-[360px] pointer-events-auto"
+      style={glassStyle}
+    >
       <div className="relative flex flex-col px-7 py-3.5 h-full">
         <CardContent card={card} />
       </div>
@@ -180,13 +183,19 @@ function OverviewPage() {
 
   return (
     <div className="absolute top-24 left-4 sm:left-8">
-      <div className="liquid-glass-panel w-[560px] max-w-[86vw]" style={glassStyle}>
+      <div
+        className="liquid-glass-panel glass-card glass-card-border-glow w-[560px] max-w-[86vw]"
+        style={glassStyle}
+      >
         <div className="p-6">
           <div className="text-white text-5xl sm:text-6xl font-orbitron font-bold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.65)]">
-            <div>Hi! I’m</div>
-            <div>Qiran Hu</div>
+            <div className="animate-fade-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>Hi! I'm</div>
+            <div className="liquid-glass-text animate-fade-up" style={{ animationDelay: "0.2s", animationFillMode: "both" }}>Qiran Hu</div>
           </div>
-          <div className="mt-4 text-[16px] sm:text-[17px] leading-[1.6] text-white/85 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)] max-w-[62ch]">
+          <div
+            className="mt-4 text-[16px] sm:text-[17px] leading-[1.6] text-white/85 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)] max-w-[62ch] animate-fade-up"
+            style={{ animationDelay: "0.4s", animationFillMode: "both" }}
+          >
             I am an applied AI researcher and full-stack software engineer working at the intersection of multi-agent systems and computer vision to build AI that understands,
             reasons, and coordinates actions in complex visual environments. My research interests include self-evolving multi-agent architectures, context-aware memory systems,
             multimodal AI reasoning abilities, novel human-AI interfaces, generative world models, spatial intelligence, and evaluation for agentic systems.
@@ -207,18 +216,24 @@ function StageTitlePage({ stageId }: { stageId: StoryStageId }) {
   }
 
   const headingClassName = isProfessionalExperience
-    ? "text-white text-5xl sm:text-6xl font-orbitron font-semibold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.7)] text-shadow-glow-cyan"
-    : "text-white text-6xl sm:text-7xl font-orbitron font-bold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.7)] text-shadow-glow-cyan"
+    ? "text-white text-5xl sm:text-6xl font-orbitron font-semibold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.7)] text-shadow-glow-cyan animate-fade-up"
+    : "text-white text-6xl sm:text-7xl font-orbitron font-bold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.7)] text-shadow-glow-cyan animate-fade-up"
 
   return (
     <div className="absolute top-24 left-4 sm:left-8">
-      <div className="liquid-glass-panel w-[600px] max-w-[86vw]" style={titleGlassStyle}>
+      <div
+        className="liquid-glass-panel glass-card glass-card-hover-glow w-[600px] max-w-[86vw]"
+        style={titleGlassStyle}
+      >
         <div className="p-5">
-          <div className={headingClassName}>
+          <div className={headingClassName} style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
             {stage.heading}
           </div>
           {stage.subheading ? (
-            <div className="mt-3 text-sm text-white/82 tracking-wide drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)]">
+            <div
+              className="mt-3 text-sm text-white/82 tracking-wide drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)] animate-fade-up"
+              style={{ animationDelay: "0.25s", animationFillMode: "both" }}
+            >
               {stage.subheading}
             </div>
           ) : null}

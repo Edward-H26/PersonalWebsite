@@ -5,6 +5,9 @@ import {
   Navigation,
   ScrollDeck,
   SectionNav,
+  ParticleBackground,
+  NoiseOverlay,
+  SkipLink,
 } from "@/components/ui"
 import { useWorldStore } from "@/store/worldStore"
 import { useScrollSnapNavigation } from "@/hooks/useScrollSnapNavigation"
@@ -30,12 +33,20 @@ function App() {
 
   return (
     <div className="w-full h-full overflow-hidden">
+      <SkipLink href="#main-content" />
+
+      <ParticleBackground variant="minimal" opacity={0.4} className="z-[50]" />
+
       <WorldScene section={section} />
 
+      <NoiseOverlay opacity={0.025} blendMode="overlay" />
+
       <ScrollDeck ref={containerRef} pages={pages} scrollLocked={scrollLocked}>
-        <Navigation scrollToSection={scrollToSection} />
+        <Navigation scrollToSection={scrollToSection} activeSection={section} />
         <SectionNav section={section} scrollToSection={scrollToSection} />
       </ScrollDeck>
+
+      <div id="main-content" className="sr-only" aria-hidden="true" />
     </div>
   )
 }
