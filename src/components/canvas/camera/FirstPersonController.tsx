@@ -28,7 +28,7 @@ function getGroundMeshes(root: THREE.Object3D) {
 }
 
 export function FirstPersonController() {
-  const { camera, scene } = useThree()
+  const { camera, scene, size } = useThree()
 
   const fpTargetPosition = useRef(new Vector3())
   const fpTargetLookAt = useRef(new Vector3())
@@ -70,8 +70,21 @@ export function FirstPersonController() {
     return new CatmullRomCurve3(points, false, "catmullrom", 0.5)
   }, [])
 
-  const birdEyePosition = useMemo(() => new Vector3(...BIRD_EYE_CAMERA_CONFIG.position), [])
-  const birdEyeLookAt = useMemo(() => new Vector3(...BIRD_EYE_CAMERA_CONFIG.lookAt), [])
+  const isNarrow = size.width <= 640
+  const birdEyePosition = useMemo(() => {
+    const base = new Vector3(...BIRD_EYE_CAMERA_CONFIG.position)
+    if (!isNarrow) return base
+    base.multiplyScalar(1.18)
+    base.y += 18
+    base.z -= 24
+    return base
+  }, [isNarrow])
+  const birdEyeLookAt = useMemo(() => {
+    const base = new Vector3(...BIRD_EYE_CAMERA_CONFIG.lookAt)
+    if (!isNarrow) return base
+    base.y -= 4
+    return base
+  }, [isNarrow])
 
   const point = useRef(new Vector3())
   const tangent = useRef(new Vector3())
@@ -110,6 +123,7 @@ export function FirstPersonController() {
     const prevT = prevPathT.current
     prevPathT.current = pathT
     let deltaT = 0
+    const routeDelta = Math.abs(routeTarget - pathT)
 
     if (prevT == null) {
       walkDir = baseDir
@@ -201,7 +215,7 @@ export function FirstPersonController() {
     }
     lookDir.current.multiplyScalar(walkDir)
 
-    const hasMotion = prevT != null && Math.abs(deltaT) > 1e-4
+    const hasMotion = (prevT != null && Math.abs(deltaT) > 2e-4) || routeDelta > 0.002
     if (hasMotion || prevT == null) {
       lastLookDir.current.copy(lookDir.current)
     }
