@@ -219,6 +219,26 @@ export function useScrollSnapNavigation() {
     const isWrapZone = isTopWrapZone || isBottomWrapZone
     const overviewPos = overviewIndex >= 0 ? overviewIndex : firstRealIndex
 
+    if (!isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
+      const preWrapThreshold = 0.12
+      const wantsWrapUp = scrollDirLockRef.current === -1 && pagePos <= firstRealIndex - preWrapThreshold
+      const wantsWrapDown = scrollDirLockRef.current === 1 && pagePos >= lastRealIndex + preWrapThreshold
+
+      if (wantsWrapUp) {
+        scrollDirLockRef.current = null
+        store.setTravelDir(-1)
+        startWrapRef.current(lastRealIndex)
+        return
+      }
+
+      if (wantsWrapDown) {
+        scrollDirLockRef.current = null
+        store.setTravelDir(1)
+        startWrapRef.current(firstRealIndex)
+        return
+      }
+    }
+
     if (isWrapZone) {
       const wrapT = isTopWrapZone
         ? clamp01((pagePos - sentinelTopIndex) / Math.max(1e-6, firstRealIndex - sentinelTopIndex))
