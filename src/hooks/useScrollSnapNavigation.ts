@@ -263,11 +263,12 @@ export function useScrollSnapNavigation() {
       const titleBlend = smoothstep01(clamp01(1 - nearestTitleDist / titleWindow))
       store.setTitleCardBlend(titleBlend)
     } else {
-      store.setRouteT(getRouteTAtPagePos(pagePos, sectionRanges))
+      const snappedPagePos = isSettledOnSnap ? index : pagePos
+      store.setRouteT(getRouteTAtPagePos(snappedPagePos, sectionRanges))
 
       let nearestTitleDist = Number.POSITIVE_INFINITY
       for (const titleIndex of stageTitleIndices) {
-        const dist = Math.abs(pagePos - titleIndex)
+        const dist = Math.abs(snappedPagePos - titleIndex)
         if (dist < nearestTitleDist) nearestTitleDist = dist
       }
 
@@ -277,7 +278,7 @@ export function useScrollSnapNavigation() {
 
       if (overviewIndex >= 0 && researchTitleIndex > overviewIndex) {
         const denom = Math.max(1e-6, researchTitleIndex - overviewIndex)
-        const t = clamp01((pagePos - overviewIndex) / denom)
+        const t = clamp01((snappedPagePos - overviewIndex) / denom)
         store.setOverviewBlend(smoothstep01(t))
       } else {
         store.setOverviewBlend(1)
