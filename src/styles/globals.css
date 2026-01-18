@@ -1004,14 +1004,14 @@
 
   .nav-glass {
     @apply backdrop-blur-md border border-white/10 rounded-full;
-    background: rgba(10, 10, 15, 0.7);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    background: transparent;
+    box-shadow: none;
     transition: all var(--duration-normal) var(--ease-smooth);
   }
 
   .nav-glass-shrink {
     @apply py-2;
-    background: rgba(10, 10, 15, 0.85);
+    background: transparent;
   }
 }
 

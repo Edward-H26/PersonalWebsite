@@ -99,16 +99,16 @@ const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
             {card.title}
           </div>
 
-          {card.location || card.date ? (
-            <div className="mt-1 flex items-center justify-between gap-4 text-[14px] font-medium text-white/80 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)]">
-              <span>{card.location}</span>
-              <span className="text-white/75">{card.date}</span>
+          {card.location ? (
+            <div className="mt-1 text-[14px] font-medium text-white/80 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)]">
+              {card.location}
             </div>
           ) : null}
 
-          {card.subtitle ? (
-            <div className="mt-1 text-[15px] font-medium text-white/92 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)]">
-              {card.subtitle}
+          {card.subtitle || card.date ? (
+            <div className="mt-1 flex items-center justify-between gap-4 text-[15px] font-medium text-white/92 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)]">
+              <span>{card.subtitle ?? ""}</span>
+              {card.date ? <span className="text-white/75">{card.date}</span> : <span />}
             </div>
           ) : null}
         </div>
@@ -187,7 +187,7 @@ function OverviewPage() {
         className="liquid-glass-panel glass-card glass-card-border-glow w-[560px] max-w-[86vw]"
         style={glassStyle}
       >
-        <div className="p-6">
+        <div className="p-6 pt-7">
           <div className="text-white text-5xl sm:text-6xl font-orbitron font-bold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.65)]">
             <div className="animate-fade-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>Hi! I'm</div>
             <div className="liquid-glass-text animate-fade-up" style={{ animationDelay: "0.2s", animationFillMode: "both" }}>Qiran Hu</div>
