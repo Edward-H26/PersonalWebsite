@@ -95,7 +95,7 @@ const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
     <>
       <div className="flex items-start justify-between gap-6">
         <div>
-          <div className="text-white font-orbitron font-semibold text-[24px] leading-tight tracking-wide drop-shadow-[0_2px_18px_rgba(0,0,0,0.6)] liquid-glass-text">
+          <div className="text-white font-orbitron font-semibold text-[20px] sm:text-[24px] leading-tight tracking-wide drop-shadow-[0_2px_18px_rgba(0,0,0,0.6)] liquid-glass-text">
             {card.title}
           </div>
 
@@ -125,7 +125,7 @@ const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
       <div className="mt-3 flex-1 min-h-0">
         {card.bullets.length > 0 ? (
           <div className="liquid-card-scroll h-full overflow-y-auto pr-3 pointer-events-auto" data-story-scroll="true">
-            <ul className="space-y-2 text-[18px] font-medium leading-[1.55] text-white/95 list-disc pl-6 drop-shadow-[0_2px_16px_rgba(0,0,0,0.55)]">
+            <ul className="space-y-2 text-[16px] sm:text-[18px] font-medium leading-[1.55] text-white/95 list-disc pl-6 drop-shadow-[0_2px_16px_rgba(0,0,0,0.55)]">
               {card.bullets.map((b) => (
                 <li key={b}>
                   {b}
@@ -164,10 +164,10 @@ function StoryCardPanel({ card }: { card: DisplayCard }) {
 
   return (
     <div
-      className="liquid-glass-panel glass-card glass-card-hover-lift flex flex-col w-[600px] max-w-[86vw] h-[360px] pointer-events-auto"
+      className="liquid-glass-panel glass-card glass-card-hover-lift flex flex-col w-[92vw] max-w-[92vw] sm:w-[600px] sm:max-w-[86vw] h-[70svh] min-h-[320px] sm:h-[360px] pointer-events-auto"
       style={glassStyle}
     >
-      <div className="relative flex flex-col px-7 py-3.5 h-full">
+      <div className="relative flex flex-col px-5 py-3 sm:px-7 sm:py-3.5 h-full">
         <CardContent card={card} />
       </div>
     </div>
@@ -184,16 +184,16 @@ function OverviewPage() {
   return (
     <div className="absolute top-24 left-4 sm:left-8">
       <div
-        className="liquid-glass-panel glass-card glass-card-border-glow w-[560px] max-w-[86vw]"
+        className="liquid-glass-panel glass-card glass-card-border-glow w-[92vw] max-w-[92vw] sm:w-[560px] sm:max-w-[86vw]"
         style={glassStyle}
       >
-        <div className="p-6 pt-7">
-          <div className="text-white text-5xl sm:text-6xl font-orbitron font-bold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.65)]">
+        <div className="p-5 pt-6 sm:p-6 sm:pt-7">
+          <div className="text-white text-4xl sm:text-5xl md:text-6xl font-orbitron font-bold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.65)]">
             <div className="animate-fade-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>Hi! I'm</div>
             <div className="liquid-glass-text animate-fade-up" style={{ animationDelay: "0.2s", animationFillMode: "both" }}>Qiran Hu</div>
           </div>
           <div
-            className="mt-4 text-[16px] sm:text-[17px] leading-[1.6] text-white/85 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)] max-w-[62ch] animate-fade-up"
+            className="mt-4 text-[15px] sm:text-[16px] md:text-[17px] leading-[1.6] text-white/85 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)] max-w-[62ch] animate-fade-up"
             style={{ animationDelay: "0.4s", animationFillMode: "both" }}
           >
             I am an applied AI researcher and full-stack software engineer working at the intersection of multi-agent systems and computer vision to build AI that understands,
@@ -216,22 +216,22 @@ function StageTitlePage({ stageId }: { stageId: StoryStageId }) {
   }
 
   const headingClassName = isProfessionalExperience
-    ? "text-white text-5xl sm:text-6xl font-orbitron font-semibold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.7)] text-shadow-glow-cyan animate-fade-up"
-    : "text-white text-6xl sm:text-7xl font-orbitron font-bold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.7)] text-shadow-glow-cyan animate-fade-up"
+    ? "text-white text-4xl sm:text-5xl md:text-6xl font-orbitron font-semibold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.7)] text-shadow-glow-cyan animate-fade-up"
+    : "text-white text-5xl sm:text-6xl md:text-7xl font-orbitron font-bold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.7)] text-shadow-glow-cyan animate-fade-up"
 
   return (
     <div className="absolute top-24 left-4 sm:left-8">
       <div
-        className="liquid-glass-panel glass-card glass-card-hover-glow w-[600px] max-w-[86vw]"
+        className="liquid-glass-panel glass-card glass-card-hover-glow w-[92vw] max-w-[92vw] sm:w-[600px] sm:max-w-[86vw]"
         style={titleGlassStyle}
       >
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           <div className={headingClassName} style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
             {stage.heading}
           </div>
           {stage.subheading ? (
             <div
-              className="mt-3 text-sm text-white/82 tracking-wide drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)] animate-fade-up"
+              className="mt-3 text-xs sm:text-sm text-white/82 tracking-wide drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)] animate-fade-up"
               style={{ animationDelay: "0.25s", animationFillMode: "both" }}
             >
               {stage.subheading}
