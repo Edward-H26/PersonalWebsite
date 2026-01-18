@@ -106,9 +106,9 @@ const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
           ) : null}
 
           {card.subtitle || card.date ? (
-            <div className="mt-1 flex items-center justify-between gap-4 text-[15px] font-medium text-white/92 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)]">
-              <span>{card.subtitle ?? ""}</span>
-              {card.date ? <span className="text-white/75">{card.date}</span> : <span />}
+            <div className="mt-1 flex w-full items-center justify-between gap-4 text-[15px] font-medium text-white/92 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)]">
+              <span className="min-w-0">{card.subtitle ?? ""}</span>
+              {card.date ? <span className="text-right text-white/75">{card.date}</span> : <span />}
             </div>
           ) : null}
         </div>
