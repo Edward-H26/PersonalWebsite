@@ -181,10 +181,10 @@ export function useScrollSnapNavigation() {
 
     const prevScrollTop = lastScrollTopRef.current
     lastScrollTopRef.current = el.scrollTop
+    const deltaScrollTop = prevScrollTop != null ? el.scrollTop - prevScrollTop : 0
 
     const shouldUpdateTravelDir = !isProgrammaticJumpRef.current && !suppressTravelDirUpdateRef.current
     if (shouldUpdateTravelDir && prevScrollTop != null && !isSettledOnSnap) {
-      const deltaScrollTop = el.scrollTop - prevScrollTop
       const thresholdPx = Math.max(1.5, height * 0.003)
       if (scrollDirLockRef.current == null && Math.abs(deltaScrollTop) >= thresholdPx) {
         scrollDirLockRef.current = deltaScrollTop > 0 ? 1 : -1
@@ -220,9 +220,11 @@ export function useScrollSnapNavigation() {
     const overviewPos = overviewIndex >= 0 ? overviewIndex : firstRealIndex
 
     if (!isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
-      const preWrapThreshold = 0.12
-      const wantsWrapUp = scrollDirLockRef.current === -1 && pagePos <= firstRealIndex - preWrapThreshold
-      const wantsWrapDown = scrollDirLockRef.current === 1 && pagePos >= lastRealIndex + preWrapThreshold
+      const preWrapThreshold = 0.08
+      const wantsWrapUp =
+        (scrollDirLockRef.current === -1 || deltaScrollTop < 0) && pagePos <= firstRealIndex - preWrapThreshold
+      const wantsWrapDown =
+        (scrollDirLockRef.current === 1 || deltaScrollTop > 0) && pagePos >= lastRealIndex + preWrapThreshold
 
       if (wantsWrapUp) {
         scrollDirLockRef.current = null
