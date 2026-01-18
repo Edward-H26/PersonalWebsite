@@ -113,6 +113,16 @@ export function FirstPersonController() {
     smoothedOverviewBlend.current = THREE.MathUtils.damp(smoothedOverviewBlend.current, overviewTarget, 10, delta)
     smoothedTitleBlend.current = THREE.MathUtils.damp(smoothedTitleBlend.current, titleTarget, 10, delta)
 
+    if (Math.abs(smoothedRouteT.current - routeTarget) < 0.0006) {
+      smoothedRouteT.current = routeTarget
+    }
+    if (Math.abs(smoothedOverviewBlend.current - overviewTarget) < 0.002) {
+      smoothedOverviewBlend.current = overviewTarget
+    }
+    if (Math.abs(smoothedTitleBlend.current - titleTarget) < 0.002) {
+      smoothedTitleBlend.current = titleTarget
+    }
+
     const pathT = smoothedRouteT.current
     const overviewMix = smoothedOverviewBlend.current
     const titleMix = smoothedTitleBlend.current
