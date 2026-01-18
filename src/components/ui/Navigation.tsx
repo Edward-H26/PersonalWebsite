@@ -49,9 +49,9 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
               <button
                 type="button"
                 className={`
-                  group font-orbitron text-[10px] sm:text-xs font-medium tracking-[3px] sm:tracking-[4px] uppercase
+                  group font-orbitron text-[10px] sm:text-xs font-semibold tracking-[3px] sm:tracking-[4px] uppercase
                   relative py-2 transition-all duration-400 pointer-events-auto
-                  ${isActive ? "text-cyber-cyan" : "text-white/60 hover:text-white/90"}
+                  ${isActive ? "text-white" : "text-white/85 hover:text-white"}
                 `}
                 onClick={() => scrollToSection(item.section, { behavior: "smooth" })}
                 aria-current={isActive ? "page" : undefined}
