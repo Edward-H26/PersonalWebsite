@@ -38,6 +38,7 @@ export function FirstPersonController() {
 
   const prevPathT = useRef<number | null>(null)
   const prevTravelDir = useRef<1 | -1>(1)
+  const lastMotionDir = useRef<1 | -1>(1)
   const motionLockUntilMs = useRef(0)
 
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
@@ -102,15 +103,20 @@ export function FirstPersonController() {
     const titleMix = smoothedTitleBlend.current
 
     const baseDir: 1 | -1 = travelDir === -1 ? -1 : 1
-    let walkDir: 1 | -1 = baseDir
+    let walkDir: 1 | -1 = lastMotionDir.current
 
     const prevT = prevPathT.current
     prevPathT.current = pathT
+    let deltaT = 0
 
-    if (prevT != null) {
-      const deltaT = pathT - prevT
+    if (prevT == null) {
+      walkDir = baseDir
+      lastMotionDir.current = baseDir
+    } else {
+      deltaT = pathT - prevT
       if (Math.abs(deltaT) > 1e-4) {
         walkDir = deltaT > 0 ? 1 : -1
+        lastMotionDir.current = walkDir
       }
     }
 
@@ -120,7 +126,6 @@ export function FirstPersonController() {
     }
 
     if (prevT != null) {
-      const deltaT = pathT - prevT
       if (Math.abs(deltaT) > 1e-4) {
         motionLockUntilMs.current = performance.now() + 260
       }
