@@ -77,6 +77,8 @@ export function FirstPersonController() {
   const tangent = useRef(new Vector3())
   const pathForwardFlat = useRef(new Vector3())
   const look = useRef(new Vector3())
+  const lookDir = useRef(new Vector3())
+  const lastLookDir = useRef(new Vector3(0, 0, -1))
 
   const smoothedRouteT = useRef(0)
   const smoothedOverviewBlend = useRef(0)
@@ -191,7 +193,20 @@ export function FirstPersonController() {
 
     fpTargetPosition.current.set(desiredX, desiredY, desiredZ)
 
-    look.current.copy(tangent.current).normalize().multiplyScalar(LOOK_DISTANCE * walkDir)
+    lookDir.current.copy(tangent.current)
+    if (lookDir.current.lengthSq() > 1e-8) {
+      lookDir.current.normalize()
+    } else {
+      lookDir.current.set(0, 0, -1)
+    }
+    lookDir.current.multiplyScalar(walkDir)
+
+    const hasMotion = prevT != null && Math.abs(deltaT) > 1e-4
+    if (hasMotion || prevT == null) {
+      lastLookDir.current.copy(lookDir.current)
+    }
+
+    look.current.copy(lastLookDir.current).multiplyScalar(LOOK_DISTANCE)
     const lookDownOffset = LOOK_DOWN_OFFSET * (1 - titleMix)
     fpTargetLookAt.current.set(desiredX + look.current.x, desiredY - lookDownOffset, desiredZ + look.current.z)
 
