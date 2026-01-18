@@ -187,9 +187,9 @@ function OverviewPage() {
             <div>Qiran Hu</div>
           </div>
           <div className="mt-4 text-[16px] sm:text-[17px] leading-[1.6] text-white/85 drop-shadow-[0_2px_14px_rgba(0,0,0,0.5)] max-w-[62ch]">
-            I am an applied AI researcher and full-stack software engineer creating new ways for people to interact with AI. I push the frontier of agentic experiences
-            through rapid internal experiments. My focus areas include self-evolving multi-agent architectures, context-aware memory systems, multimodal AI reasoning
-            abilities, and novel human-AI interfaces.
+            I am an applied AI researcher and full-stack software engineer working at the intersection of multi-agent systems and computer vision to build AI that understands,
+            reasons, and coordinates actions in complex visual environments. My research interests include self-evolving multi-agent architectures, context-aware memory systems,
+            multimodal AI reasoning abilities, novel human-AI interfaces, generative world models, spatial intelligence, and evaluation for agentic systems.
           </div>
         </div>
       </div>

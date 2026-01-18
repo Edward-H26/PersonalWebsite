@@ -216,10 +216,19 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
     subheading: "Personal Information",
     cards: [
       {
-        title: "Technical Stacks",
+        title: "Technical Skills",
         bullets: [
-          "Technical Stacks: Python, C++, PostgreSQL, Neo4j, MongoDB, React.js, Typescript.js, Next.js, Angular.js, Vue.js, Javascript, HTML5, Tailwind CSS, Ruby, Java, R, Kotlin, PHP, Cloud DevOps, Unity, SAS, Figma, Canva, Microsoft Office Suites, Adobe Creative Suite, and Arduino UNO",
-          "Language: Chinese (native), English (proficient), Spanish (elementary)"
+          "Programming Languages: Python, C++, Java, Go, R, Ruby, Kotlin, PHP",
+          "AI/ML Frameworks: PyTorch, JAX, TensorFlow, OpenCV, LangChain, LangGraph, LangSmith",
+          "Large Model Training: Distributed Training, RLHF, SFT, CUDA",
+          "3D & Vision: Diffusion Models, NeRF, Spatial Representations, World Models, 3D Annotation Systems",
+          "Multi-agent & Agentic AI: MCP, Tool Calling, Function Chaining, Agent Orchestration, Memory Systems, Multi-turn Reasoning",
+          "Full-stack Development: React.js, Next.js, Vue.js, Angular.js, Node.js, TypeScript, JavaScript, HTML5, Tailwind CSS",
+          "Databases: PostgreSQL, Neo4j, MongoDB",
+          "Infrastructure: Docker, Kubernetes, AWS, Cloud DevOps",
+          "Design and Office Tools: Figma, Canva, Microsoft Office Suites, Adobe Creative Suite",
+          "Other Tools: Unity, SAS, Arduino UNO",
+          "Languages: Chinese (Native), English (Proficient), Spanish (Elementary)"
         ]
       },
       {
