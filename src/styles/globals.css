@@ -455,6 +455,14 @@
     scroll-snap-align: none !important;
   }
 
+  [data-deck-sentinel="true"] .animate-fade-up,
+  [data-deck-sentinel="true"] .animate-fade-in,
+  [data-deck-sentinel="true"] .animate-slide-left,
+  [data-deck-sentinel="true"] .animate-slide-right,
+  [data-deck-sentinel="true"] .animate-blur {
+    animation: none !important;
+  }
+
   .animation-delay-500 {
     animation-delay: 0.5s;
   }
