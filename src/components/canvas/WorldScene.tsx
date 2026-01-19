@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
+import { Suspense, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Canvas, useLoader, useThree } from "@react-three/fiber"
 import { Cloud, Clouds, Preload, useGLTF, useProgress, useTexture } from "@react-three/drei"
 import * as THREE from "three"
@@ -112,10 +112,6 @@ function WorldContent({
 }) {
   const showProps = true
   const overviewBlend = useWorldStore((state) => state.overviewBlend)
-  const isEarthTexturedReady = useWorldStore((state) => state.isEarthTexturedReady)
-  const isLoadingActive = useProgress((state) => state.active)
-  const loadingProgress = useProgress((state) => state.progress)
-
   const shadowMapSize = qualityTier === "medium" ? 384 : 512
   const sunLightPosition = useMemo<[number, number, number]>(() => {
     const phi = THREE.MathUtils.degToRad(90 - SUN_ELEVATION)
@@ -226,7 +222,7 @@ function WorldContent({
 
       <EarthIsland showProps={showProps} />
 
-      {isEarthTexturedReady && loadingProgress >= 100 && !isLoadingActive ? <Preload all /> : null}
+      <Preload all />
     </>
   )
 }
@@ -239,15 +235,14 @@ export function WorldScene({
   const qualityTier = useQualityTier()
   const maxDpr = qualityTier === "low" ? 1 : qualityTier === "medium" ? 1.1 : 1.25
   const enableShadows = qualityTier !== "low"
-  const isEarthTexturedReady = useWorldStore((state) => state.isEarthTexturedReady)
   const setLoaderBypassed = useWorldStore((state) => state.setLoaderBypassed)
   const setLoadingOverlayVisible = useWorldStore((state) => state.setLoadingOverlayVisible)
   const isLoadingActive = useProgress((state) => state.active)
   const loadingProgress = useProgress((state) => state.progress)
+  const loadingLoaded = useProgress((state) => state.loaded)
+  const loadingTotal = useProgress((state) => state.total)
   const loadingErrors = useProgress((state) => state.errors)
 
-  const [isFirstFrameReady, setIsFirstFrameReady] = useState(false)
-  const hasReadyFiredRef = useRef(false)
   const [enableIntroVideo, setEnableIntroVideo] = useState(false)
   const [didVideoFail, setDidVideoFail] = useState(false)
   const [forceReady, setForceReady] = useState(false)
@@ -256,12 +251,9 @@ export function WorldScene({
   const progressRef = useRef(0)
   const rafProgressRef = useRef<number | null>(null)
   const [displayProgress, setDisplayProgress] = useState(0)
-
-  const markReady = useCallback(() => {
-    if (hasReadyFiredRef.current) return
-    hasReadyFiredRef.current = true
-    setIsFirstFrameReady(true)
-  }, [])
+  const [isFullyLoaded, setIsFullyLoaded] = useState(false)
+  const fullyLoadedRef = useRef(false)
+  const loadCompleteTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -286,12 +278,6 @@ export function WorldScene({
       useLoader.preload(THREE.TextureLoader, tex)
     }
   }, [qualityTier])
-
-  useEffect(() => {
-    if (!isEarthTexturedReady) return
-    if (isLoadingActive) return
-    markReady()
-  }, [isEarthTexturedReady, isLoadingActive, markReady])
 
   useEffect(() => {
     if (!isLoadingActive) {
@@ -320,8 +306,7 @@ export function WorldScene({
     return () => window.clearInterval(intervalId)
   }, [isLoadingActive, loadingErrors.length, loadingProgress, setLoaderBypassed])
 
-  const shouldHideOverlay = isFirstFrameReady || forceReady
-  const showOverlay = !shouldHideOverlay
+  const showOverlay = !isFullyLoaded
 
   const clampedProgress = Math.max(0, Math.min(100, loadingProgress))
   const targetProgress = forceReady ? 100 : clampedProgress
@@ -331,6 +316,28 @@ export function WorldScene({
     progressRef.current = 0
     setDisplayProgress(0)
   }, [isLoadingActive])
+
+  useEffect(() => {
+    if (fullyLoadedRef.current) return
+    const isLoadComplete =
+      loadingTotal > 0 &&
+      loadingLoaded >= loadingTotal &&
+      !isLoadingActive &&
+      loadingProgress >= 100
+    if (!isLoadComplete) {
+      if (loadCompleteTimerRef.current != null) {
+        window.clearTimeout(loadCompleteTimerRef.current)
+        loadCompleteTimerRef.current = null
+      }
+      return
+    }
+    if (loadCompleteTimerRef.current != null) return
+    loadCompleteTimerRef.current = window.setTimeout(() => {
+      fullyLoadedRef.current = true
+      setIsFullyLoaded(true)
+      loadCompleteTimerRef.current = null
+    }, 500)
+  }, [isLoadingActive, loadingLoaded, loadingProgress, loadingTotal])
 
   useEffect(() => {
     setLoadingOverlayVisible(showOverlay)
