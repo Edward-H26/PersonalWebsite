@@ -136,6 +136,7 @@ export function useScrollSnapNavigation() {
   const wrapEasing = 0.2
 
   const sectionRanges = useMemo(() => getSectionRanges(pages), [pages])
+  const overviewTargetIndex = overviewIndex >= 0 ? overviewIndex : firstRealIndex
 
   useEffect(() => {
     return () => {
@@ -586,6 +587,15 @@ export function useScrollSnapNavigation() {
         return
       }
     }
+    if (!hasSentinels && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
+      const wantsWrapToOverview = index === lastRealIndex && isAtBottomEdge && deltaScrollTop > 0
+      if (wantsWrapToOverview) {
+        scrollDirLockRef.current = null
+        useWorldStore.getState().setTravelDir(1)
+        startWrapRef.current(overviewTargetIndex)
+        return
+      }
+    }
 
     if (isWrapZone) {
       const wrapT = isTopWrapZone
@@ -966,11 +976,25 @@ export function useScrollSnapNavigation() {
         useWorldStore.getState().setTravelDir(1)
         startWrapRef.current(firstRealIndex)
       }
+      if (!hasSentinels && idx === lastRealIndex && isAtBottomEdge && e.deltaY > 0) {
+        e.preventDefault()
+        scrollDirLockRef.current = null
+        useWorldStore.getState().setTravelDir(1)
+        startWrapRef.current(overviewTargetIndex)
+      }
     }
 
     el.addEventListener("wheel", onWheel, { passive: false })
     return () => el.removeEventListener("wheel", onWheel)
-  }, [firstRealIndex, hasSentinels, lastRealIndex, pages.length, sentinelBottomIndex, sentinelTopIndex])
+  }, [
+    firstRealIndex,
+    hasSentinels,
+    lastRealIndex,
+    overviewTargetIndex,
+    pages.length,
+    sentinelBottomIndex,
+    sentinelTopIndex
+  ])
 
   useEffect(() => {
     const handleResize = () => {
