@@ -80,7 +80,14 @@ export function buildScrollDeckPages(): ScrollDeckPage[] {
     }
   }
 
-  return corePages
+  const lastPage = corePages[corePages.length - 1]
+  const firstPage = corePages[0]
+
+  return [
+    { key: "sentinel-top", kind: "sentinel", section: lastPage.section, renderAsKey: lastPage.key },
+    ...corePages,
+    { key: "sentinel-bottom", kind: "sentinel", section: firstPage.section, renderAsKey: firstPage.key }
+  ]
 }
 
 const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
@@ -300,5 +307,4 @@ export const ScrollDeck = forwardRef<HTMLDivElement, { pages: ScrollDeckPage[]; 
     </div>
   )
 })
-
 
