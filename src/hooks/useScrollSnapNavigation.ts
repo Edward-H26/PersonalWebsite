@@ -249,30 +249,6 @@ export function useScrollSnapNavigation() {
       // #endregion agent log
     }
     const page = pages[index]
-    if (index === sentinelTopIndex || index === firstRealIndex || index === lastRealIndex || index === sentinelBottomIndex) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H33",
-          location: "useScrollSnapNavigation.ts:syncFromScroll",
-          message: "Edge page snapshot",
-          data: {
-            index,
-            pageKind: page.kind,
-            renderAsKey: page.kind === "sentinel" ? page.renderAsKey : null,
-            pagePos,
-            scrollTop: el.scrollTop,
-            isWrapZone
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
 
     const isSettledOnSnap = isNearSnap(el.scrollTop, index, height)
     const maxScrollTop = Math.max(0, el.scrollHeight - height)
@@ -551,6 +527,30 @@ export function useScrollSnapNavigation() {
     const isBottomWrapZone = pagePos > lastRealIndex
     const isWrapZone = isTopWrapZone || isBottomWrapZone
     const overviewPos = overviewIndex >= 0 ? overviewIndex : firstRealIndex
+    if (index === sentinelTopIndex || index === firstRealIndex || index === lastRealIndex || index === sentinelBottomIndex) {
+      // #region agent log
+      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: "debug-session",
+          runId: "post-fix",
+          hypothesisId: "H33",
+          location: "useScrollSnapNavigation.ts:syncFromScroll",
+          message: "Edge page snapshot",
+          data: {
+            index,
+            pageKind: page.kind,
+            renderAsKey: page.kind === "sentinel" ? page.renderAsKey : null,
+            pagePos,
+            scrollTop: el.scrollTop,
+            isWrapZone
+          },
+          timestamp: Date.now()
+        })
+      }).catch(() => {})
+      // #endregion agent log
+    }
 
     if (!isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
       const preWrapThreshold = 0.08
