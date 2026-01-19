@@ -129,6 +129,9 @@ export function useScrollSnapNavigation() {
   const sentinelBottomIndex = pages.length - 1
   const firstRealIndex = 1
   const lastRealIndex = pages.length - 2
+  const defaultWrapCooldownMs = 380
+  const overviewWrapCooldownMs = 650
+  const wrapEasing = 0.2
 
   const sectionRanges = useMemo(() => getSectionRanges(pages), [pages])
 
@@ -259,6 +262,12 @@ export function useScrollSnapNavigation() {
     const prevScrollTop = lastScrollTopRef.current
     const deltaScrollTop = prevScrollTop != null ? el.scrollTop - prevScrollTop : 0
     const distToSnap = Math.abs(el.scrollTop - index * height)
+    const isRecentOverviewWrap = index === firstRealIndex && now - lastWrapEndedAtMs.current < overviewWrapCooldownMs
+    if (isRecentOverviewWrap && distToSnap > 0.5) {
+      const targetTop = index * height
+      el.scrollTop = targetTop
+      lastScrollTopRef.current = targetTop
+    }
     if (isSettledOnSnap && Math.abs(deltaScrollTop) > 1.5) {
       // #region agent log
       fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
@@ -738,7 +747,7 @@ export function useScrollSnapNavigation() {
       const isNearTarget = isNearSnap(el.scrollTop, wrapTargetIndexRef.current, height)
       if (!isNearTarget) {
         isProgrammaticJumpRef.current = true
-        const nextTop = el.scrollTop + (targetTop - el.scrollTop) * 0.28
+        const nextTop = el.scrollTop + (targetTop - el.scrollTop) * wrapEasing
         el.scrollTop = nextTop
         lastScrollTopRef.current = nextTop
         // #region agent log
@@ -768,7 +777,9 @@ export function useScrollSnapNavigation() {
       isProgrammaticJumpRef.current = false
       wrapTargetIndexRef.current = null
       lastWrapEndedAtMs.current = performance.now()
-      wrapCooldownUntilMs.current = lastWrapEndedAtMs.current + 380
+      const cooldownMs =
+        lastWrapTargetIndexRef.current === firstRealIndex ? overviewWrapCooldownMs : defaultWrapCooldownMs
+      wrapCooldownUntilMs.current = lastWrapEndedAtMs.current + cooldownMs
       // #region agent log
       fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
         method: "POST",
@@ -883,7 +894,7 @@ export function useScrollSnapNavigation() {
 
       const height = Math.max(1, el.clientHeight)
       const idx = clampInt(Math.round(el.scrollTop / height), 0, pages.length - 1)
-      const recentWrap = now - lastWrapEndedAtMs.current < 650
+      const recentWrap = now - lastWrapEndedAtMs.current < overviewWrapCooldownMs
       if (idx === firstRealIndex && recentWrap) {
         e.preventDefault()
         const targetTop = idx * height

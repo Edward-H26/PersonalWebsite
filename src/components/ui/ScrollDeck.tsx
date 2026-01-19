@@ -264,7 +264,7 @@ export const ScrollDeck = forwardRef<HTMLDivElement, { pages: ScrollDeckPage[]; 
   }, [pages])
 
   const deckClassName = scrollLocked
-    ? "fixed inset-0 overflow-y-hidden overscroll-contain scroll-snap-type-y-mandatory z-[170] pointer-events-none"
+    ? "fixed inset-0 overflow-y-hidden overscroll-none scroll-snap-type-y-mandatory z-[170] pointer-events-none touch-none"
     : "fixed inset-0 overflow-y-auto overscroll-contain scroll-snap-type-y-mandatory z-[170]"
 
   return (

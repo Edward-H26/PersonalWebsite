@@ -241,6 +241,7 @@ export function WorldScene({
   const enableShadows = qualityTier !== "low"
   const isEarthTexturedReady = useWorldStore((state) => state.isEarthTexturedReady)
   const setLoaderBypassed = useWorldStore((state) => state.setLoaderBypassed)
+  const setLoadingOverlayVisible = useWorldStore((state) => state.setLoadingOverlayVisible)
   const isLoadingActive = useProgress((state) => state.active)
   const loadingProgress = useProgress((state) => state.progress)
   const loadingErrors = useProgress((state) => state.errors)
@@ -330,6 +331,10 @@ export function WorldScene({
     progressRef.current = 0
     setDisplayProgress(0)
   }, [isLoadingActive])
+
+  useEffect(() => {
+    setLoadingOverlayVisible(showOverlay)
+  }, [setLoadingOverlayVisible, showOverlay])
 
   useEffect(() => {
     if (!showOverlay) {
