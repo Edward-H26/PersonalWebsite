@@ -125,10 +125,12 @@ export function useScrollSnapNavigation() {
     sectionRef.current = section
   }, [section])
 
+  const hasSentinels =
+    pages.length > 2 && pages[0]?.kind === "sentinel" && pages[pages.length - 1]?.kind === "sentinel"
   const sentinelTopIndex = 0
   const sentinelBottomIndex = pages.length - 1
-  const firstRealIndex = 1
-  const lastRealIndex = pages.length - 2
+  const firstRealIndex = hasSentinels ? 1 : 0
+  const lastRealIndex = hasSentinels ? pages.length - 2 : pages.length - 1
   const defaultWrapCooldownMs = 380
   const overviewWrapCooldownMs = 650
   const wrapEasing = 0.2
@@ -534,7 +536,7 @@ export function useScrollSnapNavigation() {
     const store = useWorldStore.getState()
     const isTopWrapZone = pagePos < firstRealIndex
     const isBottomWrapZone = pagePos > lastRealIndex
-    const isWrapZone = isTopWrapZone || isBottomWrapZone
+    const isWrapZone = hasSentinels && (isTopWrapZone || isBottomWrapZone)
     const overviewPos = overviewIndex >= 0 ? overviewIndex : firstRealIndex
     if (index === sentinelTopIndex || index === firstRealIndex || index === lastRealIndex || index === sentinelBottomIndex) {
       // #region agent log
@@ -561,7 +563,7 @@ export function useScrollSnapNavigation() {
       // #endregion agent log
     }
 
-    if (!isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
+    if (hasSentinels && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
       const preWrapThreshold = 0.08
       const wantsWrapUp =
         (scrollDirLockRef.current === -1 || deltaScrollTop < 0) &&
@@ -653,7 +655,7 @@ export function useScrollSnapNavigation() {
       }
     }
 
-    if (!isProgrammaticJumpRef.current) {
+    if (hasSentinels && !isProgrammaticJumpRef.current) {
       const shouldWrapFromTop = index === sentinelTopIndex && (isSettledOnSnap || isAtTopEdge)
       if (shouldWrapFromTop) {
         scrollDirLockRef.current = null
@@ -672,6 +674,7 @@ export function useScrollSnapNavigation() {
     }
   }, [
     firstRealIndex,
+    hasSentinels,
     lastRealIndex,
     overviewIndex,
     pages,
@@ -949,7 +952,7 @@ export function useScrollSnapNavigation() {
       const isAtTopEdge = el.scrollTop <= edgeEpsilonPx
       const isAtBottomEdge = el.scrollTop >= maxScrollTop - edgeEpsilonPx
 
-      if (idx === sentinelTopIndex && isAtTopEdge && e.deltaY < 0) {
+      if (hasSentinels && idx === sentinelTopIndex && isAtTopEdge && e.deltaY < 0) {
         e.preventDefault()
         scrollDirLockRef.current = null
         useWorldStore.getState().setTravelDir(-1)
@@ -957,7 +960,7 @@ export function useScrollSnapNavigation() {
         return
       }
 
-      if (idx === sentinelBottomIndex && isAtBottomEdge && e.deltaY > 0) {
+      if (hasSentinels && idx === sentinelBottomIndex && isAtBottomEdge && e.deltaY > 0) {
         e.preventDefault()
         scrollDirLockRef.current = null
         useWorldStore.getState().setTravelDir(1)
@@ -967,7 +970,7 @@ export function useScrollSnapNavigation() {
 
     el.addEventListener("wheel", onWheel, { passive: false })
     return () => el.removeEventListener("wheel", onWheel)
-  }, [firstRealIndex, lastRealIndex, pages.length, sentinelBottomIndex, sentinelTopIndex])
+  }, [firstRealIndex, hasSentinels, lastRealIndex, pages.length, sentinelBottomIndex, sentinelTopIndex])
 
   useEffect(() => {
     const handleResize = () => {
