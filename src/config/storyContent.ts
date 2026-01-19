@@ -205,7 +205,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         ]
       },
       {
-        title: "A Spatial-Temporal Awareness Data-Oriented Model for Emergency Crowd Evaluation Route Planning",
+        title: "A Spatial-Temporal Awareness Data-Oriented Model for Emergency Crowd Evacuation Route Planning",
         subtitle: "Project Researcher, Chinese Academy of Sciences",
         date: "2024.05-2024.06",
         bullets: [
