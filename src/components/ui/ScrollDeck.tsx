@@ -80,14 +80,7 @@ export function buildScrollDeckPages(): ScrollDeckPage[] {
     }
   }
 
-  const lastCore = corePages[corePages.length - 1]
-  const firstCore = corePages[0]
-
-  return [
-    { key: "sentinel-top", kind: "sentinel", section: lastCore.section, renderAsKey: lastCore.key },
-    ...corePages,
-    { key: "sentinel-bottom", kind: "sentinel", section: firstCore.section, renderAsKey: firstCore.key }
-  ]
+  return corePages
 }
 
 const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
