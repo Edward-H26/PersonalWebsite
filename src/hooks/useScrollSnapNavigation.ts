@@ -109,6 +109,7 @@ export function useScrollSnapNavigation() {
   const settledSnapCountRef = useRef(0)
   const lastSnapIndexRef = useRef<number | null>(null)
   const lastCorrectedIndexRef = useRef<number | null>(null)
+  const edgeArmedRef = useRef({ top: false, bottom: false })
   const suppressTravelDirUpdateRef = useRef(false)
   const syncFromScrollRef = useRef<() => void>(() => {})
   const startWrapRef = useRef<(targetIndex: number) => void>(() => {})
@@ -411,6 +412,11 @@ export function useScrollSnapNavigation() {
       lastSnapIndexRef.current = null
     }
 
+    if (isSettledOnSnap) {
+      edgeArmedRef.current.top = index === firstRealIndex
+      edgeArmedRef.current.bottom = index === lastRealIndex
+    }
+
     lastScrollTopRef.current = el.scrollTop
 
     const shouldUpdateTravelDir = !isProgrammaticJumpRef.current && !suppressTravelDirUpdateRef.current
@@ -564,39 +570,21 @@ export function useScrollSnapNavigation() {
       // #endregion agent log
     }
 
-    if (!isProgrammaticJumpRef.current && !wrapInProgressRef.current && now > wrapCooldownUntilMs.current) {
-      const wantsLoopUp =
-        (scrollDirLockRef.current === -1 || deltaScrollTop < 0) &&
-        isNearSnap(el.scrollTop, firstRealIndex, height)
-      if (wantsLoopUp) {
-        scrollDirLockRef.current = null
-        store.setTravelDir(-1)
-        startWrapRef.current(lastRealIndex)
-        return
-      }
-
-      const wantsLoopDown =
-        (scrollDirLockRef.current === 1 || deltaScrollTop > 0) &&
-        isNearSnap(el.scrollTop, lastRealIndex, height)
-      if (wantsLoopDown) {
-        scrollDirLockRef.current = null
-        store.setTravelDir(1)
-        startWrapRef.current(overviewTargetIndex)
-        return
-      }
-    }
-
     if (hasSentinels && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
       const preWrapThreshold = 0.08
       const wantsWrapUp =
-        (scrollDirLockRef.current === -1 || deltaScrollTop < 0) &&
-        (index === sentinelTopIndex || pagePos <= sentinelTopIndex + preWrapThreshold)
+        edgeArmedRef.current.top &&
+        (scrollDirLockRef.current === -1 || deltaScrollTop < 0 || lastDeltaSignRef.current < 0) &&
+        pagePos <= firstRealIndex - preWrapThreshold
       const wantsWrapDown =
-        (scrollDirLockRef.current === 1 || deltaScrollTop > 0) &&
-        (index === sentinelBottomIndex || pagePos >= sentinelBottomIndex - preWrapThreshold)
+        edgeArmedRef.current.bottom &&
+        (scrollDirLockRef.current === 1 || deltaScrollTop > 0 || lastDeltaSignRef.current > 0) &&
+        pagePos >= lastRealIndex + preWrapThreshold
 
       if (wantsWrapUp) {
         scrollDirLockRef.current = null
+        edgeArmedRef.current.top = false
+        edgeArmedRef.current.bottom = false
         store.setTravelDir(-1)
         startWrapRef.current(lastRealIndex)
         return
@@ -604,6 +592,8 @@ export function useScrollSnapNavigation() {
 
       if (wantsWrapDown) {
         scrollDirLockRef.current = null
+        edgeArmedRef.current.top = false
+        edgeArmedRef.current.bottom = false
         store.setTravelDir(1)
         startWrapRef.current(overviewTargetIndex)
         return
@@ -687,23 +677,6 @@ export function useScrollSnapNavigation() {
       }
     }
 
-    if (hasSentinels && !isProgrammaticJumpRef.current) {
-      const shouldWrapFromTop = index === sentinelTopIndex && (isSettledOnSnap || isAtTopEdge)
-      if (shouldWrapFromTop) {
-        scrollDirLockRef.current = null
-        store.setTravelDir(-1)
-        startWrapRef.current(lastRealIndex)
-        return
-      }
-
-      const shouldWrapFromBottom = index === sentinelBottomIndex && (isSettledOnSnap || isAtBottomEdge)
-      if (shouldWrapFromBottom) {
-        scrollDirLockRef.current = null
-        store.setTravelDir(1)
-        startWrapRef.current(firstRealIndex)
-        return
-      }
-    }
   }, [
     firstRealIndex,
     hasSentinels,
