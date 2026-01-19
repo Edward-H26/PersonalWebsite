@@ -110,6 +110,9 @@ export function useScrollSnapNavigation() {
   const lastSnapIndexRef = useRef<number | null>(null)
   const lastCorrectedIndexRef = useRef<number | null>(null)
   const edgeArmedRef = useRef({ top: false, bottom: false })
+  const edgeArmedAtMsRef = useRef<number | null>(null)
+  const edgeArmRequestedRef = useRef(false)
+  const lastUserScrollAtRef = useRef(0)
   const suppressTravelDirUpdateRef = useRef(false)
   const syncFromScrollRef = useRef<() => void>(() => {})
   const startWrapRef = useRef<(targetIndex: number) => void>(() => {})
@@ -412,9 +415,19 @@ export function useScrollSnapNavigation() {
       lastSnapIndexRef.current = null
     }
 
+    const edgeArmRequested = edgeArmRequestedRef.current
     if (isSettledOnSnap) {
-      edgeArmedRef.current.top = index === firstRealIndex
-      edgeArmedRef.current.bottom = index === lastRealIndex
+      const atTopEdge = index === firstRealIndex
+      const atBottomEdge = index === lastRealIndex
+      edgeArmedRef.current.top = atTopEdge
+      edgeArmedRef.current.bottom = atBottomEdge
+      if (edgeArmRequested && (atTopEdge || atBottomEdge)) {
+        edgeArmedAtMsRef.current = now
+        edgeArmRequestedRef.current = false
+      } else if (!atTopEdge && !atBottomEdge) {
+        edgeArmedAtMsRef.current = null
+        edgeArmRequestedRef.current = false
+      }
     }
 
     lastScrollTopRef.current = el.scrollTop
@@ -572,12 +585,16 @@ export function useScrollSnapNavigation() {
 
     if (hasSentinels && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
       const preWrapThreshold = 0.08
+      const edgeArmedAtMs = edgeArmedAtMsRef.current
+      const hasFreshUserInput = edgeArmedAtMs != null && lastUserScrollAtRef.current > edgeArmedAtMs
       const wantsWrapUp =
         edgeArmedRef.current.top &&
+        hasFreshUserInput &&
         (scrollDirLockRef.current === -1 || deltaScrollTop < 0 || lastDeltaSignRef.current < 0) &&
         pagePos <= firstRealIndex - preWrapThreshold
       const wantsWrapDown =
         edgeArmedRef.current.bottom &&
+        hasFreshUserInput &&
         (scrollDirLockRef.current === 1 || deltaScrollTop > 0 || lastDeltaSignRef.current > 0) &&
         pagePos >= lastRealIndex + preWrapThreshold
 
@@ -585,6 +602,7 @@ export function useScrollSnapNavigation() {
         scrollDirLockRef.current = null
         edgeArmedRef.current.top = false
         edgeArmedRef.current.bottom = false
+        edgeArmedAtMsRef.current = null
         store.setTravelDir(-1)
         startWrapRef.current(lastRealIndex)
         return
@@ -594,6 +612,7 @@ export function useScrollSnapNavigation() {
         scrollDirLockRef.current = null
         edgeArmedRef.current.top = false
         edgeArmedRef.current.bottom = false
+        edgeArmedAtMsRef.current = null
         store.setTravelDir(1)
         startWrapRef.current(overviewTargetIndex)
         return
@@ -816,6 +835,7 @@ export function useScrollSnapNavigation() {
     }
     scrollEndTimerRef.current = window.setTimeout(() => {
       scrollEndTimerRef.current = null
+      edgeArmRequestedRef.current = true
       // #region agent log
       fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
         method: "POST",
@@ -899,6 +919,9 @@ export function useScrollSnapNavigation() {
       if (isProgrammaticJumpRef.current) return
       if (wrapInProgressRef.current) return
       if (performance.now() < wrapLockUntilMs.current) return
+      if (Math.abs(e.deltaY) > 0) {
+        lastUserScrollAtRef.current = now
+      }
 
       const height = Math.max(1, el.clientHeight)
       const idx = clampInt(Math.round(el.scrollTop / height), 0, pages.length - 1)
@@ -1006,6 +1029,27 @@ export function useScrollSnapNavigation() {
     sentinelBottomIndex,
     sentinelTopIndex
   ])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const onTouchStart = () => {
+      lastUserScrollAtRef.current = performance.now()
+    }
+
+    const onTouchMove = () => {
+      lastUserScrollAtRef.current = performance.now()
+    }
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true })
+    el.addEventListener("touchmove", onTouchMove, { passive: true })
+
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart)
+      el.removeEventListener("touchmove", onTouchMove)
+    }
+  }, [])
 
   useEffect(() => {
     const handleResize = () => {
