@@ -1,5 +1,4 @@
 import { useEffect } from "react"
-import { useProgress } from "@react-three/drei"
 import { WorldScene } from "@/components/canvas"
 import {
   Navigation,
@@ -15,10 +14,9 @@ import { useScrollSnapNavigation } from "@/hooks/useScrollSnapNavigation"
 function App() {
   const setMousePosition = useWorldStore((state) => state.setMousePosition)
   const isEarthTexturedReady = useWorldStore((state) => state.isEarthTexturedReady)
-  const isLoaderBypassed = useWorldStore((state) => state.isLoaderBypassed)
-  const isLoadingActive = useProgress((state) => state.active)
+  const isLoadingOverlayVisible = useWorldStore((state) => state.isLoadingOverlayVisible)
   const { pages, section, containerRef, scrollToSection } = useScrollSnapNavigation()
-  const scrollLocked = !isEarthTexturedReady || (!isLoaderBypassed && isLoadingActive)
+  const scrollLocked = isLoadingOverlayVisible || !isEarthTexturedReady
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
