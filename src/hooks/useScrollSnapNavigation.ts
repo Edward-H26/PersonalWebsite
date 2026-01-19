@@ -564,6 +564,28 @@ export function useScrollSnapNavigation() {
       // #endregion agent log
     }
 
+    if (!isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
+      const wantsLoopUp =
+        (scrollDirLockRef.current === -1 || deltaScrollTop < 0) &&
+        isNearSnap(el.scrollTop, firstRealIndex, height)
+      if (wantsLoopUp) {
+        scrollDirLockRef.current = null
+        store.setTravelDir(-1)
+        startWrapRef.current(lastRealIndex)
+        return
+      }
+
+      const wantsLoopDown =
+        (scrollDirLockRef.current === 1 || deltaScrollTop > 0) &&
+        isNearSnap(el.scrollTop, lastRealIndex, height)
+      if (wantsLoopDown) {
+        scrollDirLockRef.current = null
+        store.setTravelDir(1)
+        startWrapRef.current(overviewTargetIndex)
+        return
+      }
+    }
+
     if (hasSentinels && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
       const preWrapThreshold = 0.08
       const wantsWrapUp =
@@ -583,7 +605,7 @@ export function useScrollSnapNavigation() {
       if (wantsWrapDown) {
         scrollDirLockRef.current = null
         store.setTravelDir(1)
-        startWrapRef.current(firstRealIndex)
+        startWrapRef.current(overviewTargetIndex)
         return
       }
     }
@@ -957,6 +979,22 @@ export function useScrollSnapNavigation() {
         }).catch(() => {})
         // #endregion agent log
       }
+      const isNearFirstReal = isNearSnap(el.scrollTop, firstRealIndex, height)
+      const isNearLastReal = isNearSnap(el.scrollTop, lastRealIndex, height)
+      if (isNearFirstReal && e.deltaY < 0) {
+        e.preventDefault()
+        scrollDirLockRef.current = null
+        useWorldStore.getState().setTravelDir(-1)
+        startWrapRef.current(lastRealIndex)
+        return
+      }
+      if (isNearLastReal && e.deltaY > 0) {
+        e.preventDefault()
+        scrollDirLockRef.current = null
+        useWorldStore.getState().setTravelDir(1)
+        startWrapRef.current(overviewTargetIndex)
+        return
+      }
       const maxScrollTop = Math.max(0, el.scrollHeight - height)
       const edgeEpsilonPx = 3
       const isAtTopEdge = el.scrollTop <= edgeEpsilonPx
@@ -1043,5 +1081,3 @@ export function useScrollSnapNavigation() {
     scrollToSection
   }
 }
-
-
