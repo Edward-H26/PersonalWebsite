@@ -564,7 +564,7 @@ export function useScrollSnapNavigation() {
       // #endregion agent log
     }
 
-    if (!isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
+    if (!isProgrammaticJumpRef.current && !wrapInProgressRef.current && now > wrapCooldownUntilMs.current) {
       const wantsLoopUp =
         (scrollDirLockRef.current === -1 || deltaScrollTop < 0) &&
         isNearSnap(el.scrollTop, firstRealIndex, height)
