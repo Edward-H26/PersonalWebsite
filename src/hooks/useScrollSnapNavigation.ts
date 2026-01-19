@@ -978,8 +978,12 @@ export function useScrollSnapNavigation() {
       if (!el) return
 
       const height = Math.max(1, el.clientHeight)
-      const idx = clampInt(activeIndexRef.current, 0, pages.length - 1)
-      el.scrollTo({ top: idx * height, behavior: "auto" })
+      const idx = clampInt(Math.round(el.scrollTop / height), 0, pages.length - 1)
+      const targetTop = idx * height
+      if (Math.abs(el.scrollTop - targetTop) > 0.5) {
+        el.scrollTo({ top: targetTop, behavior: "auto" })
+        lastScrollTopRef.current = targetTop
+      }
       syncFromScroll()
     }
 
