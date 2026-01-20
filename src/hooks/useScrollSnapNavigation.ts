@@ -139,6 +139,7 @@ export function useScrollSnapNavigation() {
   const defaultWrapCooldownMs = 380
   const overviewWrapCooldownMs = 650
   const wrapEasing = 0.2
+  const recentUserInputWindowMs = 300
 
   const sectionRanges = useMemo(() => getSectionRanges(pages), [pages])
   const overviewTargetIndex = overviewIndex >= 0 ? overviewIndex : firstRealIndex
@@ -587,7 +588,9 @@ export function useScrollSnapNavigation() {
     if (hasSentinels && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
       const preWrapThreshold = 0.08
       const edgeArmedAtMs = edgeArmedAtMsRef.current
-      const hasFreshUserInput = edgeArmedAtMs != null && lastUserScrollAtRef.current > edgeArmedAtMs
+      const hasRecentUserInput = now - lastUserScrollAtRef.current < recentUserInputWindowMs
+      const hasFreshUserInput =
+        edgeArmedAtMs != null && lastUserScrollAtRef.current > edgeArmedAtMs && hasRecentUserInput
       const wantsWrapUp =
         edgeArmedRef.current.top &&
         hasFreshUserInput &&
@@ -1045,10 +1048,16 @@ export function useScrollSnapNavigation() {
       lastUserScrollAtRef.current = performance.now()
     }
 
+    const onTouchMove = () => {
+      lastUserScrollAtRef.current = performance.now()
+    }
+
     el.addEventListener("touchstart", onTouchStart, { passive: true })
+    el.addEventListener("touchmove", onTouchMove, { passive: true })
 
     return () => {
       el.removeEventListener("touchstart", onTouchStart)
+      el.removeEventListener("touchmove", onTouchMove)
     }
   }, [])
 
