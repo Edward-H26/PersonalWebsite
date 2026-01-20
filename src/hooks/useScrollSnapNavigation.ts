@@ -113,6 +113,7 @@ export function useScrollSnapNavigation() {
   const edgeArmedAtMsRef = useRef<number | null>(null)
   const edgeArmRequestedRef = useRef(false)
   const lastUserScrollAtRef = useRef(0)
+  const lastWheelEventAtRef = useRef(0)
   const suppressTravelDirUpdateRef = useRef(false)
   const syncFromScrollRef = useRef<() => void>(() => {})
   const startWrapRef = useRef<(targetIndex: number) => void>(() => {})
@@ -867,6 +868,7 @@ export function useScrollSnapNavigation() {
 
     const height = Math.max(1, el.clientHeight)
     el.scrollTo({ top: firstRealIndex * height, behavior: "auto" })
+    edgeArmRequestedRef.current = true
     syncFromScroll()
   }, [firstRealIndex, syncFromScroll])
 
@@ -884,6 +886,9 @@ export function useScrollSnapNavigation() {
 
     const onWheel = (e: WheelEvent) => {
       const now = performance.now()
+      const prevWheelAt = lastWheelEventAtRef.current
+      const isNewWheelBurst = now - prevWheelAt > 180
+      lastWheelEventAtRef.current = now
       const wrapLockedIndex =
         now < wrapCooldownUntilMs.current ? lastWrapTargetIndexRef.current : wrapTargetIndexRef.current
       if ((wrapTargetIndexRef.current != null && now < wrapLockUntilMs.current) || now < wrapCooldownUntilMs.current) {
@@ -919,7 +924,7 @@ export function useScrollSnapNavigation() {
       if (isProgrammaticJumpRef.current) return
       if (wrapInProgressRef.current) return
       if (performance.now() < wrapLockUntilMs.current) return
-      if (Math.abs(e.deltaY) > 0) {
+      if (Math.abs(e.deltaY) > 0 && isNewWheelBurst) {
         lastUserScrollAtRef.current = now
       }
 
@@ -977,14 +982,16 @@ export function useScrollSnapNavigation() {
       }
       const isNearFirstReal = isNearSnap(el.scrollTop, firstRealIndex, height)
       const isNearLastReal = isNearSnap(el.scrollTop, lastRealIndex, height)
-      if (isNearFirstReal && e.deltaY < 0) {
+      const edgeArmedAtMs = edgeArmedAtMsRef.current
+      const canEdgeWrap = edgeArmedAtMs != null && isNewWheelBurst && now >= edgeArmedAtMs
+      if (isNearFirstReal && e.deltaY < 0 && canEdgeWrap) {
         e.preventDefault()
         scrollDirLockRef.current = null
         useWorldStore.getState().setTravelDir(-1)
         startWrapRef.current(lastRealIndex)
         return
       }
-      if (isNearLastReal && e.deltaY > 0) {
+      if (isNearLastReal && e.deltaY > 0 && canEdgeWrap) {
         e.preventDefault()
         scrollDirLockRef.current = null
         useWorldStore.getState().setTravelDir(1)
@@ -1038,16 +1045,10 @@ export function useScrollSnapNavigation() {
       lastUserScrollAtRef.current = performance.now()
     }
 
-    const onTouchMove = () => {
-      lastUserScrollAtRef.current = performance.now()
-    }
-
     el.addEventListener("touchstart", onTouchStart, { passive: true })
-    el.addEventListener("touchmove", onTouchMove, { passive: true })
 
     return () => {
       el.removeEventListener("touchstart", onTouchStart)
-      el.removeEventListener("touchmove", onTouchMove)
     }
   }, [])
 
