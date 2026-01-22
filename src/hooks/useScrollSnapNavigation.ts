@@ -915,35 +915,48 @@ export function useScrollSnapNavigation() {
       lastWheelEventAtRef.current = now
       const wrapLockedIndex =
         now < wrapCooldownUntilMs.current ? lastWrapTargetIndexRef.current : wrapTargetIndexRef.current
-      if ((wrapTargetIndexRef.current != null && now < wrapLockUntilMs.current) || now < wrapCooldownUntilMs.current) {
-        e.preventDefault()
+      const isWrapLocked = wrapTargetIndexRef.current != null && now < wrapLockUntilMs.current
+      const isInWrapCooldown = now < wrapCooldownUntilMs.current && lastWrapTargetIndexRef.current != null
+      if (isWrapLocked || isInWrapCooldown) {
         const height = Math.max(1, el.clientHeight)
         const idx = wrapLockedIndex ?? clampInt(Math.round(el.scrollTop / height), 0, pages.length - 1)
-        const targetTop = idx * height
-        if (Math.abs(el.scrollTop - targetTop) > 0.5) {
-          el.scrollTop = targetTop
-          lastScrollTopRef.current = targetTop
+        const canBreakCooldown =
+          !isWrapLocked &&
+          isInWrapCooldown &&
+          isNewWheelBurst &&
+          Math.abs(e.deltaY) > 0 &&
+          idx === lastWrapTargetIndexRef.current
+        if (canBreakCooldown) {
+          wrapCooldownUntilMs.current = now
+          lastWrapTargetIndexRef.current = null
+        } else {
+          e.preventDefault()
+          const targetTop = idx * height
+          if (Math.abs(el.scrollTop - targetTop) > 0.5) {
+            el.scrollTop = targetTop
+            lastScrollTopRef.current = targetTop
+          }
+          // #region agent log
+          fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId: "debug-session",
+              runId: "post-fix",
+              hypothesisId: "H9",
+              location: "useScrollSnapNavigation.ts:onWheel",
+              message: "Wheel suppressed during wrap cooldown",
+              data: {
+                scrollTop: el.scrollTop,
+                wrapLockedIndex,
+                wrapCooldownUntilMs: wrapCooldownUntilMs.current
+              },
+              timestamp: Date.now()
+            })
+          }).catch(() => {})
+          // #endregion agent log
+          return
         }
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H9",
-            location: "useScrollSnapNavigation.ts:onWheel",
-            message: "Wheel suppressed during wrap cooldown",
-            data: {
-              scrollTop: el.scrollTop,
-              wrapLockedIndex,
-              wrapCooldownUntilMs: wrapCooldownUntilMs.current
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-        return
       }
       if (isProgrammaticJumpRef.current) return
       if (wrapInProgressRef.current) return
@@ -955,7 +968,7 @@ export function useScrollSnapNavigation() {
       const height = Math.max(1, el.clientHeight)
       const idx = clampInt(Math.round(el.scrollTop / height), 0, pages.length - 1)
       const recentWrap = now - lastWrapEndedAtMs.current < overviewWrapCooldownMs
-      if (idx === firstRealIndex && recentWrap) {
+      if (idx === firstRealIndex && recentWrap && !isNewWheelBurst) {
         e.preventDefault()
         const targetTop = idx * height
         if (Math.abs(el.scrollTop - targetTop) > 0.5) {
