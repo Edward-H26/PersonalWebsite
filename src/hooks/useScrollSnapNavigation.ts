@@ -206,7 +206,6 @@ export function useScrollSnapNavigation() {
     const isSettledOnSnap = isNearSnap(el.scrollTop, index, height)
     const maxScrollTop = Math.max(0, el.scrollHeight - height)
     const edgeEpsilonPx = 3
-    const isAtTopEdge = el.scrollTop <= edgeEpsilonPx
     const isAtBottomEdge = el.scrollTop >= maxScrollTop - edgeEpsilonPx
 
     const prevScrollTop = lastScrollTopRef.current
@@ -295,7 +294,6 @@ export function useScrollSnapNavigation() {
 
     const nextSection = page.section
     if (nextSection !== sectionRef.current) {
-      const prevSection = sectionRef.current
       sectionRef.current = nextSection
       setSection(nextSection)
     }
@@ -419,8 +417,6 @@ export function useScrollSnapNavigation() {
     if (now < wrapCooldownUntilMs.current && lastWrapTargetIndexRef.current != null) {
       const height = Math.max(1, el.clientHeight)
       const targetTop = lastWrapTargetIndexRef.current * height
-      const prevScrollTop = lastScrollTopRef.current
-      const deltaScrollTop = prevScrollTop != null ? el.scrollTop - prevScrollTop : 0
       if (Math.abs(el.scrollTop - targetTop) > 0.5) {
         el.scrollTop = targetTop
         lastScrollTopRef.current = targetTop

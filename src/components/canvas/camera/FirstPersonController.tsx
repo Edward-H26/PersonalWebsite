@@ -179,7 +179,6 @@ export function FirstPersonController() {
 
     pathCurve.getPointAt(pathT, point.current)
     pathCurve.getTangentAt(pathT, tangent.current)
-    const tangentLenSq = tangent.current.lengthSq()
 
     pathForwardFlat.current.copy(tangent.current)
     pathForwardFlat.current.y = 0
