@@ -1292,8 +1292,8 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
 
     const instances: Array<{ position: [number, number, number]; rotation: [number, number, number]; scale: number }> = []
     const count = 10
-    const publicationsStartT = EARTH_SECTION_T_STOPS[1]
-    const publicationsEndT = EARTH_SECTION_T_STOPS[2]
+    const publicationsStartT = EARTH_SECTION_T_STOPS[3]
+    const publicationsEndT = EARTH_SECTION_T_STOPS[4]
 
     const point = new THREE.Vector3()
     const tangent = new THREE.Vector3()
@@ -1380,8 +1380,8 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
     const perp = new THREE.Vector3()
     const sideVec = new THREE.Vector3()
 
-    const startT = EARTH_SECTION_T_STOPS[1] + 0.04
-    const endT = EARTH_SECTION_T_STOPS[2] - 0.04
+    const startT = EARTH_SECTION_T_STOPS[3] + 0.04
+    const endT = EARTH_SECTION_T_STOPS[4] - 0.04
 
     for (let i = 0; i < count; i += 1) {
       const u = count <= 1 ? 0.5 : i / (count - 1)
@@ -1419,8 +1419,8 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
     const perp = new THREE.Vector3()
     const sideVec = new THREE.Vector3()
 
-    const startT = EARTH_SECTION_T_STOPS[3] + 0.04
-    const endT = EARTH_SECTION_T_STOPS[4] - 0.05
+    const startT = EARTH_SECTION_T_STOPS[2] + 0.04
+    const endT = EARTH_SECTION_T_STOPS[3] - 0.05
     const pathClearance = PATH_WIDTH / 2 + 6.5
 
     for (let i = 0; i < count; i += 1) {
@@ -1462,8 +1462,8 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
     const perp = new THREE.Vector3()
     const sideVec = new THREE.Vector3()
 
-    const startT = EARTH_SECTION_T_STOPS[3] + 0.03
-    const endT = EARTH_SECTION_T_STOPS[4] - 0.03
+    const startT = EARTH_SECTION_T_STOPS[2] + 0.03
+    const endT = EARTH_SECTION_T_STOPS[3] - 0.03
 
     for (let i = 0; i < count; i += 1) {
       const u = count <= 1 ? 0.5 : i / (count - 1)
@@ -1599,5 +1599,4 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
     </group>
   )
 }
-
 

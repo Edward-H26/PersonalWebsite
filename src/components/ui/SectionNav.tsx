@@ -1,8 +1,8 @@
 const sections: { title: string; section: number }[] = [
   { title: "Research", section: 1 },
-  { title: "Publications", section: 2 },
-  { title: "Experience", section: 3 },
-  { title: "Project", section: 4 },
+  { title: "Experience", section: 2 },
+  { title: "Project", section: 3 },
+  { title: "Publications", section: 4 },
   { title: "Info", section: 5 }
 ]
 

@@ -4,9 +4,9 @@ import { useReducedMotion } from "@/hooks/useReducedMotion"
 const navItems = [
   { label: "OVERVIEW", section: 0 },
   { label: "RESEARCH", section: 1 },
-  { label: "PUBLICATIONS", section: 2 },
-  { label: "EXPERIENCE", section: 3 },
-  { label: "PROJECT", section: 4 },
+  { label: "EXPERIENCE", section: 2 },
+  { label: "PROJECT", section: 3 },
+  { label: "PUBLICATIONS", section: 4 },
   { label: "INFO", section: 5 },
 ]
 
