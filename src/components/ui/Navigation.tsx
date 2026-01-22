@@ -30,7 +30,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
 
   const navClass = `
     fixed top-6 left-1/2 -translate-x-1/2 z-[320] pointer-events-auto
-    nav-glass w-[64vw] sm:w-auto px-3 sm:px-6 py-2 sm:py-3 max-w-[64vw] sm:max-w-none overflow-x-hidden overflow-y-hidden
+    nav-glass w-[88vw] sm:w-auto px-3 sm:px-6 py-2 sm:py-3 max-w-[88vw] sm:max-w-none overflow-x-hidden overflow-y-hidden
     ${isScrolled && !prefersReducedMotion ? "nav-glass-shrink" : ""}
   `
 
