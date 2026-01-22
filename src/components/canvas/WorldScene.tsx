@@ -259,6 +259,12 @@ export function WorldScene({
   const [isFullyLoaded, setIsFullyLoaded] = useState(false)
   const fullyLoadedRef = useRef(false)
   const loadCompleteTimerRef = useRef<number | null>(null)
+  const overlayStartRef = useRef<number | null>(null)
+  const isMobile = useMemo(
+    () => (typeof window !== "undefined" ? window.matchMedia("(max-width: 768px)").matches : false),
+    []
+  )
+  const minOverlayMs = isMobile ? 1200 : 0
 
   useEffect(() => {
     let cancelled = false
@@ -323,6 +329,12 @@ export function WorldScene({
   }, [isLoadingActive])
 
   useEffect(() => {
+    if (overlayStartRef.current == null) {
+      overlayStartRef.current = performance.now()
+    }
+  }, [])
+
+  useEffect(() => {
     if (fullyLoadedRef.current) return
     const isLoadComplete =
       loadingTotal > 0 &&
@@ -337,12 +349,15 @@ export function WorldScene({
       return
     }
     if (loadCompleteTimerRef.current != null) return
+    const startAt = overlayStartRef.current ?? performance.now()
+    const elapsed = performance.now() - startAt
+    const delay = Math.max(500, minOverlayMs - elapsed)
     loadCompleteTimerRef.current = window.setTimeout(() => {
       fullyLoadedRef.current = true
       setIsFullyLoaded(true)
       loadCompleteTimerRef.current = null
-    }, 500)
-  }, [isLoadingActive, loadingLoaded, loadingProgress, loadingTotal])
+    }, delay)
+  }, [isLoadingActive, loadingLoaded, loadingProgress, loadingTotal, minOverlayMs])
 
   useEffect(() => {
     setLoadingOverlayVisible(showOverlay)
