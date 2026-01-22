@@ -30,7 +30,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
 
   const navClass = `
     fixed top-6 left-1/2 -translate-x-1/2 z-[320] pointer-events-auto
-    nav-glass w-[88vw] sm:w-[80vw] md:w-[72vw] lg:w-[64vw] px-3 sm:px-6 py-2 sm:py-3 max-w-[88vw] sm:max-w-[80vw] md:max-w-[72vw] lg:max-w-[64vw] overflow-x-hidden overflow-y-hidden
+    nav-glass w-[88vw] sm:w-[80vw] md:w-[72vw] lg:w-[68vw] px-3 sm:px-6 py-2 sm:py-2 md:py-2 max-w-[88vw] sm:max-w-[80vw] md:max-w-[72vw] lg:max-w-[68vw] overflow-x-hidden overflow-y-hidden
     ${isScrolled && !prefersReducedMotion ? "nav-glass-shrink" : ""}
   `
 
@@ -40,7 +40,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
       role="navigation"
       aria-label="Main navigation"
     >
-      <ul className="flex flex-wrap justify-center gap-1.5 sm:gap-8 md:gap-12 list-none m-0 p-0">
+      <ul className="flex flex-wrap md:flex-nowrap justify-center gap-1.5 sm:gap-6 md:gap-8 lg:gap-10 list-none m-0 p-0">
         {navItems.map((item) => {
           const isActive = activeSection === item.section
 
@@ -50,7 +50,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
                 type="button"
                 className={`
                   group font-orbitron text-[8px] sm:text-[10px] md:text-xs font-semibold tracking-[1.5px] sm:tracking-[3px] md:tracking-[4px] uppercase
-                  relative py-2 transition-all duration-400 pointer-events-auto
+                  relative py-2 transition-all duration-400 pointer-events-auto whitespace-nowrap
                   ${isActive ? "text-white" : "text-white/85 hover:text-white"}
                 `}
                 onClick={() => scrollToSection(item.section, { behavior: "smooth" })}
