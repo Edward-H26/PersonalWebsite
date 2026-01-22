@@ -164,7 +164,7 @@ function StoryCardPanel({ card }: { card: DisplayCard }) {
 
   return (
     <div
-      className="liquid-glass-panel glass-card glass-card-hover-lift flex flex-col w-[76vw] max-w-[76vw] sm:w-[600px] sm:max-w-[86vw] h-[52svh] min-h-[220px] sm:h-[360px] pointer-events-auto"
+      className="liquid-glass-panel glass-card glass-card-hover-lift flex flex-col w-[82vw] max-w-[82vw] sm:w-[600px] sm:max-w-[86vw] h-[44svh] min-h-[200px] sm:h-[360px] pointer-events-auto"
       style={glassStyle}
     >
       <div className="relative flex flex-col px-5 py-3 sm:px-7 sm:py-3.5 h-full">
@@ -184,7 +184,7 @@ function OverviewPage() {
   return (
     <div className="absolute top-28 sm:top-32 left-4 sm:left-8">
       <div
-        className="liquid-glass-panel glass-card glass-card-border-glow w-[92vw] max-w-[92vw] sm:w-[560px] sm:max-w-[86vw]"
+        className="liquid-glass-panel glass-card glass-card-border-glow w-[88vw] max-w-[88vw] sm:w-[560px] sm:max-w-[86vw]"
         style={glassStyle}
       >
         <div className="p-5 pt-6 sm:p-6 sm:pt-7">
