@@ -62,15 +62,15 @@ const PRELOAD_GLTFS = [
 const SUN_ELEVATION = 2
 const SUN_AZIMUTH = 180
 
-function RendererConfig() {
+function RendererConfig({ exposure = 0.5 }: { exposure?: number }) {
   const { gl } = useThree()
 
   useEffect(() => {
     gl.toneMapping = THREE.ACESFilmicToneMapping
-    gl.toneMappingExposure = 0.5
+    gl.toneMappingExposure = exposure
     gl.outputColorSpace = THREE.SRGBColorSpace
     gl.info.autoReset = false
-  }, [gl])
+  }, [gl, exposure])
 
   return null
 }
@@ -113,6 +113,11 @@ function WorldContent({
   const showProps = true
   const overviewBlend = useWorldStore((state) => state.overviewBlend)
   const shadowMapSize = qualityTier === "medium" ? 384 : 512
+  const lightDimming = section >= 5 ? 0.55 : section >= 4 ? 0.65 : section >= 3 ? 0.75 : 1
+  const sunIntensity = 2.0 * lightDimming
+  const ambientIntensity = 0.6 * Math.min(1, lightDimming + 0.2)
+  const pointIntensity = 0.8 * Math.min(1, lightDimming + 0.15)
+  const exposure = 0.5 - 0.12 * (1 - lightDimming)
   const sunLightPosition = useMemo<[number, number, number]>(() => {
     const phi = THREE.MathUtils.degToRad(90 - SUN_ELEVATION)
     const theta = THREE.MathUtils.degToRad(SUN_AZIMUTH)
@@ -123,11 +128,11 @@ function WorldContent({
 
   return (
     <>
-      <ambientLight intensity={0.6} color="#b8c4e0" />
+      <ambientLight intensity={ambientIntensity} color="#b8c4e0" />
 
       <directionalLight
         position={sunLightPosition}
-        intensity={2.0}
+        intensity={sunIntensity}
         castShadow
         shadow-mapSize-width={shadowMapSize}
         shadow-mapSize-height={shadowMapSize}
@@ -142,7 +147,7 @@ function WorldContent({
 
       <directionalLight
         position={[-80, 100, -80]}
-        intensity={0.6}
+        intensity={0.55 * Math.min(1, lightDimming + 0.25)}
         color="#6080ff"
       />
 
@@ -150,14 +155,14 @@ function WorldContent({
 
       <pointLight
         position={[0, 50, 0]}
-        intensity={0.8}
+        intensity={pointIntensity}
         distance={300}
         color="#ffe0b0"
       />
 
       <EarthPreload qualityTier={qualityTier} />
 
-      <RendererConfig />
+      <RendererConfig exposure={exposure} />
 
       <ProceduralSky elevation={SUN_ELEVATION} azimuth={SUN_AZIMUTH} />
 
