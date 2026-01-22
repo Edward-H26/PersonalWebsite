@@ -170,47 +170,6 @@ export function useScrollSnapNavigation() {
     wrapTargetIndexRef.current = targetIndex
     lastWrapTargetIndexRef.current = targetIndex
 
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId: "debug-session",
-        runId: "post-fix",
-        hypothesisId: "H3",
-        location: "useScrollSnapNavigation.ts:startWrap",
-        message: "Start wrap invoked",
-        data: {
-          targetIndex,
-          scrollTop: el.scrollTop,
-          lockUntilMs: wrapLockUntilMs.current
-        },
-        timestamp: Date.now()
-      })
-    }).catch(() => {})
-    // #endregion agent log
-    if (targetIndex === firstRealIndex) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H32",
-          location: "useScrollSnapNavigation.ts:startWrap",
-          message: "Wrap to overview initiated",
-          data: {
-            targetIndex,
-            scrollTop: el.scrollTop,
-            lockUntilMs: wrapLockUntilMs.current
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
-
     el.classList.add("scroll-snap-disabled")
 
     requestAnimationFrame(() => {
@@ -241,25 +200,6 @@ export function useScrollSnapNavigation() {
       now < wrapCooldownUntilMs.current ? lastWrapTargetIndexRef.current : wrapTargetIndexRef.current
     if (wrapLockedIndex != null) {
       index = clampInt(wrapLockedIndex, 0, pages.length - 1)
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H14",
-          location: "useScrollSnapNavigation.ts:syncFromScroll",
-          message: "Index locked during wrap cooldown",
-          data: {
-            pagePos,
-            index,
-            wrapLockedIndex
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
     }
     const page = pages[index]
 
@@ -278,96 +218,7 @@ export function useScrollSnapNavigation() {
       el.scrollTop = targetTop
       lastScrollTopRef.current = targetTop
     }
-    if (isSettledOnSnap && Math.abs(deltaScrollTop) > 1.5) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H12",
-          location: "useScrollSnapNavigation.ts:syncFromScroll",
-          message: "Settled snap with high delta",
-          data: {
-            index,
-            scrollTop: el.scrollTop,
-            deltaScrollTop,
-            distToSnap
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
-    if (index === firstRealIndex && !isSettledOnSnap && distToSnap > 2) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H28",
-          location: "useScrollSnapNavigation.ts:syncFromScroll",
-          message: "Overview unsettled drift",
-          data: {
-            index,
-            scrollTop: el.scrollTop,
-            deltaScrollTop,
-            distToSnap
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
-    if (index === firstRealIndex && isSettledOnSnap && Math.abs(deltaScrollTop) > 0.6) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H25",
-          location: "useScrollSnapNavigation.ts:syncFromScroll",
-          message: "Overview snap jitter",
-          data: {
-            index,
-            scrollTop: el.scrollTop,
-            deltaScrollTop,
-            distToSnap
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
     const deltaSign = deltaScrollTop === 0 ? 0 : Math.sign(deltaScrollTop)
-    if (isSettledOnSnap && deltaSign !== 0 && lastDeltaSignRef.current !== 0 && deltaSign !== lastDeltaSignRef.current) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H10",
-          location: "useScrollSnapNavigation.ts:syncFromScroll",
-          message: "Scroll delta sign flip while settled",
-          data: {
-            index,
-            scrollTop: el.scrollTop,
-            deltaScrollTop,
-            lastDeltaSign: lastDeltaSignRef.current,
-            distToSnap
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
     if (deltaSign !== 0) lastDeltaSignRef.current = deltaSign
 
     if (isSettledOnSnap && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
@@ -391,27 +242,6 @@ export function useScrollSnapNavigation() {
         el.scrollTop = targetTop
         lastScrollTopRef.current = targetTop
         lastCorrectedIndexRef.current = index
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H11",
-            location: "useScrollSnapNavigation.ts:syncFromScroll",
-            message: "Snap correction applied",
-            data: {
-              index,
-              scrollTop: el.scrollTop,
-              targetTop,
-              deltaScrollTop,
-              settledSnapCount: settledSnapCountRef.current
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
       }
     } else {
       settledSnapCountRef.current = 0
@@ -457,106 +287,17 @@ export function useScrollSnapNavigation() {
     if (index !== activeIndexRef.current) {
       activeIndexRef.current = index
       setActiveIndex(index)
-      if (performance.now() - lastWrapEndedAtMs.current < 1500) {
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H6",
-            location: "useScrollSnapNavigation.ts:activeIndex",
-            message: "Active index changed after wrap",
-            data: {
-              index,
-              pagePos,
-              lastWrapEndedAtMs: lastWrapEndedAtMs.current
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-      }
     }
     if (index !== firstRealIndex && overviewHoldRef.current) {
       overviewHoldRef.current = false
     }
 
-    if (index === lastRealIndex && isSettledOnSnap) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H16",
-          location: "useScrollSnapNavigation.ts:syncFromScroll",
-          message: "Settled on last card",
-          data: {
-            index,
-            pagePos,
-            deltaScrollTop
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
-
-    if (index === firstRealIndex && isSettledOnSnap && sectionRef.current === 1) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H17",
-          location: "useScrollSnapNavigation.ts:syncFromScroll",
-          message: "Overview to research settled",
-          data: {
-            index,
-            pagePos,
-            deltaScrollTop
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
 
     const nextSection = page.section
     if (nextSection !== sectionRef.current) {
       const prevSection = sectionRef.current
       sectionRef.current = nextSection
       setSection(nextSection)
-      if (prevSection === 0 && nextSection === 1) {
-        const store = useWorldStore.getState()
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H22",
-            location: "useScrollSnapNavigation.ts:sectionChange",
-            message: "Section changed from overview to research",
-            data: {
-              prevSection,
-              nextSection,
-              index,
-              pagePos,
-              scrollTop: el.scrollTop,
-              travelDir: store.travelDir
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-      }
     }
 
     const store = useWorldStore.getState()
@@ -564,31 +305,6 @@ export function useScrollSnapNavigation() {
     const isBottomWrapZone = pagePos > lastRealIndex
     const isWrapZone = hasSentinels && (isTopWrapZone || isBottomWrapZone)
     const overviewPos = overviewIndex >= 0 ? overviewIndex : firstRealIndex
-    if (index === sentinelTopIndex || index === firstRealIndex || index === lastRealIndex || index === sentinelBottomIndex) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H33",
-          location: "useScrollSnapNavigation.ts:syncFromScroll",
-          message: "Edge page snapshot",
-          data: {
-            index,
-            pageKind: page.kind,
-            renderAsKey: page.kind === "sentinel" ? page.renderAsKey : null,
-            pagePos,
-            scrollTop: el.scrollTop,
-            isWrapZone
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
-
     if (hasSentinels && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
       const preWrapThreshold = 0.08
       const edgeArmedAtMs = edgeArmedAtMsRef.current
@@ -659,30 +375,6 @@ export function useScrollSnapNavigation() {
       store.setTitleCardBlend(titleBlend)
     } else {
       const snappedPagePos = isSettledOnSnap ? index : pagePos
-      if (isSettledOnSnap) {
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H2",
-            location: "useScrollSnapNavigation.ts:syncFromScroll",
-            message: "Settled snap state",
-            data: {
-              index,
-              pagePos,
-              snappedPagePos,
-              isAtTopEdge,
-              isAtBottomEdge,
-              deltaScrollTop
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-      }
       store.setRouteT(getRouteTAtPagePos(snappedPagePos, sectionRanges))
 
       let nearestTitleDist = Number.POSITIVE_INFINITY
@@ -729,47 +421,9 @@ export function useScrollSnapNavigation() {
       const targetTop = lastWrapTargetIndexRef.current * height
       const prevScrollTop = lastScrollTopRef.current
       const deltaScrollTop = prevScrollTop != null ? el.scrollTop - prevScrollTop : 0
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H23",
-          location: "useScrollSnapNavigation.ts:onScroll",
-          message: "Cooldown scroll event",
-          data: {
-            scrollTop: el.scrollTop,
-            targetTop,
-            deltaScrollTop,
-            wrapCooldownUntilMs: wrapCooldownUntilMs.current
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
       if (Math.abs(el.scrollTop - targetTop) > 0.5) {
         el.scrollTop = targetTop
         lastScrollTopRef.current = targetTop
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H24",
-            location: "useScrollSnapNavigation.ts:onScroll",
-            message: "Cooldown clamp applied",
-            data: {
-              scrollTop: el.scrollTop,
-              targetTop
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
       }
       if (rafId.current == null) {
         rafId.current = requestAnimationFrame(syncFromScroll)
@@ -785,25 +439,6 @@ export function useScrollSnapNavigation() {
         const nextTop = el.scrollTop + (targetTop - el.scrollTop) * wrapEasing
         el.scrollTop = nextTop
         lastScrollTopRef.current = nextTop
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H4",
-            location: "useScrollSnapNavigation.ts:onScroll",
-            message: "Wrap easing toward target",
-            data: {
-              targetTop,
-              scrollTop: el.scrollTop,
-              lockUntilMs: wrapLockUntilMs.current
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
         if (rafId.current == null) {
           rafId.current = requestAnimationFrame(syncFromScroll)
         }
@@ -815,25 +450,6 @@ export function useScrollSnapNavigation() {
       const cooldownMs =
         lastWrapTargetIndexRef.current === firstRealIndex ? overviewWrapCooldownMs : defaultWrapCooldownMs
       wrapCooldownUntilMs.current = lastWrapEndedAtMs.current + cooldownMs
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H7",
-          location: "useScrollSnapNavigation.ts:onScroll",
-          message: "Wrap lock released",
-          data: {
-            scrollTop: el.scrollTop,
-            lastWrapEndedAtMs: lastWrapEndedAtMs.current,
-            wrapCooldownUntilMs: wrapCooldownUntilMs.current
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
     }
     if (overviewHoldRef.current && !isProgrammaticJumpRef.current && wrapTargetIndexRef.current == null) {
       const height = Math.max(1, el.clientHeight)
@@ -859,25 +475,6 @@ export function useScrollSnapNavigation() {
     scrollEndTimerRef.current = window.setTimeout(() => {
       scrollEndTimerRef.current = null
       edgeArmRequestedRef.current = true
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H26",
-          location: "useScrollSnapNavigation.ts:onScroll",
-          message: "Scroll end timer fired",
-          data: {
-            scrollTop: el.scrollTop,
-            lastScrollTop: lastScrollTopRef.current,
-            wrapCooldownUntilMs: wrapCooldownUntilMs.current
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
       syncFromScrollRef.current()
       overviewHoldRef.current = activeIndexRef.current === firstRealIndex
     }, 140)
@@ -936,25 +533,6 @@ export function useScrollSnapNavigation() {
             el.scrollTop = targetTop
             lastScrollTopRef.current = targetTop
           }
-          // #region agent log
-          fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sessionId: "debug-session",
-              runId: "post-fix",
-              hypothesisId: "H9",
-              location: "useScrollSnapNavigation.ts:onWheel",
-              message: "Wheel suppressed during wrap cooldown",
-              data: {
-                scrollTop: el.scrollTop,
-                wrapLockedIndex,
-                wrapCooldownUntilMs: wrapCooldownUntilMs.current
-              },
-              timestamp: Date.now()
-            })
-          }).catch(() => {})
-          // #endregion agent log
           return
         }
       }
@@ -975,47 +553,9 @@ export function useScrollSnapNavigation() {
           el.scrollTop = targetTop
           lastScrollTopRef.current = targetTop
         }
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H31",
-            location: "useScrollSnapNavigation.ts:onWheel",
-            message: "Wheel blocked after wrap at overview",
-            data: {
-              scrollTop: el.scrollTop,
-              deltaY: e.deltaY,
-              lastWrapEndedAtMs: lastWrapEndedAtMs.current
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
         return
       }
       if (idx === firstRealIndex && Math.abs(e.deltaY) > 0.5 && now > wrapCooldownUntilMs.current) {
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H27",
-            location: "useScrollSnapNavigation.ts:onWheel",
-            message: "Wheel at overview index",
-            data: {
-              scrollTop: el.scrollTop,
-              deltaY: e.deltaY,
-              wrapCooldownUntilMs: wrapCooldownUntilMs.current
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
       }
       const isNearFirstReal = isNearSnap(el.scrollTop, firstRealIndex, height)
       const isNearLastReal = isNearSnap(el.scrollTop, lastRealIndex, height)

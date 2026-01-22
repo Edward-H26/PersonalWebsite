@@ -92,14 +92,8 @@ export function FirstPersonController() {
   const look = useRef(new Vector3())
   const lookDir = useRef(new Vector3())
   const lastLookDir = useRef(new Vector3(0, 0, -1))
-  const lastMouseLogAt = useRef(0)
   const lastMousePos = useRef({ x: 0, y: 0 })
-  const lastDirMismatchLogAt = useRef(0)
-  const lastBackwardLogAt = useRef(0)
-  const lastTangentLogAt = useRef(0)
-  const lastClampLogAt = useRef(0)
   const prevIsSettled = useRef(false)
-  const lastSettleLogAt = useRef(0)
 
   const smoothedRouteT = useRef(0)
   const smoothedOverviewBlend = useRef(0)
@@ -123,29 +117,6 @@ export function FirstPersonController() {
     smoothedTitleBlend.current = THREE.MathUtils.damp(smoothedTitleBlend.current, titleTarget, 10, delta)
 
     if (Math.abs(smoothedRouteT.current - routeTarget) < 0.0006) {
-      const now = performance.now()
-      if (now - lastClampLogAt.current > 250 && Math.abs(smoothedRouteT.current - routeTarget) > 0) {
-        lastClampLogAt.current = now
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H29",
-            location: "FirstPersonController.tsx:routeClamp",
-            message: "RouteT clamped to target",
-            data: {
-              smoothedRouteT: smoothedRouteT.current,
-              routeTarget,
-              delta
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-      }
       smoothedRouteT.current = routeTarget
     }
     if (Math.abs(smoothedOverviewBlend.current - overviewTarget) < 0.002) {
@@ -185,31 +156,6 @@ export function FirstPersonController() {
       Math.abs(overviewTarget - overviewMix) < 0.002 &&
       Math.abs(titleTarget - titleMix) < 0.002
     if (isSettled !== prevIsSettled.current) {
-      const now = performance.now()
-      if (now - lastSettleLogAt.current > 200) {
-        lastSettleLogAt.current = now
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H30",
-            location: "FirstPersonController.tsx:isSettled",
-            message: "IsSettled changed",
-            data: {
-              isSettled,
-              routeDelta,
-              deltaT,
-              overviewMix,
-              titleMix
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-      }
       prevIsSettled.current = isSettled
     }
     if (isResearchTitle && travelDir === 1 && titleMix > 0.25) {
@@ -239,32 +185,6 @@ export function FirstPersonController() {
     pathForwardFlat.current.y = 0
     if (pathForwardFlat.current.lengthSq() > 1e-8) pathForwardFlat.current.normalize()
     else pathForwardFlat.current.set(0, 0, -1)
-    if (tangentLenSq < 1e-6 && (pathT > 0.98 || pathT < 0.02)) {
-      const now = performance.now()
-      if (now - lastTangentLogAt.current > 400) {
-        lastTangentLogAt.current = now
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H20",
-            location: "FirstPersonController.tsx:tangent",
-            message: "Tangent length near zero at path end",
-            data: {
-              pathT,
-              tangentLenSq,
-              overviewMix,
-              titleMix
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-      }
-    }
 
     let desiredX = point.current.x
     let desiredZ = point.current.z
@@ -335,32 +255,6 @@ export function FirstPersonController() {
     const lookDownOffset = LOOK_DOWN_OFFSET * (1 - titleMix)
     fpTargetLookAt.current.set(desiredX + look.current.x, desiredY - lookDownOffset, desiredZ + look.current.z)
 
-    if (!hasMotion && routeDelta < 0.0006 && look.current.length() > 0.001) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H15",
-          location: "FirstPersonController.tsx:lookDirection",
-          message: "Look direction while settled",
-          data: {
-            routeDelta,
-            deltaT,
-            walkDir,
-            lookX: look.current.x,
-            lookZ: look.current.z,
-            overviewMix,
-            titleMix
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
-    }
-
     const allowMouseLook = performance.now() >= motionLockUntilMs.current && !isSettled
     if (allowMouseLook) {
       fpTargetLookAt.current.x += mousePosition.x * 6 * overviewMix
@@ -386,117 +280,10 @@ export function FirstPersonController() {
 
     const positionError = camera.position.distanceTo(targetPosition.current)
     const lookError = currentLookAt.current.distanceTo(targetLookAt.current)
-    const now = performance.now()
-    const mouseDeltaX = mousePosition.x - lastMousePos.current.x
-    const mouseDeltaY = mousePosition.y - lastMousePos.current.y
-    if (isSettled && allowMouseLook && (Math.abs(mouseDeltaX) > 0.012 || Math.abs(mouseDeltaY) > 0.012)) {
-      if (now - lastMouseLogAt.current > 250) {
-        lastMouseLogAt.current = now
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H18",
-            location: "FirstPersonController.tsx:mouseLook",
-            message: "Mouse look while settled",
-            data: {
-              mouseX: mousePosition.x,
-              mouseY: mousePosition.y,
-              mouseDeltaX,
-              mouseDeltaY,
-              overviewMix,
-              routeDelta
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-      }
-    }
     lastMousePos.current.x = mousePosition.x
     lastMousePos.current.y = mousePosition.y
-    if (isSettled && walkDir !== baseDir) {
-      if (now - lastDirMismatchLogAt.current > 250) {
-        lastDirMismatchLogAt.current = now
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H21",
-            location: "FirstPersonController.tsx:dirMismatch",
-            message: "Walk direction differs from travel direction",
-            data: {
-              walkDir,
-              travelDir,
-              routeDelta,
-              deltaT,
-              overviewMix
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-      }
-    }
-    const lookDot = lastLookDir.current.dot(pathForwardFlat.current)
-    if (isSettled && overviewMix > 0.2 && lookDot < -0.2) {
-      if (now - lastBackwardLogAt.current > 300) {
-        lastBackwardLogAt.current = now
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "post-fix",
-            hypothesisId: "H19",
-            location: "FirstPersonController.tsx:lookDot",
-            message: "Look direction points backward",
-            data: {
-              lookDot,
-              walkDir,
-              travelDir,
-              routeDelta,
-              overviewMix
-            },
-            timestamp: Date.now()
-          })
-        }).catch(() => {})
-        // #endregion agent log
-      }
-    }
     if (routeDelta < 0.0006 && Math.abs(deltaT) < 1e-5) {
       smoothedTitleBlend.current = titleTarget
-    }
-    if (routeDelta < 0.0015 && (positionError > 0.06 || lookError > 0.06)) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/e30b3b2d-59aa-497a-a292-6833021a7057", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: "debug-session",
-          runId: "post-fix",
-          hypothesisId: "H1",
-          location: "FirstPersonController.tsx:isSettled",
-          message: "Camera still adjusting after settle window",
-          data: {
-            routeDelta,
-            deltaT,
-            positionError,
-            lookError,
-            overviewMix,
-            titleMix
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {})
-      // #endregion agent log
     }
 
     const settleSnapThreshold = 0.06
@@ -547,5 +334,3 @@ export function FirstPersonController() {
 
   return null
 }
-
-
