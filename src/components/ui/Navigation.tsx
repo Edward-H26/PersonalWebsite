@@ -30,7 +30,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
 
   const navClass = `
     fixed top-6 left-1/2 -translate-x-1/2 z-[320] pointer-events-auto
-    nav-glass w-[88vw] sm:w-auto px-3 sm:px-6 py-2 sm:py-3 max-w-[88vw] sm:max-w-none overflow-x-auto overflow-y-hidden
+    nav-glass w-[64vw] sm:w-auto px-3 sm:px-6 py-2 sm:py-3 max-w-[64vw] sm:max-w-none overflow-x-hidden overflow-y-hidden
     ${isScrolled && !prefersReducedMotion ? "nav-glass-shrink" : ""}
   `
 
@@ -40,7 +40,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
       role="navigation"
       aria-label="Main navigation"
     >
-      <ul className="flex flex-nowrap justify-start sm:justify-center gap-1.5 sm:gap-8 md:gap-12 list-none m-0 p-0 whitespace-nowrap">
+      <ul className="flex flex-wrap justify-center gap-1.5 sm:gap-8 md:gap-12 list-none m-0 p-0">
         {navItems.map((item) => {
           const isActive = activeSection === item.section
 
