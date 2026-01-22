@@ -112,6 +112,7 @@ export function useScrollSnapNavigation() {
   const edgeArmedRef = useRef({ top: false, bottom: false })
   const edgeArmedAtMsRef = useRef<number | null>(null)
   const edgeArmRequestedRef = useRef(false)
+  const overviewHoldRef = useRef(false)
   const lastUserScrollAtRef = useRef(0)
   const lastWheelEventAtRef = useRef(0)
   const suppressTravelDirUpdateRef = useRef(false)
@@ -478,6 +479,9 @@ export function useScrollSnapNavigation() {
         // #endregion agent log
       }
     }
+    if (index !== firstRealIndex && overviewHoldRef.current) {
+      overviewHoldRef.current = false
+    }
 
     if (index === lastRealIndex && isSettledOnSnap) {
       // #region agent log
@@ -831,6 +835,21 @@ export function useScrollSnapNavigation() {
       }).catch(() => {})
       // #endregion agent log
     }
+    if (overviewHoldRef.current && !isProgrammaticJumpRef.current && wrapTargetIndexRef.current == null) {
+      const height = Math.max(1, el.clientHeight)
+      const targetTop = firstRealIndex * height
+      const hasRecentInput =
+        now - lastUserScrollAtRef.current < recentUserInputWindowMs ||
+        now - lastWheelEventAtRef.current < recentUserInputWindowMs
+      if (!hasRecentInput && Math.abs(el.scrollTop - targetTop) > 0.5) {
+        el.scrollTop = targetTop
+        lastScrollTopRef.current = targetTop
+        if (rafId.current == null) {
+          rafId.current = requestAnimationFrame(syncFromScroll)
+        }
+        return
+      }
+    }
     if (rafId.current != null) return
     rafId.current = requestAnimationFrame(syncFromScroll)
 
@@ -860,8 +879,9 @@ export function useScrollSnapNavigation() {
       }).catch(() => {})
       // #endregion agent log
       syncFromScrollRef.current()
+      overviewHoldRef.current = activeIndexRef.current === firstRealIndex
     }, 140)
-  }, [syncFromScroll])
+  }, [firstRealIndex, recentUserInputWindowMs, syncFromScroll])
 
   useEffect(() => {
     const el = containerRef.current
@@ -872,6 +892,7 @@ export function useScrollSnapNavigation() {
     const height = Math.max(1, el.clientHeight)
     el.scrollTo({ top: firstRealIndex * height, behavior: "auto" })
     edgeArmRequestedRef.current = true
+    overviewHoldRef.current = true
     syncFromScroll()
   }, [firstRealIndex, syncFromScroll])
 
@@ -985,6 +1006,19 @@ export function useScrollSnapNavigation() {
       }
       const isNearFirstReal = isNearSnap(el.scrollTop, firstRealIndex, height)
       const isNearLastReal = isNearSnap(el.scrollTop, lastRealIndex, height)
+      if (overviewHoldRef.current && isNearFirstReal) {
+        if (isNewWheelBurst) {
+          overviewHoldRef.current = false
+        } else {
+          e.preventDefault()
+          const targetTop = firstRealIndex * height
+          if (Math.abs(el.scrollTop - targetTop) > 0.5) {
+            el.scrollTop = targetTop
+            lastScrollTopRef.current = targetTop
+          }
+          return
+        }
+      }
       const edgeArmedAtMs = edgeArmedAtMsRef.current
       const canEdgeWrap = edgeArmedAtMs != null && isNewWheelBurst && now >= edgeArmedAtMs
       if (isNearFirstReal && e.deltaY < 0 && canEdgeWrap) {
@@ -1046,10 +1080,12 @@ export function useScrollSnapNavigation() {
 
     const onTouchStart = () => {
       lastUserScrollAtRef.current = performance.now()
+      overviewHoldRef.current = false
     }
 
     const onTouchMove = () => {
       lastUserScrollAtRef.current = performance.now()
+      overviewHoldRef.current = false
     }
 
     el.addEventListener("touchstart", onTouchStart, { passive: true })
@@ -1084,6 +1120,9 @@ export function useScrollSnapNavigation() {
     (nextSection: number, options?: { behavior?: ScrollBehavior }) => {
       const el = containerRef.current
       if (!el) return
+
+      lastUserScrollAtRef.current = performance.now()
+      overviewHoldRef.current = false
 
       const clampedSection = clampInt(nextSection, 0, 5) as DeckSection
       const targetIndex = findIndexForSection(pages, clampedSection)

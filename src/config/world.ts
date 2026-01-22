@@ -19,7 +19,7 @@ export const EARTH_ROUTE_POINTS: ReadonlyArray<Vec3> = [
   [5, 0, -90]
 ]
 
-export const EARTH_SECTION_T_STOPS = [0.0, 0.2, 0.34, 0.53, 0.84, 0.98] as const
+export const EARTH_SECTION_T_STOPS = [0.0, 0.2, 0.39, 0.7, 0.84, 0.98] as const
 
 export const WORLD_CONFIG = {
   cameraHeight: 5.5

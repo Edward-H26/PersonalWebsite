@@ -6,9 +6,9 @@ type DeckSection = 0 | 1 | 2 | 3 | 4 | 5
 
 const STAGE_ORDER: Array<{ section: Exclude<DeckSection, 0>; stageId: StoryStageId }> = [
   { section: 1, stageId: "earth_island" },
-  { section: 2, stageId: "fire_island" },
-  { section: 3, stageId: "professional_experience" },
-  { section: 4, stageId: "air_island" },
+  { section: 2, stageId: "professional_experience" },
+  { section: 3, stageId: "air_island" },
+  { section: 4, stageId: "fire_island" },
   { section: 5, stageId: "water_island" }
 ]
 
@@ -307,4 +307,3 @@ export const ScrollDeck = forwardRef<HTMLDivElement, { pages: ScrollDeckPage[]; 
     </div>
   )
 })
-
