@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { WorldScene } from "@/components/canvas"
 import {
   Navigation,
@@ -16,7 +16,14 @@ function App() {
   const isEarthTexturedReady = useWorldStore((state) => state.isEarthTexturedReady)
   const isLoadingOverlayVisible = useWorldStore((state) => state.isLoadingOverlayVisible)
   const { pages, section, containerRef, scrollToSection } = useScrollSnapNavigation()
-  const scrollLocked = isLoadingOverlayVisible || !isEarthTexturedReady
+  const isMobile = useMemo(() => {
+    if (typeof window === "undefined") return false
+    return (
+      window.matchMedia("(pointer: coarse)").matches ||
+      window.matchMedia("(max-width: 768px)").matches
+    )
+  }, [])
+  const scrollLocked = isLoadingOverlayVisible || (!isEarthTexturedReady && !isMobile)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
