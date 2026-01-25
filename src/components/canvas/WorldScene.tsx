@@ -463,7 +463,7 @@ export function WorldScene({
         ) : null}
 
         <div
-          className="absolute left-[46%] right-[90px] top-[44%] -translate-y-1/2 world-loader-line-wrap"
+          className="absolute left-6 right-6 sm:left-[46%] sm:right-[90px] top-[44%] -translate-y-1/2 world-loader-line-wrap"
           data-mode="determinate"
           style={progressLineStyle}
         >
@@ -472,7 +472,7 @@ export function WorldScene({
           </div>
         </div>
 
-        <div className="absolute left-[46%] right-[90px] top-[38%] -translate-y-1/2 text-right">
+        <div className="absolute left-6 right-6 sm:left-[46%] sm:right-[90px] top-[38%] -translate-y-1/2 text-center sm:text-right">
           <div className="world-loader-title">Initializing</div>
           <div className="world-loader-subtitle">{progressLabel}</div>
         </div>
