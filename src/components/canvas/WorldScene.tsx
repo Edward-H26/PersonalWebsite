@@ -110,7 +110,7 @@ function WorldContent({
   section: number
   qualityTier: QualityTier
 }) {
-  const showProps = true
+  const showProps = qualityTier !== "low"
   const overviewBlend = useWorldStore((state) => state.overviewBlend)
   const shadowMapSize = qualityTier === "medium" ? 384 : 512
   const lightDimming = section >= 5 ? 0.55 : section >= 4 ? 0.65 : section >= 3 ? 0.75 : 1
@@ -241,6 +241,7 @@ export function WorldScene({
   const maxDpr = qualityTier === "low" ? 1 : qualityTier === "medium" ? 1.1 : 1.25
   const enableShadows = qualityTier !== "low"
   const setLoaderBypassed = useWorldStore((state) => state.setLoaderBypassed)
+  const isLoaderBypassed = useWorldStore((state) => state.isLoaderBypassed)
   const setLoadingOverlayVisible = useWorldStore((state) => state.setLoadingOverlayVisible)
   const isLoadingActive = useProgress((state) => state.active)
   const loadingProgress = useProgress((state) => state.progress)
@@ -292,15 +293,18 @@ export function WorldScene({
 
   useEffect(() => {
     if (!isLoadingActive) {
-      setForceReady(false)
-      setLoaderBypassed(false)
+      if (isFullyLoaded) {
+        setForceReady(false)
+        setLoaderBypassed(false)
+      }
       return
     }
+    lastProgressTimeRef.current = performance.now()
     if (loadingProgress !== lastProgressRef.current) {
       lastProgressRef.current = loadingProgress
       lastProgressTimeRef.current = performance.now()
     }
-  }, [isLoadingActive, loadingProgress, setLoaderBypassed])
+  }, [isFullyLoaded, isLoadingActive, loadingProgress, setLoaderBypassed])
 
   useEffect(() => {
     if (!isLoadingActive) return
@@ -309,15 +313,16 @@ export function WorldScene({
       const stagnantMs = now - lastProgressTimeRef.current
       const hasErrors = loadingErrors.length > 0
       const isStalled = loadingProgress >= 99 && stagnantMs > 4000
-      if (hasErrors || isStalled) {
+      const isMobileStalled = isMobile && stagnantMs > 10000
+      if (hasErrors || isStalled || isMobileStalled) {
         setForceReady(true)
         setLoaderBypassed(true)
       }
     }, 500)
     return () => window.clearInterval(intervalId)
-  }, [isLoadingActive, loadingErrors.length, loadingProgress, setLoaderBypassed])
+  }, [isLoadingActive, isMobile, loadingErrors.length, loadingProgress, setLoaderBypassed])
 
-  const showOverlay = !isFullyLoaded
+  const showOverlay = !isFullyLoaded && !(isMobile && isLoaderBypassed)
 
   const clampedProgress = Math.max(0, Math.min(100, loadingProgress))
   const targetProgress = forceReady ? 100 : clampedProgress
@@ -341,7 +346,8 @@ export function WorldScene({
       loadingLoaded >= loadingTotal &&
       !isLoadingActive &&
       loadingProgress >= 100
-    if (!isLoadComplete) {
+    const shouldForceComplete = isMobile && isLoaderBypassed
+    if (!isLoadComplete && !shouldForceComplete) {
       if (loadCompleteTimerRef.current != null) {
         window.clearTimeout(loadCompleteTimerRef.current)
         loadCompleteTimerRef.current = null
@@ -357,7 +363,7 @@ export function WorldScene({
       setIsFullyLoaded(true)
       loadCompleteTimerRef.current = null
     }, delay)
-  }, [isLoadingActive, loadingLoaded, loadingProgress, loadingTotal, minOverlayMs])
+  }, [isLoadingActive, isLoaderBypassed, isMobile, loadingLoaded, loadingProgress, loadingTotal, minOverlayMs])
 
   useEffect(() => {
     setLoadingOverlayVisible(showOverlay)
@@ -400,9 +406,23 @@ export function WorldScene({
   }, [isLoadingActive, showOverlay, targetProgress])
 
   const progressLineStyle: CSSProperties = {
-    ["--world-loader-progress" as string]: `${displayProgress}%`
+    ["--world-loader-progress" as string]: `${displayProgress}%`,
+    ...(isMobile
+      ? {
+          bottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)"
+        }
+      : {})
   }
   const progressLabel = `${Math.round(displayProgress)}%`
+  const progressLabelStyle: CSSProperties | undefined = isMobile
+    ? { bottom: "calc(env(safe-area-inset-bottom, 0px) + 44px)" }
+    : undefined
+  const progressLineClassName = isMobile
+    ? "absolute left-6 right-6 world-loader-line-wrap"
+    : "absolute left-6 right-6 sm:left-[46%] sm:right-[90px] top-[62%] sm:top-[44%] -translate-y-1/2 world-loader-line-wrap"
+  const progressLabelClassName = isMobile
+    ? "absolute left-6 right-6 text-center"
+    : "absolute left-6 right-6 sm:left-[46%] sm:right-[90px] top-[54%] sm:top-[38%] -translate-y-1/2 text-center sm:text-right"
 
   return (
     <div className="fixed inset-0 w-full h-full">
@@ -430,7 +450,7 @@ export function WorldScene({
       </Canvas>
 
       <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-700 world-loader-overlay"
+        className="absolute inset-0 pointer-events-none transition-opacity duration-700 world-loader-overlay z-[360] sm:z-0"
         style={{ opacity: showOverlay ? 1 : 0 }}
         aria-hidden="true"
       >
@@ -463,7 +483,7 @@ export function WorldScene({
         ) : null}
 
         <div
-          className="absolute left-6 right-6 sm:left-[46%] sm:right-[90px] top-[44%] -translate-y-1/2 world-loader-line-wrap"
+          className={progressLineClassName}
           data-mode="determinate"
           style={progressLineStyle}
         >
@@ -472,7 +492,10 @@ export function WorldScene({
           </div>
         </div>
 
-        <div className="absolute left-6 right-6 sm:left-[46%] sm:right-[90px] top-[38%] -translate-y-1/2 text-center sm:text-right">
+        <div
+          className={progressLabelClassName}
+          style={progressLabelStyle}
+        >
           <div className="world-loader-title">Initializing</div>
           <div className="world-loader-subtitle">{progressLabel}</div>
         </div>
@@ -480,5 +503,3 @@ export function WorldScene({
     </div>
   )
 }
-
-
