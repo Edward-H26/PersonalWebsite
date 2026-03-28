@@ -128,7 +128,9 @@ const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
             <ul className="space-y-2 text-[16px] sm:text-[18px] font-medium leading-[1.55] text-white/95 list-disc pl-6 drop-shadow-[0_2px_16px_rgba(0,0,0,0.55)]">
               {card.bullets.map((b) => (
                 <li key={b}>
-                  {b}
+                  {b.includes("\n") ? b.split("\n").map((line, i) => (
+                    <span key={i}>{i > 0 && <br />}{line}</span>
+                  )) : b}
                 </li>
               ))}
             </ul>
