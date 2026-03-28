@@ -253,8 +253,8 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
       {
         title: "Education",
         bullets: [
-          "Columbia University, New York, NY, Master of Science in Data Science 2026.09 – 2028.09",
-          "University of Illinois at Urbana-Champaign, Champaign, IL, Bachelor of Science in Data Science and Information Science, Minors: Computer Science and Statistics 2022.08 – 2026.05"
+          "Columbia University, New York, NY\nMaster of Science in Data Science\n2026.09 – 2028.09",
+          "University of Illinois at Urbana-Champaign, Champaign, IL\nBachelor of Science in Data Science and Information Science\nMinors: Computer Science and Statistics\n2022.08 – 2026.05"
         ]
       },
       {
