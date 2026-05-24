@@ -1,4 +1,4 @@
-import { withBase } from "@/config/assets"
+import { withBase } from "@/utils/assets"
 
 export const MODEL_PATHS = {
   earth: {
@@ -8,11 +8,7 @@ export const MODEL_PATHS = {
     hqTreeStump: withBase("/models/hq/tree_stump_01.glb"),
     hqMoss: withBase("/models/hq/moss_01.glb"),
     hqGrassMedium01: withBase("/models/hq/grass_medium_01.glb"),
-    fantasyHouse: withBase("/models/medieval_village_pack/fantasy_house_02.glb"),
     fantasyInn: withBase("/models/medieval_village_pack/fantasy_inn.glb"),
-    townHouse: withBase("/models/medieval_village_pack/fantasy_house_03.glb"),
-    towerHouse: withBase("/models/medieval_village_pack/bell_tower.glb"),
-    bigBuilding: withBase("/models/medieval_village_pack/fantasy_barracks.glb"),
     cypressTree: withBase("/models/fantasy_village/cypress_tree.glb"),
     flowers: withBase("/models/fantasy_village/flowers.glb"),
     flowerBushes: withBase("/models/fantasy_village/flower_bushes.glb"),
@@ -35,8 +31,6 @@ export const MODEL_PATHS = {
     barrel: withBase("/models/medieval_village_pack/barrel.glb"),
     crate: withBase("/models/medieval_village_pack/crate.glb"),
     fence: withBase("/models/medieval_village_pack/fence.glb"),
-    polypizzaGrass01: withBase("/models/polypizza/grass_quaternius.glb"),
-    polypizzaGrass02: withBase("/models/polypizza/grass_quaternius_2.glb"),
     polypizzaPathRoundWide: withBase("/models/polypizza/rock_path_round_wide.glb"),
     polypizzaPathSquareSmall: withBase("/models/polypizza/rock_path_square_small.glb"),
   }

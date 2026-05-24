@@ -8,6 +8,7 @@ import { GltfModel } from "@/components/canvas/models/GltfModel"
 import { useTiledPbrTextureSet } from "@/hooks/useTiledPbrTextureSet"
 import { InstancedGltfModel } from "@/components/canvas/models/InstancedGltfModel"
 import { useWorldStore } from "@/store/worldStore"
+import { clamp, clamp01, seededRandom as rand, seededRandomSigned as randSigned, smoothstep01 } from "@/utils/math"
 
 const EARTH_TOP_DEPTH = 6.8
 const EARTH_CLIFF_DEPTH = 34
@@ -33,18 +34,6 @@ const PATH_RIBBON_SEGMENTS = 170
 
 const CAMERA_BACK_OFFSET_WORLD = 12
 const CAMERA_LEFT_OFFSET_WORLD = 1.2
-
-function fract(v: number) {
-  return v - Math.floor(v)
-}
-
-function rand(seed: number) {
-  return fract(Math.sin(seed) * 43758.5453123)
-}
-
-function randSigned(seed: number) {
-  return rand(seed) * 2 - 1
-}
 
 function applyUv2(geo: THREE.BufferGeometry) {
   if (geo.attributes.uv && !geo.attributes.uv2) {
@@ -130,7 +119,7 @@ function applyRadialGradientXZ(geo: THREE.BufferGeometry, innerColor: string, ou
   for (let i = 0; i < pos.count; i += 1) {
     const dx = pos.getX(i) - centerX
     const dz = pos.getZ(i) - centerZ
-    const t = Math.max(0, Math.min(1, Math.hypot(dx, dz) / maxR))
+    const t = clamp01(Math.hypot(dx, dz) / maxR)
     scratch.copy(inner).lerp(outer, t)
     colors[i * 3 + 0] = scratch.r
     colors[i * 3 + 1] = scratch.g
@@ -144,13 +133,8 @@ function groundNoise(x: number, z: number) {
   return Math.sin(x * 0.16) * Math.cos(z * 0.065) * 0.85
 }
 
-function clamp(v: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, v))
-}
-
 function smoothstep(t: number) {
-  const x = clamp(t, 0, 1)
-  return x * x * (3 - 2 * x)
+  return smoothstep01(t)
 }
 
 function isPointInPolygon2D(px: number, py: number, polygon: ReadonlyArray<THREE.Vector2>) {
@@ -1599,4 +1583,3 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
     </group>
   )
 }
-

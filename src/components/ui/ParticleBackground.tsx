@@ -3,6 +3,7 @@ import Particles, { initParticlesEngine } from "@tsparticles/react"
 import { loadSlim } from "@tsparticles/slim"
 import type { ISourceOptions } from "@tsparticles/engine"
 import { useReducedMotion } from "@/hooks/useReducedMotion"
+import { scheduleIdleTask } from "@/utils/scheduling"
 
 interface ParticleBackgroundProps {
   className?: string
@@ -19,11 +20,19 @@ export function ParticleBackground({
   const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
-    initParticlesEngine(async (engine) => {
-      await loadSlim(engine)
-    }).then(() => {
-      setInit(true)
-    })
+    let cancelled = false
+    const cancelIdleTask = scheduleIdleTask(() => {
+      initParticlesEngine(async (engine) => {
+        await loadSlim(engine)
+      }).then(() => {
+        if (!cancelled) setInit(true)
+      })
+    }, 900)
+
+    return () => {
+      cancelled = true
+      cancelIdleTask()
+    }
   }, [])
 
   const options: ISourceOptions = useMemo(() => {
@@ -34,10 +43,7 @@ export function ParticleBackground({
   }, [prefersReducedMotion, variant, opacity])
 
   if (!init) return null
-
-  if (prefersReducedMotion && variant === "minimal") {
-    return null
-  }
+  if (prefersReducedMotion && variant === "minimal") return null
 
   return (
     <Particles

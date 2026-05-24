@@ -6,12 +6,13 @@ import { VitePWA } from "vite-plugin-pwa"
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production"
   const basePath = isProd ? "/PersonalWebsite/" : "/"
+  const escapedBasePath = basePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
   return {
     plugins: [
       react(),
       VitePWA({
-        registerType: "prompt",
+        registerType: "autoUpdate",
         injectRegister: null,
         includeAssets: [],
         manifest: {
@@ -19,10 +20,12 @@ export default defineConfig(({ mode }) => {
           start_url: basePath
         },
         workbox: {
+          clientsClaim: true,
+          skipWaiting: true,
           maximumFileSizeToCacheInBytes: 80 * 1024 * 1024,
           runtimeCaching: [
             {
-              urlPattern: ({ url }) => url.pathname.startsWith(`${basePath}intro/`) && url.pathname.endsWith(".mp4"),
+              urlPattern: new RegExp(`${escapedBasePath}intro/.*\\.mp4$`),
               handler: "CacheFirst",
               options: {
                 cacheName: "intro-video",
@@ -33,7 +36,7 @@ export default defineConfig(({ mode }) => {
               }
             },
             {
-              urlPattern: ({ url }) => url.pathname.startsWith(`${basePath}models/`) && url.pathname.endsWith(".glb"),
+              urlPattern: new RegExp(`${escapedBasePath}models/.*\\.glb$`),
               handler: "CacheFirst",
               options: {
                 cacheName: "models-glb",
@@ -44,9 +47,7 @@ export default defineConfig(({ mode }) => {
               }
             },
             {
-              urlPattern: ({ url }) =>
-                url.pathname.startsWith(`${basePath}textures/`) &&
-                (url.pathname.endsWith(".ktx2") || url.pathname.endsWith(".jpg") || url.pathname.endsWith(".png")),
+              urlPattern: new RegExp(`${escapedBasePath}textures/.*\\.(ktx2|jpg|png)$`),
               handler: "CacheFirst",
               options: {
                 cacheName: "textures",
