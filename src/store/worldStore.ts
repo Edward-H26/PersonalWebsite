@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { clamp01 } from "@/utils/math"
 
 interface WorldState {
   routeT: number
@@ -35,15 +36,15 @@ export const useWorldStore = create<WorldStore>((set) => ({
   mousePosition: { x: 0, y: 0 },
 
   setRouteT: (t) => {
-    set({ routeT: Math.max(0, Math.min(1, t)) })
+    set({ routeT: clamp01(t) })
   },
 
   setOverviewBlend: (t) => {
-    set({ overviewBlend: Math.max(0, Math.min(1, t)) })
+    set({ overviewBlend: clamp01(t) })
   },
 
   setTitleCardBlend: (t) => {
-    set({ titleCardBlend: Math.max(0, Math.min(1, t)) })
+    set({ titleCardBlend: clamp01(t) })
   },
 
   setEarthTexturedReady: (ready) => {

@@ -1,26 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { buildScrollDeckPages, type ScrollDeckPage } from "@/components/ui/ScrollDeck"
+import { buildScrollDeckPages, type ScrollDeckPage } from "@/config/scrollDeckPages"
 import { useWorldStore } from "@/store/worldStore"
 import { EARTH_SECTION_T_STOPS } from "@/config"
+import { clamp01, clampInt, lerp, smoothstep01 } from "@/utils/math"
 
 type DeckSection = 0 | 1 | 2 | 3 | 4 | 5
-
-function clampInt(v: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, v))
-}
-
-function clamp01(v: number) {
-  return Math.max(0, Math.min(1, v))
-}
-
-function smoothstep01(t: number) {
-  const x = clamp01(t)
-  return x * x * (3 - 2 * x)
-}
-
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t
-}
 
 function isNearSnap(scrollTop: number, index: number, pageHeight: number) {
   const target = index * pageHeight
@@ -146,12 +130,13 @@ export function useScrollSnapNavigation() {
   const overviewTargetIndex = overviewIndex >= 0 ? overviewIndex : firstRealIndex
 
   useEffect(() => {
+    const el = containerRef.current
+
     return () => {
       if (scrollEndTimerRef.current != null) {
         window.clearTimeout(scrollEndTimerRef.current)
       }
 
-      const el = containerRef.current
       if (el) el.classList.remove("scroll-snap-disabled")
     }
   }, [])
@@ -399,6 +384,7 @@ export function useScrollSnapNavigation() {
     hasSentinels,
     lastRealIndex,
     overviewIndex,
+    overviewTargetIndex,
     pages,
     researchTitleIndex,
     sectionRanges,
@@ -550,8 +536,6 @@ export function useScrollSnapNavigation() {
           lastScrollTopRef.current = targetTop
         }
         return
-      }
-      if (idx === firstRealIndex && Math.abs(e.deltaY) > 0.5 && now > wrapCooldownUntilMs.current) {
       }
       const isNearFirstReal = isNearSnap(el.scrollTop, firstRealIndex, height)
       const isNearLastReal = isNearSnap(el.scrollTop, lastRealIndex, height)

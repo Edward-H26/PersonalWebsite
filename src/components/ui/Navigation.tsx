@@ -1,14 +1,6 @@
 import { useEffect, useState } from "react"
 import { useReducedMotion } from "@/hooks/useReducedMotion"
-
-const navItems = [
-  { label: "OVERVIEW", section: 0 },
-  { label: "RESEARCH", section: 1 },
-  { label: "EXPERIENCE", section: 2 },
-  { label: "PROJECT", section: 3 },
-  { label: "PUBLICATIONS", section: 4 },
-  { label: "INFO", section: 5 },
-]
+import { NAV_SECTIONS } from "@/config/scrollDeckPages"
 
 interface NavigationProps {
   scrollToSection: (sectionNum: number, options?: { behavior?: ScrollBehavior }) => void
@@ -29,8 +21,10 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
   }, [])
 
   const navClass = `
-    fixed top-6 left-1/2 -translate-x-1/2 z-[320] pointer-events-auto
-    nav-glass w-[88vw] sm:w-[80vw] md:w-[72vw] lg:w-[68vw] px-3 sm:px-6 py-2 sm:py-2 md:py-2 max-w-[88vw] sm:max-w-[80vw] md:max-w-[72vw] lg:max-w-[68vw] overflow-x-hidden overflow-y-hidden
+    fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+12px)] translate-x-0 z-[320] pointer-events-auto
+    nav-glass max-w-none rounded-2xl px-2 py-2 overflow-hidden
+    md:top-6 md:bottom-auto md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[72vw] md:max-w-[72vw] md:rounded-full md:px-6
+    lg:w-[68vw] lg:max-w-[68vw]
     ${isScrolled && !prefersReducedMotion ? "nav-glass-shrink" : ""}
   `
 
@@ -40,8 +34,8 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
       role="navigation"
       aria-label="Main navigation"
     >
-      <ul className="flex flex-wrap md:flex-nowrap justify-center gap-1.5 sm:gap-6 md:gap-8 lg:gap-10 list-none m-0 p-0">
-        {navItems.map((item) => {
+      <ul className="flex items-center gap-1 overflow-x-auto list-none m-0 p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:justify-center md:gap-8 md:overflow-visible lg:gap-10">
+        {NAV_SECTIONS.map((item) => {
           const isActive = activeSection === item.section
 
           return (
@@ -49,9 +43,10 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
               <button
                 type="button"
                 className={`
-                  group font-orbitron text-[8px] sm:text-[10px] md:text-xs font-semibold tracking-[1.5px] sm:tracking-[3px] md:tracking-[4px] uppercase
-                  relative py-2 transition-all duration-400 pointer-events-auto whitespace-nowrap
-                  ${isActive ? "text-white" : "text-white/85 hover:text-white"}
+                  group font-orbitron text-[10px] md:text-xs font-semibold tracking-[1px] md:tracking-[4px] uppercase
+                  relative shrink-0 rounded-full px-3 py-2 transition-all duration-400 pointer-events-auto whitespace-nowrap
+                  md:rounded-none md:px-0
+                  ${isActive ? "bg-white/14 text-white md:bg-transparent" : "text-white/82 hover:bg-white/10 hover:text-white md:hover:bg-transparent"}
                 `}
                 onClick={() => scrollToSection(item.section, { behavior: "smooth" })}
                 aria-current={isActive ? "page" : undefined}
@@ -62,7 +57,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
 
                 <span
                   className={`
-                    absolute bottom-0 left-1/2 -translate-x-1/2 h-px
+                    absolute bottom-1 left-1/2 -translate-x-1/2 h-px
                     bg-gradient-to-r from-transparent via-cyber-cyan to-transparent
                     transition-all duration-400
                     ${isActive ? "w-full opacity-100" : "w-0 opacity-0 group-hover:w-full group-hover:opacity-60"}
@@ -72,7 +67,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
                 {!prefersReducedMotion && (
                   <span
                     className={`
-                      absolute top-2 left-0 text-cyber-cyan
+                      absolute top-2 left-0 hidden text-cyber-cyan md:block
                       transition-all duration-400 text-shadow-glow
                       ${isActive ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 group-hover:opacity-60 group-hover:translate-y-0"}
                     `}

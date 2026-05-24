@@ -2,18 +2,18 @@ import { useLoader, useThree } from "@react-three/fiber"
 import { useEffect, useMemo } from "react"
 import * as THREE from "three"
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js"
-import { withBase } from "@/config/assets"
+import { withBase } from "@/utils/assets"
+import {
+  configureColorTexture,
+  configureDataTexture,
+  supportsKtx2Textures,
+  toKtx2Url,
+} from "@/utils/textures"
 
 export type PbrTextureSetId =
-  | "forestGround04"
-  | "burnedGround01"
-  | "sand"
-  | "dampSand"
   | "cliffSide"
   | "cobblestonePavement"
-  | "leafyGrass"
   | "sparseGrass"
-  | "marbleTiles"
 
 export type PbrTextureSet = {
   map: THREE.Texture
@@ -22,26 +22,6 @@ export type PbrTextureSet = {
 }
 
 const PBR_TEXTURE_URLS: Record<PbrTextureSetId, { map: string; normalMap: string; armMap: string }> = {
-  forestGround04: {
-    map: withBase("/textures/hq/forest_ground_04/forest_ground_04_diff_2k.jpg"),
-    normalMap: withBase("/textures/hq/forest_ground_04/forest_ground_04_nor_gl_2k.jpg"),
-    armMap: withBase("/textures/hq/forest_ground_04/forest_ground_04_arm_2k.jpg")
-  },
-  burnedGround01: {
-    map: withBase("/textures/hq/burned_ground_01/burned_ground_01_diff_2k.jpg"),
-    normalMap: withBase("/textures/hq/burned_ground_01/burned_ground_01_nor_gl_2k.jpg"),
-    armMap: withBase("/textures/hq/burned_ground_01/burned_ground_01_arm_2k.jpg")
-  },
-  sand: {
-    map: withBase("/textures/hq/coast_sand_02/coast_sand_02_diff_2k.jpg"),
-    normalMap: withBase("/textures/hq/coast_sand_02/coast_sand_02_nor_gl_2k.jpg"),
-    armMap: withBase("/textures/hq/coast_sand_02/coast_sand_02_arm_2k.jpg")
-  },
-  dampSand: {
-    map: withBase("/textures/hq/damp_sand/damp_sand_diff_2k.jpg"),
-    normalMap: withBase("/textures/hq/damp_sand/damp_sand_nor_gl_2k.jpg"),
-    armMap: withBase("/textures/hq/damp_sand/damp_sand_arm_2k.jpg")
-  },
   cliffSide: {
     map: withBase("/textures/hq/cliff_side/cliff_side_diff_2k.jpg"),
     normalMap: withBase("/textures/hq/cliff_side/cliff_side_nor_gl_2k.jpg"),
@@ -52,62 +32,11 @@ const PBR_TEXTURE_URLS: Record<PbrTextureSetId, { map: string; normalMap: string
     normalMap: withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_nor_gl_2k.jpg"),
     armMap: withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_arm_2k.jpg")
   },
-  leafyGrass: {
-    map: withBase("/textures/hq/leafy_grass/leafy_grass_diff_2k.jpg"),
-    normalMap: withBase("/textures/hq/leafy_grass/leafy_grass_nor_gl_2k.jpg"),
-    armMap: withBase("/textures/hq/leafy_grass/leafy_grass_arm_2k.jpg")
-  },
   sparseGrass: {
     map: withBase("/textures/hq/sparse_grass/sparse_grass_diff_2k.jpg"),
     normalMap: withBase("/textures/hq/sparse_grass/sparse_grass_nor_gl_2k.jpg"),
     armMap: withBase("/textures/hq/sparse_grass/sparse_grass_arm_2k.jpg")
-  },
-  marbleTiles: {
-    map: withBase("/textures/hq/marble_tiles/marble_tiles_diff_2k.jpg"),
-    normalMap: withBase("/textures/hq/marble_tiles/marble_tiles_nor_gl_2k.jpg"),
-    armMap: withBase("/textures/hq/marble_tiles/marble_tiles_arm_2k.jpg")
   }
-}
-
-function configureColorTexture(tex: THREE.Texture) {
-  tex.colorSpace = THREE.SRGBColorSpace
-  tex.wrapS = THREE.RepeatWrapping
-  tex.wrapT = THREE.RepeatWrapping
-  tex.anisotropy = 8
-  tex.flipY = false
-  tex.needsUpdate = true
-}
-
-function configureDataTexture(tex: THREE.Texture) {
-  tex.colorSpace = THREE.NoColorSpace
-  tex.wrapS = THREE.RepeatWrapping
-  tex.wrapT = THREE.RepeatWrapping
-  tex.anisotropy = 8
-  tex.flipY = false
-  tex.needsUpdate = true
-}
-
-export function toKtx2Url(url: string) {
-  if (url.endsWith(".ktx2")) return url
-  if (url.endsWith(".jpg")) return url.replace(/\.jpg$/u, ".ktx2")
-  if (url.endsWith(".jpeg")) return url.replace(/\.jpeg$/u, ".ktx2")
-  if (url.endsWith(".png")) return url.replace(/\.png$/u, ".ktx2")
-  return `${url}.ktx2`
-}
-
-export function supportsKtx2Textures(renderer: THREE.WebGLRenderer) {
-  const exts = [
-    "WEBGL_compressed_texture_astc",
-    "WEBGL_compressed_texture_s3tc",
-    "WEBGL_compressed_texture_s3tc_srgb",
-    "WEBGL_compressed_texture_etc",
-    "WEBGL_compressed_texture_etc1",
-    "WEBGL_compressed_texture_pvrtc",
-    "WEBGL_compressed_texture_pvrtc_srgb",
-    "EXT_texture_compression_bptc"
-  ]
-
-  return exts.some((ext) => renderer.extensions.has(ext))
 }
 
 export function usePbrTextureSet(id: PbrTextureSetId): PbrTextureSet {
@@ -146,5 +75,3 @@ export function usePbrTextureSet(id: PbrTextureSetId): PbrTextureSet {
 
   return set
 }
-
-

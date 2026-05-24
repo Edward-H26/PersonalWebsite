@@ -1,18 +1,20 @@
 import { Suspense, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Canvas, useLoader, useThree } from "@react-three/fiber"
-import { Cloud, Clouds, Preload, useGLTF, useProgress, useTexture } from "@react-three/drei"
+import { Cloud, Clouds, useGLTF, useProgress, useTexture } from "@react-three/drei"
 import * as THREE from "three"
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js"
 import { FirstPersonController, IslandTrail } from "./camera"
 import { EarthIsland } from "./islands"
 import { Ocean, ProceduralSky } from "./environment"
 import { ModelErrorBoundary } from "./models/ModelErrorBoundary"
-import { PostProcessing } from "./PostProcessing"
 import { MODEL_PATHS } from "@/hooks/useIslandModels"
-import { useQualityTier, type QualityTier } from "@/hooks/useQualityTier"
-import { supportsKtx2Textures, toKtx2Url } from "@/hooks/usePbrTextureSet"
+import { useIsMobile } from "@/hooks/useIsMobile"
+import { supportsKtx2Textures, toKtx2Url } from "@/utils/textures"
 import { useWorldStore } from "@/store/worldStore"
-import { withBase } from "@/config/assets"
+import { withBase } from "@/utils/assets"
+import { clamp } from "@/utils/math"
+import { scheduleIdleTask } from "@/utils/scheduling"
+import { PostProcessing } from "./PostProcessing"
 
 const PRELOAD_TEXTURES = [
   withBase("/textures/hq/cliff_side/cliff_side_diff_2k.jpg"),
@@ -75,44 +77,42 @@ function RendererConfig({ exposure = 0.5 }: { exposure?: number }) {
   return null
 }
 
-function EarthPreload({ qualityTier }: { qualityTier: QualityTier }) {
+function EarthPreload({ enabled }: { enabled: boolean }) {
   const { gl } = useThree()
 
   useEffect(() => {
-    const gltfs = Array.from(new Set(PRELOAD_GLTFS))
-    const textures = Array.from(new Set(PRELOAD_TEXTURES))
-    const useKtx2 = supportsKtx2Textures(gl)
+    if (!enabled) return
 
-    for (const tex of textures) {
-      if (useKtx2) {
-        useLoader.preload(KTX2Loader, toKtx2Url(tex), (loader) => {
-          const ktx2 = loader as KTX2Loader
-          ktx2.setTranscoderPath(withBase("/examples/jsm/libs/basis/"))
-          ktx2.detectSupport(gl)
-        })
-      } else {
-        useTexture.preload(tex)
+    return scheduleIdleTask(() => {
+      const gltfs = Array.from(new Set(PRELOAD_GLTFS))
+      const textures = Array.from(new Set(PRELOAD_TEXTURES))
+      const useKtx2 = supportsKtx2Textures(gl)
+
+      for (const tex of textures) {
+        if (useKtx2) {
+          useLoader.preload(KTX2Loader, toKtx2Url(tex), (loader) => {
+            const ktx2 = loader as KTX2Loader
+            ktx2.setTranscoderPath(withBase("/examples/jsm/libs/basis/"))
+            ktx2.detectSupport(gl)
+          })
+        } else {
+          useTexture.preload(tex)
+        }
       }
-    }
 
-    for (const gltf of gltfs) {
-      useGLTF.preload(gltf)
-    }
-  }, [gl, qualityTier])
+      for (const gltf of gltfs) {
+        useGLTF.preload(gltf)
+      }
+    }, 1600)
+  }, [enabled, gl])
 
   return null
 }
 
-function WorldContent({
-  section,
-  qualityTier
-}: {
-  section: number
-  qualityTier: QualityTier
-}) {
-  const showProps = qualityTier !== "low"
+function WorldContent({ section }: { section: number }) {
   const overviewBlend = useWorldStore((state) => state.overviewBlend)
-  const shadowMapSize = qualityTier === "medium" ? 384 : 512
+  const [shouldPreload, setShouldPreload] = useState(false)
+  const shadowMapSize = 512
   const lightDimming = section >= 5 ? 0.55 : section >= 4 ? 0.65 : section >= 3 ? 0.75 : 1
   const sunIntensity = 2.0 * lightDimming
   const ambientIntensity = 0.6 * Math.min(1, lightDimming + 0.2)
@@ -124,6 +124,10 @@ function WorldContent({
     const sun = new THREE.Vector3().setFromSphericalCoords(1, phi, theta).normalize()
     const distance = 700
     return [sun.x * distance, sun.y * distance, sun.z * distance]
+  }, [])
+
+  useEffect(() => {
+    return scheduleIdleTask(() => setShouldPreload(true), 1200)
   }, [])
 
   return (
@@ -160,7 +164,7 @@ function WorldContent({
         color="#ffe0b0"
       />
 
-      <EarthPreload qualityTier={qualityTier} />
+      <EarthPreload enabled={shouldPreload} />
 
       <RendererConfig exposure={exposure} />
 
@@ -225,9 +229,7 @@ function WorldContent({
         </Clouds>
       </Suspense>
 
-      <EarthIsland showProps={showProps} />
-
-      <Preload all />
+      <EarthIsland />
     </>
   )
 }
@@ -237,9 +239,6 @@ export function WorldScene({
 }: {
   section: number
 }) {
-  const qualityTier = useQualityTier()
-  const maxDpr = qualityTier === "low" ? 1 : qualityTier === "medium" ? 1.1 : 1.25
-  const enableShadows = qualityTier !== "low"
   const setLoaderBypassed = useWorldStore((state) => state.setLoaderBypassed)
   const isLoaderBypassed = useWorldStore((state) => state.isLoaderBypassed)
   const setLoadingOverlayVisible = useWorldStore((state) => state.setLoadingOverlayVisible)
@@ -261,27 +260,27 @@ export function WorldScene({
   const fullyLoadedRef = useRef(false)
   const loadCompleteTimerRef = useRef<number | null>(null)
   const overlayStartRef = useRef<number | null>(null)
-  const isMobile = useMemo(
-    () => (typeof window !== "undefined" ? window.matchMedia("(max-width: 768px)").matches : false),
-    []
-  )
+  const isMobile = useIsMobile()
   const minOverlayMs = isMobile ? 1200 : 0
 
   useEffect(() => {
     let cancelled = false
 
-    fetch(withBase("/intro/island-loop.mp4"), { method: "HEAD" })
-      .then((res) => {
-        if (cancelled) return
-        const contentType = res.headers.get("content-type") ?? ""
-        if (res.ok && contentType.startsWith("video/")) setEnableIntroVideo(true)
-      })
-      .catch(() => {
-        if (!cancelled) setEnableIntroVideo(false)
-      })
+    const cancelIdleTask = scheduleIdleTask(() => {
+      fetch(withBase("/intro/island-loop.mp4"), { method: "HEAD" })
+        .then((res) => {
+          if (cancelled) return
+          const contentType = res.headers.get("content-type") ?? ""
+          if (res.ok && contentType.startsWith("video/")) setEnableIntroVideo(true)
+        })
+        .catch(() => {
+          if (!cancelled) setEnableIntroVideo(false)
+        })
+    }, 700)
 
     return () => {
       cancelled = true
+      cancelIdleTask()
     }
   }, [])
 
@@ -289,7 +288,7 @@ export function WorldScene({
     for (const tex of FIRST_FRAME_TEXTURES) {
       useLoader.preload(THREE.TextureLoader, tex)
     }
-  }, [qualityTier])
+  }, [])
 
   useEffect(() => {
     if (!isLoadingActive) {
@@ -313,8 +312,7 @@ export function WorldScene({
       const stagnantMs = now - lastProgressTimeRef.current
       const hasErrors = loadingErrors.length > 0
       const isStalled = loadingProgress >= 99 && stagnantMs > 4000
-      const isMobileStalled = isMobile && stagnantMs > 10000
-      if (hasErrors || isStalled || isMobileStalled) {
+      if (hasErrors || isStalled) {
         setForceReady(true)
         setLoaderBypassed(true)
       }
@@ -322,9 +320,9 @@ export function WorldScene({
     return () => window.clearInterval(intervalId)
   }, [isLoadingActive, isMobile, loadingErrors.length, loadingProgress, setLoaderBypassed])
 
-  const showOverlay = !isFullyLoaded && !(isMobile && isLoaderBypassed)
+  const showOverlay = !isFullyLoaded
 
-  const clampedProgress = Math.max(0, Math.min(100, loadingProgress))
+  const clampedProgress = clamp(loadingProgress, 0, 100)
   const targetProgress = forceReady ? 100 : clampedProgress
 
   useEffect(() => {
@@ -427,7 +425,7 @@ export function WorldScene({
   return (
     <div className="fixed inset-0 w-full h-full">
       <Canvas
-        shadows={enableShadows ? "soft" : false}
+        shadows="soft"
         camera={{
           fov: 55,
           near: 0.1,
@@ -441,10 +439,10 @@ export function WorldScene({
           stencil: false,
           depth: true
         }}
-        dpr={[1, maxDpr]}
+        dpr={[1, 1.25]}
       >
         <ModelErrorBoundary fallback={null}>
-          <WorldContent section={section} qualityTier={qualityTier} />
+          <WorldContent section={section} />
           <PostProcessing />
         </ModelErrorBoundary>
       </Canvas>

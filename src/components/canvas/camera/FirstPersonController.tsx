@@ -6,6 +6,7 @@ import { easing } from "maath"
 import { useWorldStore } from "@/store/worldStore"
 import { EARTH_ROUTE_POINTS, EARTH_SECTION_T_STOPS, WORLD_CONFIG } from "@/config"
 import { BIRD_EYE_CAMERA_CONFIG } from "./BirdEyeCamera"
+import { clamp01 } from "@/utils/math"
 
 const CAMERA_BACK_OFFSET = 12
 const CAMERA_LEFT_OFFSET = 1.2
@@ -107,9 +108,9 @@ export function FirstPersonController() {
     const travelDir = worldState.travelDir
     const mousePosition = worldState.mousePosition
 
-    const routeTarget = Math.max(0, Math.min(1, routeT))
-    const overviewTarget = Math.max(0, Math.min(1, overviewBlend))
-    const titleTarget = Math.max(0, Math.min(1, titleCardBlend))
+    const routeTarget = clamp01(routeT)
+    const overviewTarget = clamp01(overviewBlend)
+    const titleTarget = clamp01(titleCardBlend)
     const researchSectionEnd = EARTH_SECTION_T_STOPS[1] ?? 1
 
     smoothedRouteT.current = THREE.MathUtils.damp(smoothedRouteT.current, routeTarget, 10, delta)

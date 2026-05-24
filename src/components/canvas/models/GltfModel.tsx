@@ -3,7 +3,7 @@ import { GroupProps } from "@react-three/fiber"
 import { useMemo } from "react"
 import { Box3, Mesh, Object3D, SkinnedMesh, Vector3 } from "three"
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js"
-import { withBase } from "@/config/assets"
+import { withBase } from "@/utils/assets"
 
 type Pivot = "origin" | "center" | "center-bottom"
 

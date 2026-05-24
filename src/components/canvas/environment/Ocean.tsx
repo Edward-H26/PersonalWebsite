@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 import { Water } from "three/examples/jsm/objects/Water.js"
-import { withBase } from "@/config/assets"
+import { withBase } from "@/utils/assets"
 
 interface OceanProps {
   sunElevation?: number

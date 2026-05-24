@@ -20,11 +20,8 @@ These assets are downloaded from Poly Haven and are licensed under CC0 (see `htt
 
 ### Textures
 
-- `public/textures/hq/forest_ground_04/*`: Forest Ground 04 (`https://polyhaven.com/a/forest_ground_04`)
-- `public/textures/hq/coast_sand_02/*`: Coast Sand 02 (`https://polyhaven.com/a/coast_sand_02`)
 - `public/textures/hq/cliff_side/*`: Cliff Side (`https://polyhaven.com/a/cliff_side`)
 - `public/textures/hq/cobblestone_pavement/*`: Cobblestone Pavement (`https://polyhaven.com/a/cobblestone_pavement`)
-- `public/textures/hq/leafy_grass/*`: Leafy Grass (`https://polyhaven.com/a/leafy_grass`)
 - `public/textures/hq/sparse_grass/*`: Sparse Grass (`https://polyhaven.com/a/sparse_grass`)
 - `public/textures/cloud.png`: Cloud sprite from pmndrs drei assets (MIT) (`https://rawcdn.githack.com/pmndrs/drei-assets/9225a9f1fbd449d9411125c2f419b843d0308c9f/cloud.png`)
 
@@ -32,11 +29,6 @@ These assets are downloaded from Poly Haven and are licensed under CC0 (see `htt
 
 ### Models (CC0)
 
-- `public/models/fantasy_village/fantasy_house.glb`: Fantasy House (`https://poly.pizza/m/BH2XHWUNmF`)
-- `public/models/fantasy_village/fantasy_inn.glb`: Fantasy Inn (`https://poly.pizza/m/x3ZcGn3jr4`)
-- `public/models/fantasy_village/town_house.glb`: Town House (`https://poly.pizza/m/sDQJBImZuw`)
-- `public/models/fantasy_village/tower_house.glb`: Tower House (`https://poly.pizza/m/xm5cViUjra`)
-- `public/models/fantasy_village/big_building.glb`: Big Building (`https://poly.pizza/m/AVCS8jUd2l`)
 - `public/models/fantasy_village/flowers.glb`: Flowers (`https://poly.pizza/m/dOO6kMDd8L`)
 - `public/models/fantasy_village/flower_bushes.glb`: Flower Bushes (`https://poly.pizza/m/1X06RgvSr6`)
 
@@ -72,5 +64,4 @@ Stylized Nature MegaKit by Quaternius via Poly Pizza (`https://poly.pizza/bundle
 
 - `public/models/polypizza/rock_path_round_wide.glb`: Rock Path Round Wide (`https://poly.pizza/m/mWb3XxOctl`)
 - `public/models/polypizza/rock_path_square_small.glb`: Rock Path Square Small (`https://poly.pizza/m/cI9XBpVijV`)
-
 
