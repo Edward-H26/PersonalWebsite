@@ -84,7 +84,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
       {
         title: "AlphaWiseFT",
         bullets: [
-          "[4] Sarthak Jain, Qiran Hu, Zhen Zhu, and Yaoyao Liu. AlphaWiseFT: Adaptive Weight Interpolation for Continual Multimodal Representation Learning. Under Review at Transactions on Machine Learning Research (TMLR)."
+          "[4] Sarthak Jain, Qiran Hu, Zhen Zhu, and Yaoyao Liu. AlphaWiseFT: Adaptive Weight Interpolation for Continual Multimodal Representation Learning. Under Review."
         ]
       }
     ]
