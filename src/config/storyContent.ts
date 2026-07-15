@@ -61,12 +61,16 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
   fire_island: {
     id: "fire_island",
     heading: "Publications",
-    subheading: "Papers Under Review",
+    subheading: "Publications",
     cards: [
       {
         title: "AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation",
         bullets: [
-          "[1] Eric Ji, Qiran Hu, Wufei Ma, Sarthak Jain, Yingying Li, Minh N. Do, and Yaoyao Liu. AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation. Under Review."
+          "[1] Eric Ji, Qiran Hu, Wufei Ma, Sarthak Jain, Yingying Li, Minh N. Do, and Yaoyao Liu. AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation. ECCV 2026."
+        ],
+        links: [
+          { label: "arXiv", url: "https://arxiv.org/abs/2606.31204" },
+          { label: "Project", url: "https://ac3s.cvmlgroup.web.illinois.edu/" }
         ]
       },
       {
@@ -255,7 +259,8 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         links: [
           { label: "GitHub", url: "https://github.com/Edward-H26" },
           { label: "LinkedIn", url: "https://www.linkedin.com/in/qiranhu/" },
-          { label: "Website", url: "https://edward-h26.github.io/" }
+          { label: "Website", url: "https://edward-h26.github.io/" },
+          { label: "Google Scholar", url: "https://scholar.google.com/citations?user=4jv03f4AAAAJ&hl=en" }
         ]
       }
     ]

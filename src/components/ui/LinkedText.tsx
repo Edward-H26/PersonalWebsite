@@ -16,12 +16,25 @@ function getAutoLinkUrl(text: string) {
   return text
 }
 
+const OWNER_NAME = "Qiran Hu"
+
+function renderOwnerName(text: string, baseKey: string) {
+  if (!text.includes(OWNER_NAME)) return text
+
+  return text.split(OWNER_NAME).map((segment, index) => (
+    <span key={`${baseKey}-owner-${index}`}>
+      {index > 0 ? <strong>{OWNER_NAME}</strong> : null}
+      {segment}
+    </span>
+  ))
+}
+
 function renderPlainText(text: string, baseKey: string) {
   const parts = text.split(AUTO_LINK_PATTERN).filter(Boolean)
 
   return parts.map((part, index) => {
     if (!AUTO_LINK_TEST_PATTERN.test(part)) {
-      return <span key={`${baseKey}-text-${index}`}>{part}</span>
+      return <span key={`${baseKey}-text-${index}`}>{renderOwnerName(part, `${baseKey}-text-${index}`)}</span>
     }
 
     return (
