@@ -2,6 +2,8 @@ import { useGLTF } from "@react-three/drei"
 import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 import { GltfModel } from "./GltfModel"
+import { useRealtimeMaterials } from "@/hooks/useRealtimeMaterials"
+import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
 
 type Pivot = "origin" | "center" | "center-bottom"
 
@@ -18,6 +20,9 @@ type InstancedGltfModelProps = {
   pivot?: Pivot
   castShadow?: boolean
   receiveShadow?: boolean
+  // Scans with several variants in one file (grass clumps, ferns) instance a single named mesh.
+  meshName?: string
+  excludeFromReflection?: boolean
 }
 
 type InstancingSource = {
@@ -26,12 +31,13 @@ type InstancingSource = {
   sizeY: number
 }
 
-function tryBuildInstancingSource(scene: THREE.Object3D, pivot: Pivot): InstancingSource | null {
+function tryBuildInstancingSource(scene: THREE.Object3D, pivot: Pivot, meshName?: string): InstancingSource | null {
   const meshes: THREE.Mesh[] = []
 
   scene.traverse((obj) => {
     if (!(obj instanceof THREE.Mesh)) return
     if (obj instanceof THREE.SkinnedMesh) return
+    if (meshName && obj.name !== meshName) return
     meshes.push(obj)
   })
 
@@ -78,14 +84,17 @@ export function InstancedGltfModel({
   fitHeight,
   pivot = "center-bottom",
   castShadow = true,
-  receiveShadow = true
+  receiveShadow = true,
+  meshName,
+  excludeFromReflection = false
 }: InstancedGltfModelProps) {
   const { scene } = useGLTF(path)
   const meshRef = useRef<THREE.InstancedMesh>(null)
+  useRealtimeMaterials(scene)
 
   const source = useMemo(() => {
-    return tryBuildInstancingSource(scene, pivot)
-  }, [scene, pivot])
+    return tryBuildInstancingSource(scene, pivot, meshName)
+  }, [meshName, scene, pivot])
 
   const baseScale = useMemo(() => {
     if (!source) return 1
@@ -112,7 +121,8 @@ export function InstancedGltfModel({
     }
 
     meshRef.current.instanceMatrix.needsUpdate = true
-  }, [baseScale, instances])
+    meshRef.current.layers.set(excludeFromReflection ? REFLECTION_EXCLUDED_LAYER : 0)
+  }, [baseScale, excludeFromReflection, instances])
 
   if (!source) {
     return (
@@ -128,6 +138,7 @@ export function InstancedGltfModel({
             castShadow={castShadow}
             receiveShadow={receiveShadow}
             scale={instance.scale}
+            excludeFromReflection={excludeFromReflection}
           />
         ))}
       </>

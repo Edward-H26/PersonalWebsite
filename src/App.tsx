@@ -16,9 +16,9 @@ function App() {
   const setMousePosition = useWorldStore((state) => state.setMousePosition)
   const isEarthTexturedReady = useWorldStore((state) => state.isEarthTexturedReady)
   const isLoadingOverlayVisible = useWorldStore((state) => state.isLoadingOverlayVisible)
-  const { pages, section, containerRef, scrollToSection } = useScrollSnapNavigation()
   const isMobile = useIsMobile()
   const scrollLocked = isLoadingOverlayVisible || (!isEarthTexturedReady && !isMobile)
+  const { pages, section, containerRef, scrollToSection } = useScrollSnapNavigation({ scrollLocked })
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

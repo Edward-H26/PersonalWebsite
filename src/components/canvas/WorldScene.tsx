@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Canvas, useLoader, useThree } from "@react-three/fiber"
-import { Cloud, Clouds, useGLTF, useProgress, useTexture } from "@react-three/drei"
+import { Cloud, Clouds, PerformanceMonitor, useGLTF, useProgress, useTexture } from "@react-three/drei"
 import * as THREE from "three"
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js"
 import { FirstPersonController, IslandTrail } from "./camera"
@@ -33,7 +33,6 @@ const FIRST_FRAME_TEXTURES = [withBase("/textures/waternormals.jpg"), withBase("
 const PRELOAD_GLTFS = [
   MODEL_PATHS.earth.hqGrassMedium01,
   MODEL_PATHS.earth.hqTreeStump,
-  MODEL_PATHS.earth.hqMoss,
   MODEL_PATHS.earth.hqTree,
   MODEL_PATHS.earth.hqBoulder,
   MODEL_PATHS.earth.hqFern,
@@ -56,13 +55,14 @@ const PRELOAD_GLTFS = [
   MODEL_PATHS.earth.fence,
   MODEL_PATHS.earth.cypressTree,
   MODEL_PATHS.earth.flowerBushes,
-  MODEL_PATHS.earth.flowers,
-  MODEL_PATHS.earth.polypizzaPathRoundWide,
-  MODEL_PATHS.earth.polypizzaPathSquareSmall
+  MODEL_PATHS.earth.flowers
 ]
 
 const SUN_ELEVATION = 2
 const SUN_AZIMUTH = 180
+// The sky keeps its low sunset sun; the key light sits at a late-afternoon angle so roofs, terrain,
+// and cliffs receive direct light and cast readable shadows. Fill lights stay low so shadows read.
+const KEY_LIGHT_ELEVATION = 30
 
 function RendererConfig({ exposure = 0.5 }: { exposure?: number }) {
   const { gl } = useThree()
@@ -112,14 +112,14 @@ function EarthPreload({ enabled }: { enabled: boolean }) {
 function WorldContent({ section }: { section: number }) {
   const overviewBlend = useWorldStore((state) => state.overviewBlend)
   const [shouldPreload, setShouldPreload] = useState(false)
-  const shadowMapSize = 512
+  const shadowMapSize = 2048
   const lightDimming = section >= 5 ? 0.55 : section >= 4 ? 0.65 : section >= 3 ? 0.75 : 1
-  const sunIntensity = 2.0 * lightDimming
-  const ambientIntensity = 0.6 * Math.min(1, lightDimming + 0.2)
-  const pointIntensity = 0.8 * Math.min(1, lightDimming + 0.15)
-  const exposure = 0.5 - 0.12 * (1 - lightDimming)
+  const sunIntensity = 3.2 * lightDimming
+  const ambientIntensity = 0.32 * Math.min(1, lightDimming + 0.2)
+  const pointIntensity = 0.35 * Math.min(1, lightDimming + 0.15)
+  const exposure = 0.52 - 0.12 * (1 - lightDimming)
   const sunLightPosition = useMemo<[number, number, number]>(() => {
-    const phi = THREE.MathUtils.degToRad(90 - SUN_ELEVATION)
+    const phi = THREE.MathUtils.degToRad(90 - KEY_LIGHT_ELEVATION)
     const theta = THREE.MathUtils.degToRad(SUN_AZIMUTH)
     const sun = new THREE.Vector3().setFromSphericalCoords(1, phi, theta).normalize()
     const distance = 700
@@ -140,22 +140,24 @@ function WorldContent({ section }: { section: number }) {
         castShadow
         shadow-mapSize-width={shadowMapSize}
         shadow-mapSize-height={shadowMapSize}
-        shadow-camera-far={500}
+        shadow-camera-near={300}
+        shadow-camera-far={1100}
         shadow-camera-left={-200}
         shadow-camera-right={200}
         shadow-camera-top={200}
         shadow-camera-bottom={-200}
-        shadow-bias={-0.0001}
+        shadow-bias={-0.0002}
+        shadow-normalBias={0.05}
         color="#fff5e6"
       />
 
       <directionalLight
         position={[-80, 100, -80]}
-        intensity={0.55 * Math.min(1, lightDimming + 0.25)}
+        intensity={0.3 * Math.min(1, lightDimming + 0.25)}
         color="#6080ff"
       />
 
-      <hemisphereLight args={["#87ceeb", "#2a4a2a", 0.5]} />
+      <hemisphereLight args={["#87ceeb", "#2a4a2a", 0.35]} />
 
       <pointLight
         position={[0, 50, 0]}
@@ -168,7 +170,7 @@ function WorldContent({ section }: { section: number }) {
 
       <RendererConfig exposure={exposure} />
 
-      <ProceduralSky elevation={SUN_ELEVATION} azimuth={SUN_AZIMUTH} />
+      <ProceduralSky elevation={SUN_ELEVATION} azimuth={SUN_AZIMUTH} mieCoefficient={0.0035} mieDirectionalG={0.74} />
 
       <Ocean
         sunElevation={SUN_ELEVATION}
@@ -262,6 +264,9 @@ export function WorldScene({
   const overlayStartRef = useRef<number | null>(null)
   const isMobile = useIsMobile()
   const minOverlayMs = isMobile ? 1200 : 0
+  // Render sharp by default and drop to 1x when the device cannot hold the frame rate.
+  const sharpDpr = isMobile ? 1.25 : 1.5
+  const [dpr, setDpr] = useState(sharpDpr)
 
   useEffect(() => {
     let cancelled = false
@@ -433,14 +438,20 @@ export function WorldScene({
           position: [0, 300, 350]
         }}
         gl={{
-          antialias: true,
+          antialias: false,
           alpha: false,
           powerPreference: "high-performance",
           stencil: false,
           depth: true
         }}
-        dpr={[1, 1.25]}
+        dpr={dpr}
       >
+        <PerformanceMonitor
+          onDecline={() => setDpr(1)}
+          onIncline={() => setDpr(sharpDpr)}
+          onFallback={() => setDpr(1)}
+          flipflops={3}
+        />
         <ModelErrorBoundary fallback={null}>
           <WorldContent section={section} />
           <PostProcessing />

@@ -1,5 +1,5 @@
 import { useLoader, useThree } from "@react-three/fiber"
-import { useEffect, useMemo } from "react"
+import { useMemo } from "react"
 import * as THREE from "three"
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js"
 import { withBase } from "@/utils/assets"
@@ -61,17 +61,13 @@ export function usePbrTextureSet(id: PbrTextureSetId): PbrTextureSet {
       : undefined
   ) as [THREE.Texture, THREE.Texture, THREE.Texture]
 
-  const set: PbrTextureSet = {
-    map: textures[0],
-    normalMap: textures[1],
-    armMap: textures[2]
-  }
-
-  useEffect(() => {
-    configureColorTexture(set.map)
-    configureDataTexture(set.normalMap)
-    configureDataTexture(set.armMap)
-  }, [set.armMap, set.map, set.normalMap])
-
-  return set
+  // Configure during render, not in an effect: useTiledPbrTextureSet clones these textures in the
+  // same render pass, and clones only inherit wrap, color space, and anisotropy that are already set.
+  return useMemo<PbrTextureSet>(() => {
+    const [map, normalMap, armMap] = textures
+    configureColorTexture(map)
+    configureDataTexture(normalMap)
+    configureDataTexture(armMap)
+    return { map, normalMap, armMap }
+  }, [textures])
 }

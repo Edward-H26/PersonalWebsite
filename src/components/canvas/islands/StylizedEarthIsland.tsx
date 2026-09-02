@@ -1,5 +1,4 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef } from "react"
-import { useGLTF } from "@react-three/drei"
 import * as THREE from "three"
 import { EARTH_ISLAND, EARTH_ROUTE_POINTS, EARTH_SECTION_T_STOPS } from "@/config"
 import type { PbrTextureSet } from "@/hooks/usePbrTextureSet"
@@ -8,133 +7,38 @@ import { GltfModel } from "@/components/canvas/models/GltfModel"
 import { useTiledPbrTextureSet } from "@/hooks/useTiledPbrTextureSet"
 import { InstancedGltfModel } from "@/components/canvas/models/InstancedGltfModel"
 import { useWorldStore } from "@/store/worldStore"
-import { clamp, clamp01, seededRandom as rand, seededRandomSigned as randSigned, smoothstep01 } from "@/utils/math"
+import { ENV_MAP_INTENSITY } from "@/hooks/useRealtimeMaterials"
+import { seededRandom as rand, seededRandomSigned as randSigned, smoothstep01 } from "@/utils/math"
 
-const EARTH_TOP_DEPTH = 6.8
-const EARTH_CLIFF_DEPTH = 34
+// Island body (all in island-local units, world = local * EARTH_ISLAND.scale)
+const ISLAND_DEPTH = 42
+const ISLAND_SHORE_RADIUS = 36
+const ISLAND_OUTLINE_SEGMENTS = 288
+const ISLAND_RINGS = 44
+const CLIFF_ROWS = 14
+const ROAD_OUTLINE_SAMPLES = 400
+
+// Texture tile sizes in local units; UVs are generated in tile space so every surface tiles squarely.
+const GRASS_TILE = 11
+const CLIFF_TILE = 15
+const COBBLE_TILE = 9
 
 const PATH_WIDTH = 7.8
-const PATH_Y_OFFSET = 0.45
-
-const TERRAIN_SHAPE_SEGMENTS = 96
-const TERRAIN_CAP_SEGMENTS = 18
-const TERRAIN_BASE_HALF_WIDTH = 18.0
-const TERRAIN_BULGE = 4.2
-const TERRAIN_NOISE = 1.9
-
-const CLIFF_SHAPE_SEGMENTS = 96
-const CLIFF_CAP_SEGMENTS = 18
-const CLIFF_BASE_HALF_WIDTH = 26.5
-const CLIFF_BULGE = 4.6
-const CLIFF_NOISE = 2.4
-
-const ISLAND_ROUTE_EXTENSION_WORLD = 36
-const ISLAND_BEND_AMPLITUDE_WORLD = 22
+const BRANCH_WIDTH = PATH_WIDTH * 0.7
+const PATH_Y_OFFSET = 0.22
 const PATH_RIBBON_SEGMENTS = 170
 
 const CAMERA_BACK_OFFSET_WORLD = 12
 const CAMERA_LEFT_OFFSET_WORLD = 1.2
 
-function applyUv2(geo: THREE.BufferGeometry) {
-  if (geo.attributes.uv && !geo.attributes.uv2) {
-    geo.setAttribute("uv2", new THREE.BufferAttribute(geo.attributes.uv.array, 2))
+function applyAoUv(geo: THREE.BufferGeometry) {
+  if (geo.attributes.uv && !geo.attributes.uv1) {
+    geo.setAttribute("uv1", new THREE.BufferAttribute(geo.attributes.uv.array, 2))
   }
-}
-
-function applyPlanarUvXZ(geo: THREE.BufferGeometry) {
-  const pos = geo.attributes.position
-  if (!pos) return
-
-  geo.computeBoundingBox()
-  const box = geo.boundingBox
-  if (!box) return
-
-  const minX = box.min.x
-  const maxX = box.max.x
-  const minZ = box.min.z
-  const maxZ = box.max.z
-
-  const rangeX = maxX - minX || 1
-  const rangeZ = maxZ - minZ || 1
-
-  const uvs = new Float32Array(pos.count * 2)
-  for (let i = 0; i < pos.count; i += 1) {
-    const x = pos.getX(i)
-    const z = pos.getZ(i)
-    uvs[i * 2 + 0] = (x - minX) / rangeX
-    uvs[i * 2 + 1] = (z - minZ) / rangeZ
-  }
-
-  geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2))
-}
-
-function applyHeightGradient(geo: THREE.BufferGeometry, topColor: string, bottomColor: string) {
-  const pos = geo.attributes.position
-  if (!pos) return
-
-  geo.computeBoundingBox()
-  const box = geo.boundingBox
-  if (!box) return
-
-  const minY = box.min.y
-  const maxY = box.max.y
-  const rangeY = Math.max(1e-6, maxY - minY)
-
-  const top = new THREE.Color(topColor)
-  const bottom = new THREE.Color(bottomColor)
-  const scratch = new THREE.Color()
-
-  const colors = new Float32Array(pos.count * 3)
-  for (let i = 0; i < pos.count; i += 1) {
-    const t = (pos.getY(i) - minY) / rangeY
-    scratch.copy(bottom).lerp(top, t)
-    colors[i * 3 + 0] = scratch.r
-    colors[i * 3 + 1] = scratch.g
-    colors[i * 3 + 2] = scratch.b
-  }
-
-  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3))
-}
-
-function applyRadialGradientXZ(geo: THREE.BufferGeometry, innerColor: string, outerColor: string) {
-  const pos = geo.attributes.position
-  if (!pos) return
-
-  geo.computeBoundingBox()
-  const box = geo.boundingBox
-  if (!box) return
-
-  const centerX = (box.min.x + box.max.x) / 2
-  const centerZ = (box.min.z + box.max.z) / 2
-
-  const rMin = Math.hypot(box.min.x - centerX, box.min.z - centerZ)
-  const rMax = Math.hypot(box.max.x - centerX, box.max.z - centerZ)
-  const maxR = Math.max(1e-6, Math.max(rMin, rMax))
-
-  const inner = new THREE.Color(innerColor)
-  const outer = new THREE.Color(outerColor)
-  const scratch = new THREE.Color()
-
-  const colors = new Float32Array(pos.count * 3)
-  for (let i = 0; i < pos.count; i += 1) {
-    const dx = pos.getX(i) - centerX
-    const dz = pos.getZ(i) - centerZ
-    const t = clamp01(Math.hypot(dx, dz) / maxR)
-    scratch.copy(inner).lerp(outer, t)
-    colors[i * 3 + 0] = scratch.r
-    colors[i * 3 + 1] = scratch.g
-    colors[i * 3 + 2] = scratch.b
-  }
-
-  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3))
 }
 
 function groundNoise(x: number, z: number) {
   return Math.sin(x * 0.16) * Math.cos(z * 0.065) * 0.85
-}
-
-function smoothstep(t: number) {
-  return smoothstep01(t)
 }
 
 function isPointInPolygon2D(px: number, py: number, polygon: ReadonlyArray<THREE.Vector2>) {
@@ -181,7 +85,7 @@ const HILL_END_WORLD_Z = 120
 const HILL_HEIGHT_WORLD = 18
 
 function hillHeightWorld(worldZ: number) {
-  const t = smoothstep((worldZ - HILL_START_WORLD_Z) / (HILL_END_WORLD_Z - HILL_START_WORLD_Z))
+  const t = smoothstep01((worldZ - HILL_START_WORLD_Z) / (HILL_END_WORLD_Z - HILL_START_WORLD_Z))
   return t * HILL_HEIGHT_WORLD
 }
 
@@ -197,104 +101,7 @@ function getFlatTangent(tangent: THREE.Vector3) {
   return tangent
 }
 
-function extendRoute(points: THREE.Vector3[], extension: number) {
-  if (points.length < 2) return points
-
-  const start = points[0]
-  const next = points[1]
-  const end = points[points.length - 1]
-  const prev = points[points.length - 2]
-
-  const dirStart = getFlatTangent(next.clone().sub(start))
-  const dirEnd = getFlatTangent(end.clone().sub(prev))
-
-  const extendedStart = start.clone().addScaledVector(dirStart, -extension)
-  const extendedEnd = end.clone().addScaledVector(dirEnd, extension)
-
-  return [extendedStart, ...points, extendedEnd]
-}
-
-function halfWidthAt(t: number, baseHalfWidth: number, bulge: number, noise: number) {
-  const bulgeT = Math.sin(Math.PI * t) * bulge
-  const n = (Math.sin(t * 10.5 + 0.6) * 0.75 + Math.sin(t * 24.0 + 1.9) * 0.45) * noise
-  return Math.max(PATH_WIDTH * 0.6, baseHalfWidth + bulgeT + n)
-}
-
-function makeIslandShape(
-  curve: THREE.CatmullRomCurve3,
-  options: { segments: number; capSegments: number; baseHalfWidth: number; bulge: number; noise: number }
-) {
-  const left: THREE.Vector2[] = []
-  const right: THREE.Vector2[] = []
-
-  const point = new THREE.Vector3()
-  const tangent = new THREE.Vector3()
-  const perp = new THREE.Vector3()
-
-  for (let i = 0; i <= options.segments; i += 1) {
-    const t = options.segments === 0 ? 0 : i / options.segments
-    curve.getPointAt(t, point)
-    curve.getTangentAt(t, tangent)
-    getFlatTangent(tangent)
-    perp.set(-tangent.z, 0, tangent.x)
-
-    const halfWidth = halfWidthAt(t, options.baseHalfWidth, options.bulge, options.noise)
-
-    const lx = point.x + perp.x * halfWidth
-    const lz = point.z + perp.z * halfWidth
-    const rx = point.x - perp.x * halfWidth
-    const rz = point.z - perp.z * halfWidth
-
-    left.push(new THREE.Vector2(lx, -lz))
-    right.push(new THREE.Vector2(rx, -rz))
-  }
-
-  const shape = new THREE.Shape()
-  if (left.length === 0) return shape
-
-  shape.moveTo(left[0].x, left[0].y)
-  for (let i = 1; i < left.length; i += 1) {
-    shape.lineTo(left[i].x, left[i].y)
-  }
-
-  curve.getPointAt(1, point)
-  curve.getTangentAt(1, tangent)
-  getFlatTangent(tangent)
-  perp.set(-tangent.z, 0, tangent.x)
-
-  const halfWidthEnd = halfWidthAt(1, options.baseHalfWidth, options.bulge, options.noise)
-  const capDirEnd = tangent.clone()
-
-  for (let j = 1; j <= options.capSegments; j += 1) {
-    const a = (j / options.capSegments) * Math.PI
-    const cx = point.x + perp.x * halfWidthEnd * Math.cos(a) + capDirEnd.x * halfWidthEnd * Math.sin(a)
-    const cz = point.z + perp.z * halfWidthEnd * Math.cos(a) + capDirEnd.z * halfWidthEnd * Math.sin(a)
-    shape.lineTo(cx, -cz)
-  }
-
-  for (let i = right.length - 2; i >= 0; i -= 1) {
-    shape.lineTo(right[i].x, right[i].y)
-  }
-
-  curve.getPointAt(0, point)
-  curve.getTangentAt(0, tangent)
-  getFlatTangent(tangent)
-  perp.set(-tangent.z, 0, tangent.x)
-
-  const halfWidthStart = halfWidthAt(0, options.baseHalfWidth, options.bulge, options.noise)
-  const capDirStart = tangent.clone().multiplyScalar(-1)
-
-  for (let j = 1; j <= options.capSegments; j += 1) {
-    const a = Math.PI - (j / options.capSegments) * Math.PI
-    const cx = point.x + perp.x * halfWidthStart * Math.cos(a) + capDirStart.x * halfWidthStart * Math.sin(a)
-    const cz = point.z + perp.z * halfWidthStart * Math.cos(a) + capDirStart.z * halfWidthStart * Math.sin(a)
-    shape.lineTo(cx, -cz)
-  }
-
-  shape.closePath()
-  return shape
-}
-
+// The drawn road sits where the camera travels: behind and slightly left of the route curve.
 function getTrackFrameAt(
   curve: THREE.CatmullRomCurve3,
   t: number,
@@ -318,15 +125,220 @@ function getTrackFrameAt(
   perp.set(-tangent.z, 0, tangent.x)
 }
 
+function trackPointAt(curve: THREE.CatmullRomCurve3, t: number, worldScale: number) {
+  const point = new THREE.Vector3()
+  const tangent = new THREE.Vector3()
+  const perp = new THREE.Vector3()
+  const side = new THREE.Vector3()
+  getTrackFrameAt(curve, t, point, tangent, perp, side, worldScale)
+  return point
+}
+
+type IslandOutline = {
+  centerX: number
+  centerZ: number
+  // Rim radius per angle sample, plus the cumulative rim length used for cliff UVs.
+  radii: number[]
+  arcLengths: number[]
+  perimeter: number
+}
+
+// The island is the outer boundary of discs of ISLAND_SHORE_RADIUS swept along the drawn road,
+// read as a star-shaped polygon from the road's centroid. A road loop therefore yields one solid
+// landmass with an organic coastline instead of a ring with a pit in the middle.
+function buildIslandOutline(routeCurve: THREE.CatmullRomCurve3, worldScale: number): IslandOutline {
+  const road: THREE.Vector3[] = []
+  for (let i = 0; i <= ROAD_OUTLINE_SAMPLES; i += 1) {
+    road.push(trackPointAt(routeCurve, i / ROAD_OUTLINE_SAMPLES, worldScale))
+  }
+
+  let centerX = 0
+  let centerZ = 0
+  for (const p of road) {
+    centerX += p.x
+    centerZ += p.z
+  }
+  centerX /= road.length
+  centerZ /= road.length
+
+  const radii: number[] = []
+  for (let i = 0; i < ISLAND_OUTLINE_SEGMENTS; i += 1) {
+    const theta = (i / ISLAND_OUTLINE_SEGMENTS) * Math.PI * 2
+    const ux = Math.cos(theta)
+    const uz = Math.sin(theta)
+    const shore =
+      ISLAND_SHORE_RADIUS +
+      3.2 * Math.sin(theta * 3 + 0.8) +
+      2.1 * Math.sin(theta * 7 + 2.3) +
+      1.2 * Math.sin(theta * 13 + 1.1)
+
+    let best = 0
+    for (const p of road) {
+      const dx = p.x - centerX
+      const dz = p.z - centerZ
+      const along = dx * ux + dz * uz
+      const off = Math.abs(dx * uz - dz * ux)
+      if (off > shore) continue
+      const r = along + Math.sqrt(shore * shore - off * off)
+      if (r > best) best = r
+    }
+    radii.push(best)
+  }
+
+  const arcLengths: number[] = [0]
+  let perimeter = 0
+  for (let i = 1; i <= ISLAND_OUTLINE_SEGMENTS; i += 1) {
+    const a0 = ((i - 1) / ISLAND_OUTLINE_SEGMENTS) * Math.PI * 2
+    const a1 = (i / ISLAND_OUTLINE_SEGMENTS) * Math.PI * 2
+    const r0 = radii[i - 1]
+    const r1 = radii[i % ISLAND_OUTLINE_SEGMENTS]
+    perimeter += Math.hypot(Math.cos(a1) * r1 - Math.cos(a0) * r0, Math.sin(a1) * r1 - Math.sin(a0) * r0)
+    arcLengths.push(perimeter)
+  }
+
+  return { centerX, centerZ, radii, arcLengths, perimeter }
+}
+
+function outlinePoint(outline: IslandOutline, index: number, radiusScale = 1) {
+  const i = index % ISLAND_OUTLINE_SEGMENTS
+  const theta = (i / ISLAND_OUTLINE_SEGMENTS) * Math.PI * 2
+  const r = outline.radii[i] * radiusScale
+  return { x: outline.centerX + Math.cos(theta) * r, z: outline.centerZ + Math.sin(theta) * r }
+}
+
+function makeIslandTopGeometry(outline: IslandOutline, heightAt: (x: number, z: number) => number) {
+  const M = ISLAND_OUTLINE_SEGMENTS
+  const K = ISLAND_RINGS
+  const vertexCount = 1 + K * M
+  const positions = new Float32Array(vertexCount * 3)
+  const uvs = new Float32Array(vertexCount * 2)
+
+  const setVertex = (v: number, x: number, z: number) => {
+    positions[v * 3 + 0] = x
+    positions[v * 3 + 1] = heightAt(x, z)
+    positions[v * 3 + 2] = z
+    uvs[v * 2 + 0] = x / GRASS_TILE
+    uvs[v * 2 + 1] = z / GRASS_TILE
+  }
+
+  setVertex(0, outline.centerX, outline.centerZ)
+  for (let k = 1; k <= K; k += 1) {
+    const s = k / K
+    for (let i = 0; i < M; i += 1) {
+      const rim = outlinePoint(outline, i)
+      const x = outline.centerX + (rim.x - outline.centerX) * s
+      const z = outline.centerZ + (rim.z - outline.centerZ) * s
+      setVertex(1 + (k - 1) * M + i, x, z)
+    }
+  }
+
+  const indices: number[] = []
+  for (let i = 0; i < M; i += 1) {
+    indices.push(0, 1 + ((i + 1) % M), 1 + i)
+  }
+  for (let k = 1; k < K; k += 1) {
+    const inner = 1 + (k - 1) * M
+    const outer = 1 + k * M
+    for (let i = 0; i < M; i += 1) {
+      const j = (i + 1) % M
+      indices.push(inner + i, outer + j, outer + i)
+      indices.push(inner + i, inner + j, outer + j)
+    }
+  }
+
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+  geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2))
+  geo.setIndex(indices)
+  geo.computeVertexNormals()
+  geo.computeBoundingSphere()
+  applyAoUv(geo)
+  return geo
+}
+
+function cliffOffset(theta: number, depthFraction: number, y: number) {
+  const lip = 1.4 * Math.sin(Math.PI * Math.min(1, depthFraction * 1.6))
+  const striations = 0.55 * Math.sin(theta * 11 + y * 0.35) + 0.45 * Math.sin(theta * 29 + 1.3) * Math.cos(y * 0.22)
+  return lip + 1.7 * striations
+}
+
+// Cliff walls hang from the rim to below the waterline. UVs run along the rim (u) and down the
+// wall (v) in tile units, so the rock texture tiles uniformly instead of smearing down the face.
+function makeCliffGeometry(outline: IslandOutline, rimHeightAt: (x: number, z: number) => number, baseY: number) {
+  const M = ISLAND_OUTLINE_SEGMENTS
+  const R = CLIFF_ROWS
+  const columns = M + 1
+  const wallVertexCount = columns * (R + 1)
+  const vertexCount = wallVertexCount + 1 + M
+  const positions = new Float32Array(vertexCount * 3)
+  const uvs = new Float32Array(vertexCount * 2)
+
+  for (let c = 0; c < columns; c += 1) {
+    const i = c % M
+    const theta = (i / M) * Math.PI * 2
+    const rim = outlinePoint(outline, i)
+    const rimY = rimHeightAt(rim.x, rim.z)
+    const ux = Math.cos(theta)
+    const uz = Math.sin(theta)
+    const u = outline.arcLengths[c] / CLIFF_TILE
+
+    for (let r = 0; r <= R; r += 1) {
+      const f = r / R
+      const y = rimY + (baseY - rimY) * f
+      const offset = r === 0 ? 0 : cliffOffset(theta, f, y)
+      const v = c * (R + 1) + r
+      positions[v * 3 + 0] = rim.x + ux * offset
+      positions[v * 3 + 1] = y
+      positions[v * 3 + 2] = rim.z + uz * offset
+      uvs[v * 2 + 0] = u
+      uvs[v * 2 + 1] = (rimY - y) / CLIFF_TILE
+    }
+  }
+
+  const indices: number[] = []
+  for (let c = 0; c < M; c += 1) {
+    const a = c * (R + 1)
+    const b = (c + 1) * (R + 1)
+    for (let r = 0; r < R; r += 1) {
+      indices.push(a + r, b + r, a + r + 1)
+      indices.push(b + r, b + r + 1, a + r + 1)
+    }
+  }
+
+  const baseCenter = wallVertexCount
+  positions[baseCenter * 3 + 0] = outline.centerX
+  positions[baseCenter * 3 + 1] = baseY
+  positions[baseCenter * 3 + 2] = outline.centerZ
+  for (let i = 0; i < M; i += 1) {
+    const src = i * (R + 1) + R
+    const v = baseCenter + 1 + i
+    positions[v * 3 + 0] = positions[src * 3 + 0]
+    positions[v * 3 + 1] = baseY
+    positions[v * 3 + 2] = positions[src * 3 + 2]
+    uvs[v * 2 + 0] = positions[v * 3 + 0] / CLIFF_TILE
+    uvs[v * 2 + 1] = positions[v * 3 + 2] / CLIFF_TILE
+  }
+  for (let i = 0; i < M; i += 1) {
+    indices.push(baseCenter, baseCenter + 1 + i, baseCenter + 1 + ((i + 1) % M))
+  }
+
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+  geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2))
+  geo.setIndex(indices)
+  geo.computeVertexNormals()
+  geo.computeBoundingSphere()
+  applyAoUv(geo)
+  return geo
+}
+
 function makePathRibbonGeometry(
   curve: THREE.CatmullRomCurve3,
   width: number,
   segments: number,
   yOffset: number,
   worldScale: number,
-  startT = 0,
-  endT = 1,
-  heightAt?: (x: number, z: number) => number
+  followCameraTrack: boolean
 ) {
   const vertexCount = (segments + 1) * 2
   const positions = new Float32Array(vertexCount * 3)
@@ -339,44 +351,38 @@ function makePathRibbonGeometry(
   const side = new THREE.Vector3()
 
   const halfW = width / 2
-  const backOffset = CAMERA_BACK_OFFSET_WORLD / worldScale
-  const leftOffset = CAMERA_LEFT_OFFSET_WORLD / worldScale
+  const length = curve.getLength()
 
   for (let i = 0; i <= segments; i += 1) {
-    const u = segments === 0 ? 0 : i / segments
-    const t = startT + (endT - startT) * u
-    curve.getPointAt(t, point)
-    curve.getTangentAt(t, tangent)
-    getFlatTangent(tangent)
-
-    side.set(tangent.z, 0, -tangent.x)
-    point.x -= tangent.x * backOffset
-    point.z -= tangent.z * backOffset
-    point.addScaledVector(side, leftOffset)
-
-    perp.set(-tangent.z, 0, tangent.x)
+    const t = segments === 0 ? 0 : i / segments
+    if (followCameraTrack) {
+      getTrackFrameAt(curve, t, point, tangent, perp, side, worldScale)
+    } else {
+      curve.getPointAt(t, point)
+      curve.getTangentAt(t, tangent)
+      getFlatTangent(tangent)
+      perp.set(-tangent.z, 0, tangent.x)
+    }
 
     const lx = point.x + perp.x * halfW
     const lz = point.z + perp.z * halfW
     const rx = point.x - perp.x * halfW
     const rz = point.z - perp.z * halfW
 
-    const v = u
+    const v = (t * length) / COBBLE_TILE
     const baseV = i * 2
-    const ly = heightAt ? heightAt(lx, lz) : surfaceHeight(lx, lz, worldScale)
-    const ry = heightAt ? heightAt(rx, rz) : surfaceHeight(rx, rz, worldScale)
 
     positions[baseV * 3 + 0] = lx
-    positions[baseV * 3 + 1] = ly + yOffset
+    positions[baseV * 3 + 1] = surfaceHeight(lx, lz, worldScale) + yOffset
     positions[baseV * 3 + 2] = lz
 
     positions[(baseV + 1) * 3 + 0] = rx
-    positions[(baseV + 1) * 3 + 1] = ry + yOffset
+    positions[(baseV + 1) * 3 + 1] = surfaceHeight(rx, rz, worldScale) + yOffset
     positions[(baseV + 1) * 3 + 2] = rz
 
     uvs[baseV * 2 + 0] = 0
     uvs[baseV * 2 + 1] = v
-    uvs[(baseV + 1) * 2 + 0] = 1
+    uvs[(baseV + 1) * 2 + 0] = width / COBBLE_TILE
     uvs[(baseV + 1) * 2 + 1] = v
   }
 
@@ -399,42 +405,52 @@ function makePathRibbonGeometry(
   geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2))
   geo.setIndex(new THREE.BufferAttribute(indices, 1))
   geo.computeVertexNormals()
-  applyUv2(geo)
+  applyAoUv(geo)
   return geo
 }
 
-function makeTerrainGeometry(shape: THREE.Shape, worldScale: number) {
-  const depth = EARTH_TOP_DEPTH
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth,
-    bevelEnabled: true,
-    bevelThickness: 2.1,
-    bevelSize: 1.6,
-    bevelSegments: 3
-  })
-
-  geo.rotateX(-Math.PI / 2)
-  geo.translate(0, -depth / 2, 0)
-
-  const positions = geo.attributes.position.array as Float32Array
-  for (let i = 0; i < positions.length; i += 3) {
-    const y = positions[i + 1]
-    if (y > 0) {
-      const x = positions[i]
-      const z = positions[i + 2]
-      positions[i + 1] += surfaceHeight(x, z, worldScale)
-    }
-  }
-
-  geo.computeVertexNormals()
-  applyPlanarUvXZ(geo)
-  applyUv2(geo)
-  return geo
-}
-
-function Terrain({ ground, topY, geometry }: { ground: PbrTextureSet; topY: number; geometry: THREE.BufferGeometry }) {
+function Terrain({ ground, geometry }: { ground: PbrTextureSet; geometry: THREE.BufferGeometry }) {
   return (
-    <mesh geometry={geometry} position={[0, topY - EARTH_TOP_DEPTH / 2, 0]} castShadow receiveShadow userData={{ isGround: true }}>
+    <mesh geometry={geometry} castShadow receiveShadow userData={{ isGround: true }}>
+      <meshStandardMaterial
+        map={ground.map}
+        normalMap={ground.normalMap}
+        normalScale={new THREE.Vector2(0.85, 0.85)}
+        aoMap={ground.armMap}
+        aoMapIntensity={0.45}
+        roughnessMap={ground.armMap}
+        metalnessMap={ground.armMap}
+        color="#c4e8b0"
+        roughness={1}
+        metalness={0}
+        envMapIntensity={ENV_MAP_INTENSITY}
+      />
+    </mesh>
+  )
+}
+
+function CliffBase({ rock, geometry }: { rock: PbrTextureSet; geometry: THREE.BufferGeometry }) {
+  return (
+    <mesh geometry={geometry} castShadow receiveShadow userData={{ isGround: true }}>
+      <meshStandardMaterial
+        map={rock.map}
+        normalMap={rock.normalMap}
+        aoMap={rock.armMap}
+        aoMapIntensity={0.6}
+        roughnessMap={rock.armMap}
+        metalnessMap={rock.armMap}
+        color="#d8d4cc"
+        roughness={1}
+        metalness={0}
+        envMapIntensity={ENV_MAP_INTENSITY}
+      />
+    </mesh>
+  )
+}
+
+function PathSurface({ ground, topY, geometry }: { ground: PbrTextureSet; topY: number; geometry: THREE.BufferGeometry }) {
+  return (
+    <mesh geometry={geometry} position={[0, topY, 0]} receiveShadow userData={{ isGround: true }} frustumCulled={false}>
       <meshStandardMaterial
         map={ground.map}
         normalMap={ground.normalMap}
@@ -442,55 +458,10 @@ function Terrain({ ground, topY, geometry }: { ground: PbrTextureSet; topY: numb
         aoMapIntensity={0.35}
         roughnessMap={ground.armMap}
         metalnessMap={ground.armMap}
-        color="#d9f2d3"
-        roughness={1}
-        metalness={0}
-      />
-    </mesh>
-  )
-}
-
-function CliffBase({ rock, topY, geometry }: { rock: PbrTextureSet; topY: number; geometry: THREE.BufferGeometry }) {
-  const y = topY - EARTH_TOP_DEPTH - EARTH_CLIFF_DEPTH / 2
-
-  return (
-    <mesh geometry={geometry} position={[0, y, 0]} castShadow receiveShadow userData={{ isGround: true }}>
-      <meshStandardMaterial
-        map={rock.map}
-        normalMap={rock.normalMap}
-        aoMap={rock.armMap}
-        aoMapIntensity={0.55}
-        roughnessMap={rock.armMap}
-        metalnessMap={rock.armMap}
-        color="#c8d2e1"
-        roughness={1}
-        metalness={0}
-      />
-    </mesh>
-  )
-}
-
-function PathSurface({
-  ground,
-  topY,
-  geometry
-}: {
-  ground: PbrTextureSet
-  topY: number
-  geometry: THREE.BufferGeometry
-}) {
-  return (
-    <mesh geometry={geometry} position={[0, topY, 0]} receiveShadow userData={{ isGround: true }} frustumCulled={false}>
-      <meshStandardMaterial
-        map={ground.map}
-        normalMap={ground.normalMap}
-        aoMap={ground.armMap}
-        aoMapIntensity={0.25}
-        roughnessMap={ground.armMap}
-        metalnessMap={ground.armMap}
         color="#d1d1d1"
         roughness={0.92}
         metalness={0}
+        envMapIntensity={ENV_MAP_INTENSITY}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -501,22 +472,18 @@ function TexturedIslandCore({
   topY,
   terrainGeometry,
   cliffGeometry,
-  mainPathGeometry,
-  branchPathGeometryA,
-  branchPathGeometryB,
+  pathGeometries,
   onReady
 }: {
   topY: number
   terrainGeometry: THREE.BufferGeometry
   cliffGeometry: THREE.BufferGeometry
-  mainPathGeometry: THREE.BufferGeometry
-  branchPathGeometryA: THREE.BufferGeometry
-  branchPathGeometryB: THREE.BufferGeometry
+  pathGeometries: THREE.BufferGeometry[]
   onReady?: () => void
 }) {
-  const terrainPbr = useTiledPbrTextureSet("sparseGrass", [8, 42])
-  const cliffPbr = useTiledPbrTextureSet("cliffSide", [2.0, 10])
-  const pathPbr = useTiledPbrTextureSet("cobblestonePavement", [2, 34])
+  const terrainPbr = useTiledPbrTextureSet("sparseGrass", 1)
+  const cliffPbr = useTiledPbrTextureSet("cliffSide", 1)
+  const pathPbr = useTiledPbrTextureSet("cobblestonePavement", 1)
 
   useEffect(() => {
     if (!onReady) return
@@ -525,152 +492,11 @@ function TexturedIslandCore({
 
   return (
     <>
-      <CliffBase rock={cliffPbr} topY={topY} geometry={cliffGeometry} />
-      <Terrain ground={terrainPbr} topY={topY} geometry={terrainGeometry} />
-      <PathSurface ground={pathPbr} topY={topY} geometry={mainPathGeometry} />
-      <PathSurface ground={pathPbr} topY={topY} geometry={branchPathGeometryA} />
-      <PathSurface ground={pathPbr} topY={topY} geometry={branchPathGeometryB} />
-    </>
-  )
-}
-
-function PathStones({
-  routeCurve,
-  branchCurveA,
-  branchCurveB,
-  worldScale,
-  sampleGroundY
-}: {
-  routeCurve: THREE.CatmullRomCurve3
-  branchCurveA: THREE.CatmullRomCurve3
-  branchCurveB: THREE.CatmullRomCurve3
-  worldScale: number
-  sampleGroundY: (x: number, z: number) => number
-}) {
-  const fitHeight = 0.55
-  const { scene: mainScene } = useGLTF(MODEL_PATHS.earth.polypizzaPathRoundWide)
-  const { scene: branchScene } = useGLTF(MODEL_PATHS.earth.polypizzaPathSquareSmall)
-
-  const mainSegmentLength = useMemo(() => {
-    mainScene.updateMatrixWorld(true)
-    const box = new THREE.Box3().setFromObject(mainScene)
-    const size = new THREE.Vector3()
-    box.getSize(size)
-
-    const sizeY = size.y > 0 ? size.y : 1
-    const baseScale = fitHeight / sizeY
-    const forwardSize = size.z > 0 ? size.z : 1
-    return Math.max(0.001, forwardSize * baseScale)
-  }, [fitHeight, mainScene])
-
-  const branchSegmentLength = useMemo(() => {
-    branchScene.updateMatrixWorld(true)
-    const box = new THREE.Box3().setFromObject(branchScene)
-    const size = new THREE.Vector3()
-    box.getSize(size)
-
-    const sizeY = size.y > 0 ? size.y : 1
-    const baseScale = fitHeight / sizeY
-    const forwardSize = size.z > 0 ? size.z : 1
-    return Math.max(0.001, forwardSize * baseScale)
-  }, [branchScene, fitHeight])
-
-  const buildInstances = useMemo(() => {
-    type Instance = { position: [number, number, number]; rotation: [number, number, number]; scale: number }
-
-    return (curves: THREE.CatmullRomCurve3[], spacing: number, trim: number): Instance[] => {
-      const instances: Instance[] = []
-      const point = new THREE.Vector3()
-      const pointAhead = new THREE.Vector3()
-      const pointBehind = new THREE.Vector3()
-      const tangent = new THREE.Vector3()
-      const perp = new THREE.Vector3()
-      const sideVec = new THREE.Vector3()
-
-      const startT = trim
-      const endT = 1 - trim
-
-      const staggerOffsets = [0, 0.48]
-
-      for (const curve of curves) {
-        const curveLength = curve.getLength()
-        const count = Math.max(3, Math.ceil(curveLength / spacing))
-        for (const offsetFactor of staggerOffsets) {
-          for (let i = 0; i < count; i += 1) {
-            const baseU = count <= 1 ? 0.5 : i / (count - 1)
-            const u = baseU + offsetFactor / count
-            if (u < 0 || u > 1) continue
-            const t = startT + (endT - startT) * u
-            getTrackFrameAt(curve, t, point, tangent, perp, sideVec, worldScale)
-
-            const lateral = offsetFactor === 0 ? -0.24 : 0.24
-            point.addScaledVector(perp, lateral)
-
-            const x = point.x
-            const z = point.z
-            const rotY = Math.atan2(tangent.x, tangent.z)
-
-            const pitchDt = 0.01
-            const tBehind = Math.max(startT, t - pitchDt)
-            const tAhead = Math.min(endT, t + pitchDt)
-
-            getTrackFrameAt(curve, tBehind, pointBehind, tangent, perp, sideVec, worldScale)
-            const yBehind = sampleGroundY(pointBehind.x, pointBehind.z) + PATH_Y_OFFSET - 0.02
-
-            getTrackFrameAt(curve, tAhead, pointAhead, tangent, perp, sideVec, worldScale)
-            const yAhead = sampleGroundY(pointAhead.x, pointAhead.z) + PATH_Y_OFFSET - 0.02
-
-            const dx = pointAhead.x - pointBehind.x
-            const dz = pointAhead.z - pointBehind.z
-            const dy = yAhead - yBehind
-            const horizLen = Math.max(1e-6, Math.sqrt(dx * dx + dz * dz))
-            const pitch = clamp(-Math.atan2(dy, horizLen), -0.35, 0.35)
-
-            const y = sampleGroundY(x, z) + PATH_Y_OFFSET - 0.02
-            const scale = offsetFactor === 0 ? 1.02 : 0.98
-            instances.push({ position: [x, y, z], rotation: [pitch, rotY, 0], scale })
-          }
-        }
-      }
-
-      return instances
-    }
-  }, [sampleGroundY, worldScale])
-
-  const mainInstances = useMemo(() => {
-    const overlap = 0.22
-    const spacing = Math.max(0.001, mainSegmentLength * overlap)
-    return buildInstances([routeCurve], spacing, 0).map((instance) => ({
-      ...instance,
-      scale: 1.12
-    }))
-  }, [buildInstances, mainSegmentLength, routeCurve])
-
-  const branchInstances = useMemo(() => {
-    const overlap = 0.26
-    const spacing = Math.max(0.001, branchSegmentLength * overlap)
-    return buildInstances([branchCurveA, branchCurveB], spacing, 0).map((instance) => ({
-      ...instance,
-      scale: 1.1
-    }))
-  }, [branchCurveA, branchCurveB, branchSegmentLength, buildInstances])
-
-  return (
-    <>
-      <InstancedGltfModel
-        path={MODEL_PATHS.earth.polypizzaPathRoundWide}
-        fitHeight={fitHeight}
-        instances={mainInstances}
-        castShadow={false}
-        receiveShadow={false}
-      />
-      <InstancedGltfModel
-        path={MODEL_PATHS.earth.polypizzaPathSquareSmall}
-        fitHeight={fitHeight}
-        instances={branchInstances}
-        castShadow={false}
-        receiveShadow={false}
-      />
+      <CliffBase rock={cliffPbr} geometry={cliffGeometry} />
+      <Terrain ground={terrainPbr} geometry={terrainGeometry} />
+      {pathGeometries.map((geometry, index) => (
+        <PathSurface key={index} ground={pathPbr} topY={topY} geometry={geometry} />
+      ))}
     </>
   )
 }
@@ -691,44 +517,18 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
     return new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.5)
   }, [config.scale])
 
-  const islandCurve = useMemo(() => {
-    const points = EARTH_ROUTE_POINTS.map((p) => new THREE.Vector3(p[0] / config.scale, p[1] / config.scale, p[2] / config.scale))
-    const bendAmp = ISLAND_BEND_AMPLITUDE_WORLD / config.scale
-    const count = points.length
-
-    for (let i = 0; i < count; i += 1) {
-      const u = count <= 1 ? 0.5 : i / (count - 1)
-      points[i].x += Math.sin(u * Math.PI) * bendAmp
-    }
-
-    const extension = ISLAND_ROUTE_EXTENSION_WORLD / config.scale
-    const extended = extendRoute(points, extension)
-    return new THREE.CatmullRomCurve3(extended, false, "catmullrom", 0.5)
-  }, [config.scale])
-
-  const terrainShape = useMemo(() => {
-    return makeIslandShape(islandCurve, {
-      segments: TERRAIN_SHAPE_SEGMENTS,
-      capSegments: TERRAIN_CAP_SEGMENTS,
-      baseHalfWidth: TERRAIN_BASE_HALF_WIDTH,
-      bulge: TERRAIN_BULGE,
-      noise: TERRAIN_NOISE
-    })
-  }, [islandCurve])
+  const outline = useMemo(() => buildIslandOutline(routeCurve, config.scale), [config.scale, routeCurve])
 
   const terrainGeometry = useMemo(() => {
-    const geo = makeTerrainGeometry(terrainShape, config.scale)
-    applyRadialGradientXZ(geo, "#40d9b7", "#06110d")
-    return geo
-  }, [config.scale, terrainShape])
+    return makeIslandTopGeometry(outline, (x, z) => topY + surfaceHeight(x, z, config.scale))
+  }, [config.scale, outline, topY])
 
-  const sampleSurfaceOffsetY = useMemo(() => {
-    return (x: number, z: number) => surfaceHeight(x, z, config.scale)
-  }, [config.scale])
+  const cliffGeometry = useMemo(() => {
+    return makeCliffGeometry(outline, (x, z) => topY + surfaceHeight(x, z, config.scale), topY - ISLAND_DEPTH)
+  }, [config.scale, outline, topY])
 
   const sampleGroundY = useMemo(() => {
     const mesh = new THREE.Mesh(terrainGeometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }))
-    mesh.position.set(0, topY - EARTH_TOP_DEPTH / 2, 0)
     mesh.updateMatrixWorld(true)
 
     const raycaster = new THREE.Raycaster()
@@ -760,24 +560,15 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
   }, [config.scale, terrainGeometry, topY])
 
   const terrainBoundary = useMemo(() => {
-    return terrainShape.getPoints(360)
-  }, [terrainShape])
-
-  const terrainCentroid = useMemo(() => {
-    const count = terrainBoundary.length
-    if (count === 0) return { x: 0, z: 0 }
-
-    let sumX = 0
-    let sumY = 0
-    for (const p of terrainBoundary) {
-      sumX += p.x
-      sumY += p.y
+    const points: THREE.Vector2[] = []
+    for (let i = 0; i < ISLAND_OUTLINE_SEGMENTS; i += 1) {
+      const p = outlinePoint(outline, i)
+      points.push(new THREE.Vector2(p.x, -p.z))
     }
+    return points
+  }, [outline])
 
-    const cx = sumX / count
-    const cz = -sumY / count
-    return { x: cx, z: cz }
-  }, [terrainBoundary])
+  const terrainCentroid = useMemo(() => ({ x: outline.centerX, z: outline.centerZ }), [outline])
 
   const isInsideTerrain = useMemo(() => {
     return (x: number, z: number) => isPointInPolygon2D(x, -z, terrainBoundary)
@@ -806,83 +597,40 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
     }
   }, [isInsideTerrain, terrainCentroid])
 
-  const branchRoadCurves = useMemo(() => {
-    const curveA = new THREE.CatmullRomCurve3(
+  // Side roads start and end on the drawn main road so the network reads as one connected loop:
+  // a cross-island branch between the east and west sides, and a short link closing the loop's ends.
+  const branchCurve = useMemo(() => {
+    const s = config.scale
+    return new THREE.CatmullRomCurve3(
       [
-        new THREE.Vector3(60 / config.scale, 0, -30 / config.scale),
-        new THREE.Vector3(30 / config.scale, 0, 0),
-        new THREE.Vector3(5 / config.scale, 0, 20 / config.scale)
+        trackPointAt(routeCurve, 0.385, s),
+        new THREE.Vector3(24, 0, 10),
+        new THREE.Vector3(-6, 0, 6),
+        new THREE.Vector3(-30, 0, 4),
+        trackPointAt(routeCurve, 0.735, s)
       ],
       false,
       "catmullrom",
       0.5
     )
-
-    const curveB = new THREE.CatmullRomCurve3(
-      [
-        new THREE.Vector3(5 / config.scale, 0, 20 / config.scale),
-        new THREE.Vector3(-25 / config.scale, 0, 10 / config.scale),
-        new THREE.Vector3(-60 / config.scale, 0, 30 / config.scale)
-      ],
-      false,
-      "catmullrom",
-      0.5
-    )
-
-    return { curveA, curveB }
-  }, [config.scale])
-
-  const mainPathGeometry = useMemo(() => {
-    return makePathRibbonGeometry(routeCurve, PATH_WIDTH, PATH_RIBBON_SEGMENTS, PATH_Y_OFFSET, config.scale)
   }, [config.scale, routeCurve])
 
-  const branchPathGeometryA = useMemo(() => {
-    return makePathRibbonGeometry(branchRoadCurves.curveA, PATH_WIDTH * 0.72, 64, PATH_Y_OFFSET + 0.02, config.scale, 0, 1, sampleSurfaceOffsetY)
-  }, [branchRoadCurves, config.scale, sampleSurfaceOffsetY])
+  const loopLinkCurve = useMemo(() => {
+    const s = config.scale
+    const end = trackPointAt(routeCurve, 1, s)
+    const start = trackPointAt(routeCurve, 0, s)
+    const mid = end.clone().lerp(start, 0.5)
+    mid.x -= 3
+    return new THREE.CatmullRomCurve3([end, mid, start], false, "catmullrom", 0.5)
+  }, [config.scale, routeCurve])
 
-  const branchPathGeometryB = useMemo(() => {
-    return makePathRibbonGeometry(branchRoadCurves.curveB, PATH_WIDTH * 0.66, 72, PATH_Y_OFFSET + 0.02, config.scale, 0, 1, sampleSurfaceOffsetY)
-  }, [branchRoadCurves, config.scale, sampleSurfaceOffsetY])
-
-  const cliffShape = useMemo(() => {
-    return makeIslandShape(islandCurve, {
-      segments: CLIFF_SHAPE_SEGMENTS,
-      capSegments: CLIFF_CAP_SEGMENTS,
-      baseHalfWidth: CLIFF_BASE_HALF_WIDTH,
-      bulge: CLIFF_BULGE,
-      noise: CLIFF_NOISE
-    })
-  }, [islandCurve])
-
-  const cliffGeometry = useMemo(() => {
-    const depth = EARTH_CLIFF_DEPTH
-    const geo = new THREE.ExtrudeGeometry(cliffShape, {
-      depth,
-      bevelEnabled: true,
-      bevelThickness: 3.4,
-      bevelSize: 2.8,
-      bevelSegments: 3
-    })
-
-    geo.rotateX(-Math.PI / 2)
-    geo.translate(0, -depth / 2, 0)
-
-    const positions = geo.attributes.position.array as Float32Array
-    for (let i = 0; i < positions.length; i += 3) {
-      const y = positions[i + 1]
-      const x = positions[i]
-      const z = positions[i + 2]
-      if (y > depth / 2 - 0.25) continue
-      positions[i] += Math.sin(z * 0.08) * 0.35 * Math.cos(y * 0.2)
-      positions[i + 2] += Math.sin(x * 0.08) * 0.35 * Math.cos(y * 0.2)
-    }
-
-    geo.computeVertexNormals()
-    applyPlanarUvXZ(geo)
-    applyUv2(geo)
-    applyHeightGradient(geo, "#6b7f9c", "#0b1220")
-    return geo
-  }, [cliffShape])
+  const pathGeometries = useMemo(() => {
+    return [
+      makePathRibbonGeometry(routeCurve, PATH_WIDTH, PATH_RIBBON_SEGMENTS, PATH_Y_OFFSET, config.scale, true),
+      makePathRibbonGeometry(branchCurve, BRANCH_WIDTH, 96, PATH_Y_OFFSET + 0.02, config.scale, false),
+      makePathRibbonGeometry(loopLinkCurve, BRANCH_WIDTH, 24, PATH_Y_OFFSET + 0.02, config.scale, false)
+    ]
+  }, [branchCurve, config.scale, loopLinkCurve, routeCurve])
 
   const villageBuildings = useMemo(() => {
     if (!showProps) return []
@@ -1275,7 +1023,7 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
     if (!showProps) return []
 
     const instances: Array<{ position: [number, number, number]; rotation: [number, number, number]; scale: number }> = []
-    const count = 10
+    const count = 6
     const publicationsStartT = EARTH_SECTION_T_STOPS[3]
     const publicationsEndT = EARTH_SECTION_T_STOPS[4]
 
@@ -1396,7 +1144,7 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
     if (!showProps) return []
 
     const instances: Array<{ position: [number, number, number]; rotation: [number, number, number]; scale: number }> = []
-    const count = 9
+    const count = 7
 
     const point = new THREE.Vector3()
     const tangent = new THREE.Vector3()
@@ -1481,23 +1229,13 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
           topY={topY}
           terrainGeometry={terrainGeometry}
           cliffGeometry={cliffGeometry}
-          mainPathGeometry={mainPathGeometry}
-          branchPathGeometryA={branchPathGeometryA}
-          branchPathGeometryB={branchPathGeometryB}
+          pathGeometries={pathGeometries}
           onReady={markTexturedReady}
         />
       </Suspense>
 
       {showProps ? (
         <Suspense fallback={null}>
-          <PathStones
-            routeCurve={routeCurve}
-            branchCurveA={branchRoadCurves.curveA}
-            branchCurveB={branchRoadCurves.curveB}
-            worldScale={config.scale}
-            sampleGroundY={sampleGroundY}
-          />
-
           {villageBuildings.map((b) => (
             <GltfModel
               key={b.key}
@@ -1519,22 +1257,24 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
 
           <InstancedGltfModel
             path={MODEL_PATHS.earth.hqTreeStump}
+            excludeFromReflection
             fitHeight={4.2}
-            castShadow={false}
             receiveShadow={false}
             instances={publicationsStumpInstances}
           />
 
           <InstancedGltfModel
             path={MODEL_PATHS.earth.hqTree}
+            excludeFromReflection
             fitHeight={18}
-            castShadow={false}
             receiveShadow={false}
             instances={projectTreeInstances}
           />
 
           <InstancedGltfModel
             path={MODEL_PATHS.earth.hqFern}
+            excludeFromReflection
+            meshName="fern_02_b"
             fitHeight={1.3}
             castShadow={false}
             receiveShadow={false}
@@ -1543,14 +1283,15 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
 
           <InstancedGltfModel
             path={MODEL_PATHS.earth.cypressTree}
+            excludeFromReflection
             fitHeight={20}
-            castShadow={false}
             receiveShadow={false}
             instances={cypressInstances}
           />
 
           <InstancedGltfModel
             path={MODEL_PATHS.earth.flowerBushes}
+            excludeFromReflection
             fitHeight={1.55}
             castShadow={false}
             receiveShadow={false}
@@ -1559,6 +1300,7 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
 
           <InstancedGltfModel
             path={MODEL_PATHS.earth.flowers}
+            excludeFromReflection
             fitHeight={1.1}
             castShadow={false}
             receiveShadow={false}
@@ -1567,12 +1309,15 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
 
           <InstancedGltfModel
             path={MODEL_PATHS.earth.hqBoulder}
+            excludeFromReflection
             fitHeight={2.9}
             instances={rockInstances}
           />
 
           <InstancedGltfModel
             path={MODEL_PATHS.earth.hqGrassMedium01}
+            excludeFromReflection
+            meshName="grass_medium_01_mid_a_LOD0"
             fitHeight={0.55}
             castShadow={false}
             receiveShadow={false}

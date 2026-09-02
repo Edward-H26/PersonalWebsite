@@ -4,7 +4,7 @@ export function configureColorTexture(texture: THREE.Texture) {
   texture.colorSpace = THREE.SRGBColorSpace
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
-  texture.anisotropy = 8
+  texture.anisotropy = 16
   texture.flipY = false
   texture.needsUpdate = true
 }
@@ -13,7 +13,7 @@ export function configureDataTexture(texture: THREE.Texture) {
   texture.colorSpace = THREE.NoColorSpace
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
-  texture.anisotropy = 8
+  texture.anisotropy = 16
   texture.flipY = false
   texture.needsUpdate = true
 }

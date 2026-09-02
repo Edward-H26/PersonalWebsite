@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 import { CatmullRomCurve3, Vector3 } from "three"
@@ -6,6 +6,7 @@ import { easing } from "maath"
 import { useWorldStore } from "@/store/worldStore"
 import { EARTH_ROUTE_POINTS, EARTH_SECTION_T_STOPS, WORLD_CONFIG } from "@/config"
 import { BIRD_EYE_CAMERA_CONFIG } from "./BirdEyeCamera"
+import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
 import { clamp01 } from "@/utils/math"
 
 const CAMERA_BACK_OFFSET = 12
@@ -30,6 +31,10 @@ function getGroundMeshes(root: THREE.Object3D) {
 
 export function FirstPersonController() {
   const { camera, scene, size } = useThree()
+
+  useEffect(() => {
+    camera.layers.enable(REFLECTION_EXCLUDED_LAYER)
+  }, [camera])
 
   const fpTargetPosition = useRef(new Vector3())
   const fpTargetLookAt = useRef(new Vector3())
