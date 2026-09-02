@@ -1,10 +1,18 @@
 import { create } from "zustand"
 import { clamp01 } from "@/utils/math"
 
+// Ground height in world units at a world-space x/z, published by the island once it is built.
+export type GroundHeightSampler = (x: number, z: number) => number
+
+// Horizontal look-around limit in radians (about 70 degrees either side of the road).
+export const LOOK_YAW_LIMIT = 1.2
+
 interface WorldState {
   routeT: number
   overviewBlend: number
   titleCardBlend: number
+  lookYaw: number
+  groundHeightAt: GroundHeightSampler | null
   isEarthTexturedReady: boolean
   isLoaderBypassed: boolean
   isLoadingOverlayVisible: boolean
@@ -16,6 +24,8 @@ interface WorldActions {
   setRouteT: (t: number) => void
   setOverviewBlend: (t: number) => void
   setTitleCardBlend: (t: number) => void
+  setLookYaw: (yaw: number) => void
+  setGroundHeightSampler: (sampler: GroundHeightSampler | null) => void
   setEarthTexturedReady: (ready: boolean) => void
   setLoaderBypassed: (bypassed: boolean) => void
   setLoadingOverlayVisible: (visible: boolean) => void
@@ -29,6 +39,8 @@ export const useWorldStore = create<WorldStore>((set) => ({
   routeT: 0,
   overviewBlend: 0,
   titleCardBlend: 0,
+  lookYaw: 0,
+  groundHeightAt: null,
   isEarthTexturedReady: false,
   isLoaderBypassed: false,
   isLoadingOverlayVisible: true,
@@ -45,6 +57,14 @@ export const useWorldStore = create<WorldStore>((set) => ({
 
   setTitleCardBlend: (t) => {
     set({ titleCardBlend: clamp01(t) })
+  },
+
+  setLookYaw: (yaw) => {
+    set({ lookYaw: Math.max(-LOOK_YAW_LIMIT, Math.min(LOOK_YAW_LIMIT, yaw)) })
+  },
+
+  setGroundHeightSampler: (sampler) => {
+    set({ groundHeightAt: sampler })
   },
 
   setEarthTexturedReady: (ready) => {

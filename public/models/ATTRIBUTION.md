@@ -18,6 +18,22 @@ The `*_web.glb` files are the Poly Haven originals simplified, resized to 1k tex
 - `public/models/hq/boulder_01_web.glb`: Boulder 01 (`https://polyhaven.com/a/boulder_01`)
 - `public/models/hq/tree_stump_01_web.glb`: Tree Stump 01 (`https://polyhaven.com/a/tree_stump_01`)
 - `public/models/hq/grass_medium_01_web.glb`: Grass Medium 01 (`https://polyhaven.com/a/grass_medium_01`)
+- `public/models/hq/island_tree_01_web.glb`: Island Tree 01 (`https://polyhaven.com/a/island_tree_01`)
+- `public/models/hq/tree_small_02_web.glb`: Tree Small 02 (`https://polyhaven.com/a/tree_small_02`)
+- `public/models/hq/namaqualand_boulder_02_web.glb`: Namaqualand Boulder 02 (`https://polyhaven.com/a/namaqualand_boulder_02`)
+- `public/models/hq/rock_moss_set_01_web.glb`: Rock Moss Set 01 (`https://polyhaven.com/a/rock_moss_set_01`)
+- `public/models/hq/grass_medium_02_web.glb`: Grass Medium 02 (`https://polyhaven.com/a/grass_medium_02`)
+- `public/models/hq/grass_bermuda_01_web.glb`: Grass Bermuda 01 (`https://polyhaven.com/a/grass_bermuda_01`)
+- `public/models/hq/dandelion_01_web.glb`: Dandelion 01 (`https://polyhaven.com/a/dandelion_01`)
+- `public/models/hq/flower_gazania_web.glb`: Flower Gazania (`https://polyhaven.com/a/flower_gazania`)
+- `public/models/hq/shrub_sorrel_01_web.glb`: Shrub Sorrel 01 (`https://polyhaven.com/a/shrub_sorrel_01`)
+- `public/models/hq/wooden_lantern_01_web.glb`: Wooden Lantern 01 (`https://polyhaven.com/a/wooden_lantern_01`)
+- `public/models/hq/modular_wooden_pier_web.glb`: Modular Wooden Pier (`https://polyhaven.com/a/modular_wooden_pier`)
+- `public/models/hq/ship_pinnace_web.glb`: Ship Pinnace (`https://polyhaven.com/a/ship_pinnace`)
+- `public/models/hq/stone_fire_pit_web.glb`: Stone Fire Pit (`https://polyhaven.com/a/stone_fire_pit`)
+- `public/models/hq/wooden_barrels_01_web.glb`: Wooden Barrels 01 (`https://polyhaven.com/a/wooden_barrels_01`)
+- `public/models/hq/wooden_crate_01_web.glb`: Wooden Crate 01 (`https://polyhaven.com/a/wooden_crate_01`)
+- `public/models/hq/lateral_sea_marker_web.glb`: Lateral Sea Marker (`https://polyhaven.com/a/lateral_sea_marker`)
 
 ### Textures
 

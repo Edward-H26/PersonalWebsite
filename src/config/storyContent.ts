@@ -75,7 +75,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
       {
         title: "AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation",
         bullets: [
-          "[1] Eric Ji, Qiran Hu, Wufei Ma, Sarthak Jain, Yingying Li, Minh N. Do, and Yaoyao Liu. AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation. ECCV 2026."
+          "[1] Eric Ji, Qiran Hu, Wufei Ma, Sarthak Jain, Yingying Li, Minh N. Do, and Yaoyao Liu. AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation. European Conference on Computer Vision (ECCV) 2026."
         ],
         links: [
           { label: "arXiv", url: "https://arxiv.org/abs/2606.31204" },

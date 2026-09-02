@@ -14,10 +14,26 @@ const TEXTURE_SIZE = 1024
 
 const ASSETS = [
   { id: "island_tree_02", ratio: 0.12, error: 0.02 },
+  { id: "island_tree_01", ratio: 0.05, error: 0.03 },
+  { id: "tree_small_02", ratio: 0.035, error: 0.03 },
   { id: "tree_stump_01", ratio: 0.15, error: 0.02 },
   { id: "boulder_01", ratio: 0.1, error: 0.15 },
+  { id: "namaqualand_boulder_02", ratio: 0.1, error: 0.15 },
+  { id: "rock_moss_set_01", ratio: 0.3, error: 0.05 },
   { id: "fern_02" },
-  { id: "grass_medium_01" }
+  { id: "grass_medium_01" },
+  { id: "grass_medium_02" },
+  { id: "grass_bermuda_01" },
+  { id: "dandelion_01", ratio: 0.5, error: 0.02 },
+  { id: "shrub_sorrel_01", ratio: 0.3, error: 0.02 },
+  { id: "flower_gazania", ratio: 0.5, error: 0.02 },
+  { id: "wooden_lantern_01", ratio: 0.15, error: 0.05 },
+  { id: "modular_wooden_pier", ratio: 0.2, error: 0.05 },
+  { id: "ship_pinnace", ratio: 0.1, error: 0.05 },
+  { id: "stone_fire_pit", ratio: 0.15, error: 0.05 },
+  { id: "wooden_barrels_01", ratio: 0.15, error: 0.05 },
+  { id: "wooden_crate_01", ratio: 0.15, error: 0.05 },
+  { id: "lateral_sea_marker", ratio: 0.2, error: 0.05 }
 ]
 
 function run(args, opts = {}) {
