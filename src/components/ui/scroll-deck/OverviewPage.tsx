@@ -26,10 +26,10 @@ export function OverviewPage() {
               {PROFILE_OVERVIEW.institutions.map((institution) => (
                 <div
                   key={institution.name}
-                  className="h-10 w-10 rounded-xl bg-white/88 p-1.5 shadow-[0_6px_20px_rgba(0,0,0,0.28)] flex items-center justify-center md:h-12 md:w-12"
+                  className="h-10 w-10 overflow-hidden rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.35)] md:h-12 md:w-12"
                   title={institution.name}
                 >
-                  <img src={institution.image} alt={institution.name} className="h-full w-full object-contain" />
+                  <img src={institution.image} alt={institution.name} className="h-full w-full object-cover" />
                 </div>
               ))}
             </div>

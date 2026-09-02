@@ -4,6 +4,8 @@ import { useMemo } from "react"
 import { Box3, Mesh, Object3D, SkinnedMesh, Vector3 } from "three"
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js"
 import { withBase } from "@/utils/assets"
+import { useRealtimeMaterials } from "@/hooks/useRealtimeMaterials"
+import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
 
 type Pivot = "origin" | "center" | "center-bottom"
 
@@ -16,6 +18,7 @@ interface GltfModelProps extends Omit<GroupProps, "scale"> {
   castShadow?: boolean
   receiveShadow?: boolean
   scale?: number
+  excludeFromReflection?: boolean
 }
 
 type SceneBounds = {
@@ -71,9 +74,11 @@ export function GltfModel({
   castShadow = true,
   receiveShadow = true,
   scale = 1,
+  excludeFromReflection = false,
   ...props
 }: GltfModelProps) {
   const { scene } = useGLTF(path)
+  useRealtimeMaterials(scene)
 
   const object = useMemo(() => {
     const baseBounds = getSceneBounds(path, scene)
@@ -81,6 +86,7 @@ export function GltfModel({
     const cloned = shouldUseSkeletonClone ? clone(scene) : scene.clone(true)
 
     cloned.traverse((obj) => {
+      if (excludeFromReflection) obj.layers.set(REFLECTION_EXCLUDED_LAYER)
       if (obj instanceof Mesh) {
         obj.castShadow = castShadow
         obj.receiveShadow = receiveShadow
@@ -103,7 +109,7 @@ export function GltfModel({
     }
 
     return cloned
-  }, [scene, castShadow, receiveShadow, fitHeight, pivot, scale, path])
+  }, [scene, castShadow, receiveShadow, excludeFromReflection, fitHeight, pivot, scale, path])
 
   return <primitive object={object} {...props} />
 }

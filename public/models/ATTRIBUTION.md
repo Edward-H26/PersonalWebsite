@@ -11,12 +11,13 @@ These assets are downloaded from Poly Haven and are licensed under CC0 (see `htt
 
 ### Models
 
-- `public/models/hq/island_tree_02.glb`: Island Tree 02 (`https://polyhaven.com/a/island_tree_02`)
-- `public/models/hq/fern_02.glb`: Fern 02 (`https://polyhaven.com/a/fern_02`)
-- `public/models/hq/boulder_01.glb`: Boulder 01 (`https://polyhaven.com/a/boulder_01`)
-- `public/models/hq/tree_stump_01.glb`: Tree Stump 01 (`https://polyhaven.com/a/tree_stump_01`)
-- `public/models/hq/moss_01.glb`: Moss 01 (`https://polyhaven.com/a/moss_01`)
-- `public/models/hq/grass_medium_01.glb`: Grass Medium 01 (`https://polyhaven.com/a/grass_medium_01`)
+The `*_web.glb` files are the Poly Haven originals simplified, resized to 1k textures, and draco-compressed with `scripts/bake-web-models.mjs`.
+
+- `public/models/hq/island_tree_02_web.glb`: Island Tree 02 (`https://polyhaven.com/a/island_tree_02`)
+- `public/models/hq/fern_02_web.glb`: Fern 02 (`https://polyhaven.com/a/fern_02`)
+- `public/models/hq/boulder_01_web.glb`: Boulder 01 (`https://polyhaven.com/a/boulder_01`)
+- `public/models/hq/tree_stump_01_web.glb`: Tree Stump 01 (`https://polyhaven.com/a/tree_stump_01`)
+- `public/models/hq/grass_medium_01_web.glb`: Grass Medium 01 (`https://polyhaven.com/a/grass_medium_01`)
 
 ### Textures
 

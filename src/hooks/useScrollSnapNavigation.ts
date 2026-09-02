@@ -6,6 +6,30 @@ import { clamp01, clampInt, lerp, smoothstep01 } from "@/utils/math"
 
 type DeckSection = 0 | 1 | 2 | 3 | 4 | 5
 
+// A wheel event this long after the previous one starts a new gesture; anything closer is
+// the same gesture (or trackpad momentum) and must not page again.
+const WHEEL_BURST_GAP_MS = 180
+
+// Slides are 100svh while the fixed container follows the dynamic viewport (mobile URL bar),
+// so page math has to use the slide height rather than the container height.
+function getPageHeight(el: HTMLElement) {
+  const slide = el.firstElementChild as HTMLElement | null
+  const slideHeight = slide?.offsetHeight ?? 0
+  return Math.max(1, slideHeight > 0 ? slideHeight : el.clientHeight)
+}
+
+function findInnerScroller(target: EventTarget | null, deck: HTMLElement) {
+  let node = target instanceof HTMLElement ? target : null
+  while (node && node !== deck) {
+    const overflowY = getComputedStyle(node).overflowY
+    if ((overflowY === "auto" || overflowY === "scroll") && node.scrollHeight > node.clientHeight + 1) {
+      return node
+    }
+    node = node.parentElement
+  }
+  return null
+}
+
 function isNearSnap(scrollTop: number, index: number, pageHeight: number) {
   const target = index * pageHeight
   const epsilon = Math.min(6, pageHeight * 0.015)
@@ -69,7 +93,7 @@ function findIndexForSection(pages: ScrollDeckPage[], section: DeckSection) {
   return pages.findIndex((p) => p.kind === "stage_title" && p.section === section)
 }
 
-export function useScrollSnapNavigation() {
+export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked?: boolean } = {}) {
   const pages = useMemo(() => buildScrollDeckPages(), [])
   const overviewIndex = useMemo(() => pages.findIndex((p) => p.kind === "overview"), [pages])
   const researchTitleIndex = useMemo(() => findIndexForSection(pages, 1), [pages])
@@ -96,10 +120,10 @@ export function useScrollSnapNavigation() {
   const edgeArmedRef = useRef({ top: false, bottom: false })
   const edgeArmedAtMsRef = useRef<number | null>(null)
   const edgeArmRequestedRef = useRef(false)
-  const overviewHoldRef = useRef(false)
   const lastUserScrollAtRef = useRef(0)
   const lastWheelEventAtRef = useRef(0)
   const suppressTravelDirUpdateRef = useRef(false)
+  const scrollLockedRef = useRef(scrollLocked)
   const syncFromScrollRef = useRef<() => void>(() => {})
   const startWrapRef = useRef<(targetIndex: number) => void>(() => {})
 
@@ -114,6 +138,10 @@ export function useScrollSnapNavigation() {
   useEffect(() => {
     sectionRef.current = section
   }, [section])
+
+  useEffect(() => {
+    scrollLockedRef.current = scrollLocked
+  }, [scrollLocked])
 
   const hasSentinels =
     pages.length > 2 && pages[0]?.kind === "sentinel" && pages[pages.length - 1]?.kind === "sentinel"
@@ -158,7 +186,7 @@ export function useScrollSnapNavigation() {
     el.classList.add("scroll-snap-disabled")
 
     requestAnimationFrame(() => {
-      const height = Math.max(1, el.clientHeight)
+      const height = getPageHeight(el)
       isProgrammaticJumpRef.current = true
       el.scrollTo({ top: targetIndex * height, behavior: "auto" })
       lastScrollTopRef.current = targetIndex * height
@@ -177,7 +205,7 @@ export function useScrollSnapNavigation() {
     const el = containerRef.current
     if (!el) return
 
-    const height = Math.max(1, el.clientHeight)
+    const height = getPageHeight(el)
     const pagePos = el.scrollTop / height
     let index = clampInt(Math.round(pagePos), 0, pages.length - 1)
     const now = performance.now()
@@ -272,10 +300,6 @@ export function useScrollSnapNavigation() {
       activeIndexRef.current = index
       setActiveIndex(index)
     }
-    if (index !== firstRealIndex && overviewHoldRef.current) {
-      overviewHoldRef.current = false
-    }
-
 
     const nextSection = page.section
     if (nextSection !== sectionRef.current) {
@@ -401,7 +425,7 @@ export function useScrollSnapNavigation() {
     if (!el) return
     const now = performance.now()
     if (now < wrapCooldownUntilMs.current && lastWrapTargetIndexRef.current != null) {
-      const height = Math.max(1, el.clientHeight)
+      const height = getPageHeight(el)
       const targetTop = lastWrapTargetIndexRef.current * height
       if (Math.abs(el.scrollTop - targetTop) > 0.5) {
         el.scrollTop = targetTop
@@ -413,7 +437,7 @@ export function useScrollSnapNavigation() {
       return
     }
     if (wrapTargetIndexRef.current != null) {
-      const height = Math.max(1, el.clientHeight)
+      const height = getPageHeight(el)
       const targetTop = wrapTargetIndexRef.current * height
       const isNearTarget = isNearSnap(el.scrollTop, wrapTargetIndexRef.current, height)
       if (!isNearTarget) {
@@ -433,21 +457,6 @@ export function useScrollSnapNavigation() {
         lastWrapTargetIndexRef.current === firstRealIndex ? overviewWrapCooldownMs : defaultWrapCooldownMs
       wrapCooldownUntilMs.current = lastWrapEndedAtMs.current + cooldownMs
     }
-    if (overviewHoldRef.current && !isProgrammaticJumpRef.current && wrapTargetIndexRef.current == null) {
-      const height = Math.max(1, el.clientHeight)
-      const targetTop = firstRealIndex * height
-      const hasRecentInput =
-        now - lastUserScrollAtRef.current < recentUserInputWindowMs ||
-        now - lastWheelEventAtRef.current < recentUserInputWindowMs
-      if (!hasRecentInput && Math.abs(el.scrollTop - targetTop) > 0.5) {
-        el.scrollTop = targetTop
-        lastScrollTopRef.current = targetTop
-        if (rafId.current == null) {
-          rafId.current = requestAnimationFrame(syncFromScroll)
-        }
-        return
-      }
-    }
     if (rafId.current != null) return
     rafId.current = requestAnimationFrame(syncFromScroll)
 
@@ -458,9 +467,45 @@ export function useScrollSnapNavigation() {
       scrollEndTimerRef.current = null
       edgeArmRequestedRef.current = true
       syncFromScrollRef.current()
-      overviewHoldRef.current = activeIndexRef.current === firstRealIndex
     }, 140)
-  }, [firstRealIndex, recentUserInputWindowMs, syncFromScroll])
+  }, [firstRealIndex, syncFromScroll])
+
+  // Wheel and keyboard move exactly one slide per gesture. Native wheel scrolling was left to
+  // mandatory scroll snapping, which snaps back to the *nearest* slide, so any flick shorter than
+  // half a viewport pulled the visitor back to the overview after the camera had started to descend.
+  const stepPage = useCallback(
+    (direction: 1 | -1) => {
+      const el = containerRef.current
+      if (!el) return
+
+      const now = performance.now()
+      if (wrapInProgressRef.current || now < wrapLockUntilMs.current) return
+
+      const height = getPageHeight(el)
+      const currentIndex = clampInt(Math.round(el.scrollTop / height), firstRealIndex, lastRealIndex)
+      lastUserScrollAtRef.current = now
+      scrollDirLockRef.current = null
+
+      if (direction === -1 && currentIndex === firstRealIndex) {
+        useWorldStore.getState().setTravelDir(-1)
+        startWrap(lastRealIndex)
+        return
+      }
+
+      if (direction === 1 && currentIndex === lastRealIndex) {
+        useWorldStore.getState().setTravelDir(1)
+        startWrap(overviewTargetIndex)
+        return
+      }
+
+      const targetIndex = clampInt(currentIndex + direction, firstRealIndex, lastRealIndex)
+      if (targetIndex === currentIndex) return
+
+      useWorldStore.getState().setTravelDir(direction)
+      el.scrollTo({ top: targetIndex * height, behavior: "smooth" })
+    },
+    [firstRealIndex, lastRealIndex, overviewTargetIndex, startWrap]
+  )
 
   useEffect(() => {
     const el = containerRef.current
@@ -468,10 +513,9 @@ export function useScrollSnapNavigation() {
     if (didInitScrollRef.current) return
     didInitScrollRef.current = true
 
-    const height = Math.max(1, el.clientHeight)
+    const height = getPageHeight(el)
     el.scrollTo({ top: firstRealIndex * height, behavior: "auto" })
     edgeArmRequestedRef.current = true
-    overviewHoldRef.current = true
     syncFromScroll()
   }, [firstRealIndex, syncFromScroll])
 
@@ -488,124 +532,54 @@ export function useScrollSnapNavigation() {
     if (!el) return
 
     const onWheel = (e: WheelEvent) => {
+      if (scrollLockedRef.current) return
+      if (Math.abs(e.deltaY) < 1) return
+
+      const innerScroller = findInnerScroller(e.target, el)
+      if (innerScroller) {
+        const atTop = innerScroller.scrollTop <= 0
+        const atBottom = innerScroller.scrollTop + innerScroller.clientHeight >= innerScroller.scrollHeight - 1
+        const cardCanScroll = e.deltaY > 0 ? !atBottom : !atTop
+        if (cardCanScroll) return
+      }
+
+      e.preventDefault()
+
       const now = performance.now()
-      const prevWheelAt = lastWheelEventAtRef.current
-      const isNewWheelBurst = now - prevWheelAt > 180
+      const isNewWheelBurst = now - lastWheelEventAtRef.current > WHEEL_BURST_GAP_MS
       lastWheelEventAtRef.current = now
-      const wrapLockedIndex =
-        now < wrapCooldownUntilMs.current ? lastWrapTargetIndexRef.current : wrapTargetIndexRef.current
-      const isWrapLocked = wrapTargetIndexRef.current != null && now < wrapLockUntilMs.current
-      const isInWrapCooldown = now < wrapCooldownUntilMs.current && lastWrapTargetIndexRef.current != null
-      if (isWrapLocked || isInWrapCooldown) {
-        const height = Math.max(1, el.clientHeight)
-        const idx = wrapLockedIndex ?? clampInt(Math.round(el.scrollTop / height), 0, pages.length - 1)
-        const canBreakCooldown =
-          !isWrapLocked &&
-          isInWrapCooldown &&
-          isNewWheelBurst &&
-          Math.abs(e.deltaY) > 0 &&
-          idx === lastWrapTargetIndexRef.current
-        if (canBreakCooldown) {
-          wrapCooldownUntilMs.current = now
-          lastWrapTargetIndexRef.current = null
-        } else {
-          e.preventDefault()
-          const targetTop = idx * height
-          if (Math.abs(el.scrollTop - targetTop) > 0.5) {
-            el.scrollTop = targetTop
-            lastScrollTopRef.current = targetTop
-          }
-          return
-        }
-      }
-      if (isProgrammaticJumpRef.current) return
-      if (wrapInProgressRef.current) return
-      if (performance.now() < wrapLockUntilMs.current) return
-      if (Math.abs(e.deltaY) > 0 && isNewWheelBurst) {
-        lastUserScrollAtRef.current = now
-      }
+      if (!isNewWheelBurst) return
 
-      const height = Math.max(1, el.clientHeight)
-      const idx = clampInt(Math.round(el.scrollTop / height), 0, pages.length - 1)
-      const recentWrap = now - lastWrapEndedAtMs.current < overviewWrapCooldownMs
-      if (idx === firstRealIndex && recentWrap && !isNewWheelBurst) {
-        e.preventDefault()
-        const targetTop = idx * height
-        if (Math.abs(el.scrollTop - targetTop) > 0.5) {
-          el.scrollTop = targetTop
-          lastScrollTopRef.current = targetTop
-        }
-        return
-      }
-      const isNearFirstReal = isNearSnap(el.scrollTop, firstRealIndex, height)
-      const isNearLastReal = isNearSnap(el.scrollTop, lastRealIndex, height)
-      if (overviewHoldRef.current && isNearFirstReal) {
-        if (isNewWheelBurst) {
-          overviewHoldRef.current = false
-        } else {
-          e.preventDefault()
-          const targetTop = firstRealIndex * height
-          if (Math.abs(el.scrollTop - targetTop) > 0.5) {
-            el.scrollTop = targetTop
-            lastScrollTopRef.current = targetTop
-          }
-          return
-        }
-      }
-      const edgeArmedAtMs = edgeArmedAtMsRef.current
-      const canEdgeWrap = edgeArmedAtMs != null && isNewWheelBurst && now >= edgeArmedAtMs
-      if (isNearFirstReal && e.deltaY < 0 && canEdgeWrap) {
-        e.preventDefault()
-        scrollDirLockRef.current = null
-        useWorldStore.getState().setTravelDir(-1)
-        startWrapRef.current(lastRealIndex)
-        return
-      }
-      if (isNearLastReal && e.deltaY > 0 && canEdgeWrap) {
-        e.preventDefault()
-        scrollDirLockRef.current = null
-        useWorldStore.getState().setTravelDir(1)
-        startWrapRef.current(overviewTargetIndex)
-        return
-      }
-      const maxScrollTop = Math.max(0, el.scrollHeight - height)
-      const edgeEpsilonPx = 3
-      const isAtTopEdge = el.scrollTop <= edgeEpsilonPx
-      const isAtBottomEdge = el.scrollTop >= maxScrollTop - edgeEpsilonPx
-
-      if (hasSentinels && idx === sentinelTopIndex && isAtTopEdge && e.deltaY < 0) {
-        e.preventDefault()
-        scrollDirLockRef.current = null
-        useWorldStore.getState().setTravelDir(-1)
-        startWrapRef.current(lastRealIndex)
-        return
-      }
-
-      if (hasSentinels && idx === sentinelBottomIndex && isAtBottomEdge && e.deltaY > 0) {
-        e.preventDefault()
-        scrollDirLockRef.current = null
-        useWorldStore.getState().setTravelDir(1)
-        startWrapRef.current(firstRealIndex)
-      }
-      if (!hasSentinels && idx === lastRealIndex && isAtBottomEdge && e.deltaY > 0) {
-        e.preventDefault()
-        scrollDirLockRef.current = null
-        useWorldStore.getState().setTravelDir(1)
-        startWrapRef.current(overviewTargetIndex)
-      }
+      stepPage(e.deltaY > 0 ? 1 : -1)
     }
 
     el.addEventListener("wheel", onWheel, { passive: false })
     return () => el.removeEventListener("wheel", onWheel)
-  }, [
-    firstRealIndex,
-    hasSentinels,
-    lastRealIndex,
-    overviewTargetIndex,
-    pages.length,
-    sentinelBottomIndex,
-    sentinelTopIndex
-  ])
+  }, [stepPage])
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (scrollLockedRef.current) return
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return
+
+      const target = e.target
+      if (target instanceof HTMLElement) {
+        const tag = target.tagName
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable) return
+      }
+
+      let direction: 1 | -1 | null = null
+      if (e.key === "ArrowDown" || e.key === "PageDown" || (e.key === " " && !e.shiftKey)) direction = 1
+      else if (e.key === "ArrowUp" || e.key === "PageUp" || (e.key === " " && e.shiftKey)) direction = -1
+      if (direction == null) return
+
+      e.preventDefault()
+      stepPage(direction)
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [stepPage])
 
   useEffect(() => {
     const el = containerRef.current
@@ -613,12 +587,10 @@ export function useScrollSnapNavigation() {
 
     const onTouchStart = () => {
       lastUserScrollAtRef.current = performance.now()
-      overviewHoldRef.current = false
     }
 
     const onTouchMove = () => {
       lastUserScrollAtRef.current = performance.now()
-      overviewHoldRef.current = false
     }
 
     el.addEventListener("touchstart", onTouchStart, { passive: true })
@@ -635,9 +607,10 @@ export function useScrollSnapNavigation() {
       const el = containerRef.current
       if (!el) return
 
-      const height = Math.max(1, el.clientHeight)
-      const idx = clampInt(Math.round(el.scrollTop / height), 0, pages.length - 1)
-      const targetTop = idx * height
+      // Re-align the current slide with the new slide height instead of re-deriving the index
+      // from the old scroll offset, which lands between slides after a height change.
+      const height = getPageHeight(el)
+      const targetTop = clampInt(activeIndexRef.current, 0, pages.length - 1) * height
       if (Math.abs(el.scrollTop - targetTop) > 0.5) {
         el.scrollTo({ top: targetTop, behavior: "auto" })
         lastScrollTopRef.current = targetTop
@@ -655,7 +628,6 @@ export function useScrollSnapNavigation() {
       if (!el) return
 
       lastUserScrollAtRef.current = performance.now()
-      overviewHoldRef.current = false
 
       const clampedSection = clampInt(nextSection, 0, 5) as DeckSection
       const targetIndex = findIndexForSection(pages, clampedSection)
@@ -666,7 +638,7 @@ export function useScrollSnapNavigation() {
         useWorldStore.getState().setTravelDir(targetIndex > currentIndex ? 1 : -1)
       }
 
-      const height = Math.max(1, el.clientHeight)
+      const height = getPageHeight(el)
       el.scrollTo({ top: targetIndex * height, behavior: options?.behavior ?? "smooth" })
     },
     [pages]

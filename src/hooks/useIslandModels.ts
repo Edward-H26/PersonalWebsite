@@ -2,12 +2,13 @@ import { withBase } from "@/utils/assets"
 
 export const MODEL_PATHS = {
   earth: {
-    hqTree: withBase("/models/hq/island_tree_02.glb"),
-    hqFern: withBase("/models/hq/fern_02.glb"),
-    hqBoulder: withBase("/models/hq/boulder_01.glb"),
-    hqTreeStump: withBase("/models/hq/tree_stump_01.glb"),
-    hqMoss: withBase("/models/hq/moss_01.glb"),
-    hqGrassMedium01: withBase("/models/hq/grass_medium_01.glb"),
+    // *_web.glb are the Poly Haven originals simplified, resized to 1k textures, and draco-compressed
+    // (see scripts/bake-web-models.mjs); the originals were 40 MB and up to 877k triangles each.
+    hqTree: withBase("/models/hq/island_tree_02_web.glb"),
+    hqFern: withBase("/models/hq/fern_02_web.glb"),
+    hqBoulder: withBase("/models/hq/boulder_01_web.glb"),
+    hqTreeStump: withBase("/models/hq/tree_stump_01_web.glb"),
+    hqGrassMedium01: withBase("/models/hq/grass_medium_01_web.glb"),
     fantasyInn: withBase("/models/medieval_village_pack/fantasy_inn.glb"),
     cypressTree: withBase("/models/fantasy_village/cypress_tree.glb"),
     flowers: withBase("/models/fantasy_village/flowers.glb"),
@@ -30,8 +31,6 @@ export const MODEL_PATHS = {
     cart: withBase("/models/medieval_village_pack/cart.glb"),
     barrel: withBase("/models/medieval_village_pack/barrel.glb"),
     crate: withBase("/models/medieval_village_pack/crate.glb"),
-    fence: withBase("/models/medieval_village_pack/fence.glb"),
-    polypizzaPathRoundWide: withBase("/models/polypizza/rock_path_round_wide.glb"),
-    polypizzaPathSquareSmall: withBase("/models/polypizza/rock_path_square_small.glb"),
+    fence: withBase("/models/medieval_village_pack/fence.glb")
   }
 }

@@ -1,8 +1,43 @@
 import { memo } from "react"
 import type { CSSProperties } from "react"
 import type { DisplayCard } from "@/config/scrollDeckPages"
+import type { StoryBullet } from "@/config/storyContent"
 import { LinkedText } from "@/components/ui/LinkedText"
 import { LinkIcon } from "@/components/ui/LinkIcon"
+
+function BulletText({ text }: { text: string }) {
+  if (!text.includes("\n")) return <LinkedText text={text} />
+
+  return text.split("\n").map((line, index) => (
+    <span key={`${line}-${index}`}>
+      {index > 0 && <br />}
+      <LinkedText text={line} />
+    </span>
+  ))
+}
+
+function Bullet({ bullet }: { bullet: StoryBullet }) {
+  if (typeof bullet === "string") {
+    return (
+      <li>
+        <BulletText text={bullet} />
+      </li>
+    )
+  }
+
+  return (
+    <li className="-ml-5 flex list-none items-start gap-3 md:-ml-6 md:gap-4">
+      <img
+        src={bullet.logo.image}
+        alt={bullet.logo.name}
+        className="mt-0.5 h-9 w-9 shrink-0 rounded-full object-cover shadow-[0_4px_14px_rgba(0,0,0,0.4)] md:h-11 md:w-11"
+      />
+      <span className="min-w-0">
+        <BulletText text={bullet.text} />
+      </span>
+    </li>
+  )
+}
 
 const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
   return (
@@ -41,14 +76,7 @@ const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
           <div className="liquid-card-scroll h-full overflow-y-auto pr-3 pointer-events-auto" data-story-scroll="true">
             <ul className="space-y-2 text-[14px] md:text-[18px] font-medium leading-[1.5] md:leading-[1.55] text-white/95 list-disc pl-5 md:pl-6 drop-shadow-[0_2px_16px_rgba(0,0,0,0.55)]">
               {card.bullets.map((bullet) => (
-                <li key={bullet}>
-                  {bullet.includes("\n") ? bullet.split("\n").map((line, index) => (
-                    <span key={`${line}-${index}`}>
-                      {index > 0 && <br />}
-                      <LinkedText text={line} />
-                    </span>
-                  )) : <LinkedText text={bullet} />}
-                </li>
+                <Bullet key={typeof bullet === "string" ? bullet : bullet.text} bullet={bullet} />
               ))}
             </ul>
           </div>

@@ -5,17 +5,26 @@ export type StoryStageId =
   | "air_island"
   | "water_island"
 
+import { INSTITUTION_LOGOS } from "@/config/profile"
+
 export type StoryLink = {
   label: string
   url: string
 }
+
+export type StoryBullet =
+  | string
+  | {
+      text: string
+      logo: { name: string; image: string }
+    }
 
 export type StoryCard = {
   title: string
   subtitle?: string
   location?: string
   date?: string
-  bullets: string[]
+  bullets: StoryBullet[]
   links?: StoryLink[]
 }
 
@@ -247,8 +256,14 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
       {
         title: "Education",
         bullets: [
-          "Columbia University, New York City, NY\nM.S. in Data Science\nFu Foundation School of Engineering and Applied Science\n2026.08 - 2028.05",
-          "University of Illinois at Urbana-Champaign, Champaign, IL\nB.S. in Data Science and Information Science\nMinors: Computer Science and Statistics\nSiebel School of Computing and Data Science\n2022.08 - 2026.05"
+          {
+            text: "Columbia University, New York City, NY\nM.S. in Data Science\nFu Foundation School of Engineering and Applied Science\n2026.08 - 2028.05",
+            logo: INSTITUTION_LOGOS.columbia
+          },
+          {
+            text: "University of Illinois at Urbana-Champaign, Champaign, IL\nB.S. in Data Science and Information Science\nMinors: Computer Science and Statistics\nSiebel School of Computing and Data Science\n2022.08 - 2026.05",
+            logo: INSTITUTION_LOGOS.illinois
+          }
         ]
       },
       {
@@ -260,6 +275,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         links: [
           { label: "GitHub", url: "https://github.com/Edward-H26" },
           { label: "LinkedIn", url: "https://www.linkedin.com/in/qiranhu/" },
+          { label: "X", url: "https://x.com/QiranHu" },
           { label: "Website", url: "https://edward-h26.github.io/" },
           { label: "Google Scholar", url: "https://scholar.google.com/citations?user=4jv03f4AAAAJ&hl=en" }
         ]
