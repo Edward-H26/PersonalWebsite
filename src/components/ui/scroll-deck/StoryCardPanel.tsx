@@ -2,6 +2,7 @@ import { memo } from "react"
 import type { CSSProperties } from "react"
 import type { DisplayCard } from "@/config/scrollDeckPages"
 import { LinkedText } from "@/components/ui/LinkedText"
+import { LinkIcon } from "@/components/ui/LinkIcon"
 
 const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
   return (
@@ -64,6 +65,7 @@ const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
               rel="noreferrer"
               className="pointer-events-auto liquid-link-chip"
             >
+              <LinkIcon label={link.label} />
               {link.label}
             </a>
           ))}

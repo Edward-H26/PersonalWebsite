@@ -70,7 +70,8 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         ],
         links: [
           { label: "arXiv", url: "https://arxiv.org/abs/2606.31204" },
-          { label: "Project", url: "https://ac3s.cvmlgroup.web.illinois.edu/" }
+          { label: "Project", url: "https://ac3s.cvmlgroup.web.illinois.edu/" },
+          { label: "Video", url: "https://youtu.be/3jOJaT2a8iQ" }
         ]
       },
       {
