@@ -13,6 +13,7 @@ const CAMERA_BACK_OFFSET = 12
 const CAMERA_LEFT_OFFSET = 1.2
 const GROUND_EPSILON = 0.04
 const EARTH_EYE_HEIGHT_BONUS = 0.7
+const UP = new THREE.Vector3(0, 1, 0)
 
 const LOOK_DISTANCE = 16
 const LOOK_DOWN_OFFSET = 3.6
@@ -20,17 +21,8 @@ const TITLE_LIFT = 1.2
 const TITLE_BACK = 7.0
 const OVERVIEW_FILM_OFFSET = -9
 
-function getGroundMeshes(root: THREE.Object3D) {
-  const groundMeshes: THREE.Object3D[] = []
-  root.traverse((obj) => {
-    if (obj.userData?.isGround) groundMeshes.push(obj)
-  })
-  if (groundMeshes.length === 0) return null
-  return groundMeshes
-}
-
 export function FirstPersonController() {
-  const { camera, scene, size } = useThree()
+  const { camera, size } = useThree()
 
   useEffect(() => {
     camera.layers.enable(REFLECTION_EXCLUDED_LAYER)
@@ -46,30 +38,7 @@ export function FirstPersonController() {
   const prevTravelDir = useRef<1 | -1>(1)
   const lastMotionDir = useRef<1 | -1>(1)
   const motionLockUntilMs = useRef(0)
-
-  const raycaster = useMemo(() => new THREE.Raycaster(), [])
-  const down = useMemo(() => new THREE.Vector3(0, -1, 0), [])
-  const rayOrigin = useRef(new THREE.Vector3())
-
-  const islandRootRef = useRef<THREE.Object3D | null>(null)
-  const groundMeshesRef = useRef<THREE.Object3D[] | null>(null)
-
-  const cachedGroundKey = useRef<string | null>(null)
-  const cachedGroundY = useRef<number | null>(null)
-  const lastValidGroundY = useRef<number | null>(null)
-
-  const cachedCameraGroundKey = useRef<string | null>(null)
-  const cachedCameraGroundY = useRef<number | null>(null)
-  const lastValidCameraGroundY = useRef<number | null>(null)
-
-  const resetGroundCaches = () => {
-    cachedGroundKey.current = null
-    cachedGroundY.current = null
-    lastValidGroundY.current = null
-    cachedCameraGroundKey.current = null
-    cachedCameraGroundY.current = null
-    lastValidCameraGroundY.current = null
-  }
+  const lastGroundY = useRef(0)
 
   const pathCurve = useMemo(() => {
     const points = EARTH_ROUTE_POINTS.map((p) => new Vector3(p[0], p[1], p[2]))
@@ -104,6 +73,7 @@ export function FirstPersonController() {
   const smoothedRouteT = useRef(0)
   const smoothedOverviewBlend = useRef(0)
   const smoothedTitleBlend = useRef(0)
+  const smoothedLookYaw = useRef(0)
 
   useFrame((_, delta) => {
     const worldState = useWorldStore.getState()
@@ -112,6 +82,7 @@ export function FirstPersonController() {
     const titleCardBlend = worldState.titleCardBlend
     const travelDir = worldState.travelDir
     const mousePosition = worldState.mousePosition
+    const groundHeightAt = worldState.groundHeightAt
 
     const routeTarget = clamp01(routeT)
     const overviewTarget = clamp01(overviewBlend)
@@ -121,6 +92,7 @@ export function FirstPersonController() {
     smoothedRouteT.current = THREE.MathUtils.damp(smoothedRouteT.current, routeTarget, 10, delta)
     smoothedOverviewBlend.current = THREE.MathUtils.damp(smoothedOverviewBlend.current, overviewTarget, 10, delta)
     smoothedTitleBlend.current = THREE.MathUtils.damp(smoothedTitleBlend.current, titleTarget, 10, delta)
+    smoothedLookYaw.current = THREE.MathUtils.damp(smoothedLookYaw.current, worldState.lookYaw, 6, delta)
 
     if (Math.abs(smoothedRouteT.current - routeTarget) < 0.0006) {
       smoothedRouteT.current = routeTarget
@@ -202,43 +174,8 @@ export function FirstPersonController() {
       desiredZ += pathForwardFlat.current.z * (-TITLE_BACK * titleMix)
     }
 
-    const islandRoot = scene.getObjectByName("Island-earth")
-    if (islandRoot && islandRootRef.current !== islandRoot) {
-      islandRootRef.current = islandRoot
-      groundMeshesRef.current = null
-      resetGroundCaches()
-    }
-
-    if (islandRoot && !groundMeshesRef.current) {
-      const resolved = getGroundMeshes(islandRoot)
-      if (resolved) {
-        groundMeshesRef.current = resolved
-        resetGroundCaches()
-      }
-    }
-
-    const groundMeshes = groundMeshesRef.current
-
-    const quantX = Math.round(desiredX * 2) / 2
-    const quantZ = Math.round(desiredZ * 2) / 2
-    const groundKey = `${quantX}:${quantZ}`
-
-    if (groundMeshes && cachedGroundKey.current !== groundKey) {
-      cachedGroundKey.current = groundKey
-      cachedGroundY.current = null
-
-      rayOrigin.current.set(desiredX, camera.position.y + 2000, desiredZ)
-      raycaster.set(rayOrigin.current, down)
-      raycaster.far = 8000
-
-      const hit = raycaster.intersectObjects(groundMeshes, true)[0]
-      if (hit) {
-        cachedGroundY.current = hit.point.y
-        lastValidGroundY.current = hit.point.y
-      }
-    }
-
-    const surfaceY = cachedGroundY.current ?? lastValidGroundY.current ?? 0
+    if (groundHeightAt) lastGroundY.current = groundHeightAt(desiredX, desiredZ)
+    const surfaceY = lastGroundY.current
     const desiredY = surfaceY + WORLD_CONFIG.cameraHeight + EARTH_EYE_HEIGHT_BONUS + TITLE_LIFT * titleMix
 
     fpTargetPosition.current.set(desiredX, desiredY, desiredZ)
@@ -250,9 +187,12 @@ export function FirstPersonController() {
       lookDir.current.set(0, 0, -1)
     }
     lookDir.current.multiplyScalar(walkDir)
+    // Sideways look from horizontal wheel, trackpad, touch, or arrow keys; eases back to the road on travel.
+    if (Math.abs(smoothedLookYaw.current) > 1e-4) lookDir.current.applyAxisAngle(UP, smoothedLookYaw.current)
 
     const hasMotion = (prevT != null && Math.abs(deltaT) > 2e-4) || routeDelta > 0.002
-    if (hasMotion || prevT == null || (isResearchTitle && travelDir === 1 && titleMix > 0.25)) {
+    const isTurning = Math.abs(smoothedLookYaw.current - worldState.lookYaw) > 1e-3 || Math.abs(smoothedLookYaw.current) > 1e-4
+    if (hasMotion || isTurning || prevT == null || (isResearchTitle && travelDir === 1 && titleMix > 0.25)) {
       lastLookDir.current.copy(lookDir.current)
     }
 
@@ -307,31 +247,9 @@ export function FirstPersonController() {
       perspectiveCamera.updateProjectionMatrix()
     }
 
-    if (groundMeshes) {
-      const quantCamX = Math.round(camera.position.x * 2) / 2
-      const quantCamZ = Math.round(camera.position.z * 2) / 2
-      const cameraGroundKey = `${quantCamX}:${quantCamZ}`
-
-      if (cachedCameraGroundKey.current !== cameraGroundKey) {
-        cachedCameraGroundKey.current = cameraGroundKey
-        cachedCameraGroundY.current = null
-
-        rayOrigin.current.set(camera.position.x, camera.position.y + 2000, camera.position.z)
-        raycaster.set(rayOrigin.current, down)
-        raycaster.far = 8000
-
-        const hit = raycaster.intersectObjects(groundMeshes, true)[0]
-        if (hit) {
-          cachedCameraGroundY.current = hit.point.y
-          lastValidCameraGroundY.current = hit.point.y
-        }
-      }
-
-      const clampGroundY = cachedCameraGroundY.current ?? lastValidCameraGroundY.current
-      if (clampGroundY != null) {
-        const minY = clampGroundY + WORLD_CONFIG.cameraHeight + GROUND_EPSILON
-        if (camera.position.y < minY) camera.position.y = minY
-      }
+    if (groundHeightAt && overviewMix > 0.999) {
+      const minY = groundHeightAt(camera.position.x, camera.position.z) + WORLD_CONFIG.cameraHeight + GROUND_EPSILON
+      if (camera.position.y < minY) camera.position.y = minY
     }
 
     camera.lookAt(currentLookAt.current)

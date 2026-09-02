@@ -3,12 +3,12 @@ import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 import { Water } from "three/examples/jsm/objects/Water.js"
 import { withBase } from "@/utils/assets"
+import { useWorldStore } from "@/store/worldStore"
 
 interface OceanProps {
   sunElevation?: number
   sunAzimuth?: number
   waterColor?: number
-  animationSpeed?: number
 }
 
 function createFallbackNormalTexture() {
@@ -32,7 +32,6 @@ export function Ocean({
   sunElevation = 2,
   sunAzimuth = 180,
   waterColor = 0x001e0f,
-  animationSpeed = 1.15,
 }: OceanProps) {
   const { scene } = useThree()
   const fallbackNormals = useMemo(() => createFallbackNormalTexture(), [])
@@ -86,7 +85,9 @@ export function Ocean({
   }, [water, sunDirection])
 
   useFrame((_, delta) => {
-    water.material.uniforms["time"].value += animationSpeed * delta
+    // Waves calm down slightly as the camera descends from the overview into the island.
+    const overviewBlend = useWorldStore.getState().overviewBlend
+    water.material.uniforms["time"].value += (0.85 + 0.3 * overviewBlend) * delta
   })
 
   return <primitive object={water} />

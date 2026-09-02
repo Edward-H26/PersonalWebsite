@@ -1,97 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { buildScrollDeckPages, type ScrollDeckPage } from "@/config/scrollDeckPages"
+import { buildScrollDeckPages } from "@/config/scrollDeckPages"
 import { useWorldStore } from "@/store/worldStore"
-import { EARTH_SECTION_T_STOPS } from "@/config"
 import { clamp01, clampInt, lerp, smoothstep01 } from "@/utils/math"
+import {
+  type DeckSection,
+  findIndexForSection,
+  findInnerScroller,
+  getPageHeight,
+  getRouteTAtPagePos,
+  getSectionRanges,
+  isNearSnap
+} from "@/deck/deckMath"
+import { createWheelPager } from "@/deck/wheelPager"
 
-type DeckSection = 0 | 1 | 2 | 3 | 4 | 5
-
-// A wheel event this long after the previous one starts a new gesture; anything closer is
-// the same gesture (or trackpad momentum) and must not page again.
-const WHEEL_BURST_GAP_MS = 180
-
-// Slides are 100svh while the fixed container follows the dynamic viewport (mobile URL bar),
-// so page math has to use the slide height rather than the container height.
-function getPageHeight(el: HTMLElement) {
-  const slide = el.firstElementChild as HTMLElement | null
-  const slideHeight = slide?.offsetHeight ?? 0
-  return Math.max(1, slideHeight > 0 ? slideHeight : el.clientHeight)
-}
-
-function findInnerScroller(target: EventTarget | null, deck: HTMLElement) {
-  let node = target instanceof HTMLElement ? target : null
-  while (node && node !== deck) {
-    const overflowY = getComputedStyle(node).overflowY
-    if ((overflowY === "auto" || overflowY === "scroll") && node.scrollHeight > node.clientHeight + 1) {
-      return node
-    }
-    node = node.parentElement
-  }
-  return null
-}
-
-function isNearSnap(scrollTop: number, index: number, pageHeight: number) {
-  const target = index * pageHeight
-  const epsilon = Math.min(6, pageHeight * 0.015)
-  return Math.abs(scrollTop - target) <= epsilon
-}
-
-function getRouteTAtPagePos(
-  pagePos: number,
-  sectionRanges: Map<DeckSection, { startIndex: number; endIndex: number }>
-) {
-  const maxSegment = EARTH_SECTION_T_STOPS.length - 1
-  const lastStop = EARTH_SECTION_T_STOPS[EARTH_SECTION_T_STOPS.length - 1]
-
-  const firstRange = sectionRanges.get(1)
-  if (firstRange && pagePos <= firstRange.startIndex) return EARTH_SECTION_T_STOPS[0]
-
-  for (let segment = 1; segment <= maxSegment; segment += 1) {
-    const range = sectionRanges.get(segment as DeckSection)
-    if (!range) continue
-    if (pagePos <= range.endIndex) {
-      const denom = Math.max(1e-6, range.endIndex - range.startIndex)
-      const local = clamp01((pagePos - range.startIndex) / denom)
-      const startT = EARTH_SECTION_T_STOPS[segment - 1]
-      const endT = EARTH_SECTION_T_STOPS[segment]
-      return startT + (endT - startT) * local
-    }
-  }
-
-  return lastStop
-}
-
-function getSectionRanges(pages: ScrollDeckPage[]) {
-  const ranges = new Map<DeckSection, { startIndex: number; endIndex: number }>()
-
-  const titleIndexBySection = new Map<DeckSection, number>()
-  for (let i = 0; i < pages.length; i += 1) {
-    const page = pages[i]
-    if (page.kind !== "stage_title") continue
-    titleIndexBySection.set(page.section, i)
-  }
-
-  const sentinelBottomIndex = pages.length - 1
-
-  for (let section = 1; section <= 5; section += 1) {
-    const startIndex = titleIndexBySection.get(section as DeckSection)
-    if (startIndex == null) continue
-
-    const endIndex =
-      section === 5 ? sentinelBottomIndex : titleIndexBySection.get((section + 1) as DeckSection) ?? sentinelBottomIndex
-
-    ranges.set(section as DeckSection, { startIndex, endIndex })
-  }
-
-  return ranges
-}
-
-function findIndexForSection(pages: ScrollDeckPage[], section: DeckSection) {
-  if (section === 0) {
-    return pages.findIndex((p) => p.kind === "overview")
-  }
-  return pages.findIndex((p) => p.kind === "stage_title" && p.section === section)
-}
+// Radians of camera yaw per pixel of horizontal wheel/trackpad travel, per pixel of touch drag,
+// and per arrow-key press.
+const LOOK_YAW_PER_WHEEL_PX = 0.0025
+const LOOK_YAW_PER_TOUCH_PX = 0.006
+const LOOK_YAW_PER_KEY = 0.14
+const TOUCH_LOOK_START_PX = 12
 
 export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked?: boolean } = {}) {
   const pages = useMemo(() => buildScrollDeckPages(), [])
@@ -121,9 +48,9 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
   const edgeArmedAtMsRef = useRef<number | null>(null)
   const edgeArmRequestedRef = useRef(false)
   const lastUserScrollAtRef = useRef(0)
-  const lastWheelEventAtRef = useRef(0)
   const suppressTravelDirUpdateRef = useRef(false)
   const scrollLockedRef = useRef(scrollLocked)
+  const wheelPagerRef = useRef(createWheelPager())
   const syncFromScrollRef = useRef<() => void>(() => {})
   const startWrapRef = useRef<(targetIndex: number) => void>(() => {})
 
@@ -470,9 +397,9 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     }, 140)
   }, [firstRealIndex, syncFromScroll])
 
-  // Wheel and keyboard move exactly one slide per gesture. Native wheel scrolling was left to
-  // mandatory scroll snapping, which snaps back to the *nearest* slide, so any flick shorter than
-  // half a viewport pulled the visitor back to the overview after the camera had started to descend.
+  // Wheel and keyboard move whole slides. Native wheel scrolling was left to mandatory scroll
+  // snapping, which snaps back to the *nearest* slide, so any flick shorter than half a viewport
+  // pulled the visitor back to the overview after the camera had started to descend.
   const stepPage = useCallback(
     (direction: 1 | -1) => {
       const el = containerRef.current
@@ -485,6 +412,8 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
       const currentIndex = clampInt(Math.round(el.scrollTop / height), firstRealIndex, lastRealIndex)
       lastUserScrollAtRef.current = now
       scrollDirLockRef.current = null
+      wheelPagerRef.current.markStepped(now)
+      useWorldStore.getState().setLookYaw(0)
 
       if (direction === -1 && currentIndex === firstRealIndex) {
         useWorldStore.getState().setTravelDir(-1)
@@ -506,6 +435,11 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     },
     [firstRealIndex, lastRealIndex, overviewTargetIndex, startWrap]
   )
+
+  const turnLook = useCallback((deltaYaw: number) => {
+    const store = useWorldStore.getState()
+    store.setLookYaw(store.lookYaw + deltaYaw)
+  }, [])
 
   useEffect(() => {
     const el = containerRef.current
@@ -533,29 +467,27 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
 
     const onWheel = (e: WheelEvent) => {
       if (scrollLockedRef.current) return
-      if (Math.abs(e.deltaY) < 1) return
 
-      const innerScroller = findInnerScroller(e.target, el)
-      if (innerScroller) {
-        const atTop = innerScroller.scrollTop <= 0
-        const atBottom = innerScroller.scrollTop + innerScroller.clientHeight >= innerScroller.scrollHeight - 1
-        const cardCanScroll = e.deltaY > 0 ? !atBottom : !atTop
-        if (cardCanScroll) return
-      }
+      // Inside a card's scrollable text the wheel only scrolls the card, even at its ends.
+      if (findInnerScroller(e.target, el)) return
 
+      const absX = Math.abs(e.deltaX)
+      const absY = Math.abs(e.deltaY)
+      if (absX < 1 && absY < 1) return
       e.preventDefault()
 
-      const now = performance.now()
-      const isNewWheelBurst = now - lastWheelEventAtRef.current > WHEEL_BURST_GAP_MS
-      lastWheelEventAtRef.current = now
-      if (!isNewWheelBurst) return
+      if (absX > absY) {
+        turnLook(-e.deltaX * LOOK_YAW_PER_WHEEL_PX)
+        return
+      }
 
-      stepPage(e.deltaY > 0 ? 1 : -1)
+      const direction = wheelPagerRef.current.feed(e.deltaY, performance.now())
+      if (direction !== 0) stepPage(direction)
     }
 
     el.addEventListener("wheel", onWheel, { passive: false })
     return () => el.removeEventListener("wheel", onWheel)
-  }, [stepPage])
+  }, [stepPage, turnLook])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -568,29 +500,58 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable) return
       }
 
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault()
+        turnLook(e.key === "ArrowLeft" ? LOOK_YAW_PER_KEY : -LOOK_YAW_PER_KEY)
+        return
+      }
+
       let direction: 1 | -1 | null = null
       if (e.key === "ArrowDown" || e.key === "PageDown" || (e.key === " " && !e.shiftKey)) direction = 1
       else if (e.key === "ArrowUp" || e.key === "PageUp" || (e.key === " " && e.shiftKey)) direction = -1
       if (direction == null) return
 
       e.preventDefault()
+      if (!wheelPagerRef.current.canStep(performance.now())) return
       stepPage(direction)
     }
 
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [stepPage])
+  }, [stepPage, turnLook])
 
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
 
-    const onTouchStart = () => {
+    let startX = 0
+    let startY = 0
+    let lastX = 0
+    let isLookGesture = false
+
+    const onTouchStart = (e: TouchEvent) => {
       lastUserScrollAtRef.current = performance.now()
+      const touch = e.touches[0]
+      if (!touch) return
+      startX = touch.clientX
+      startY = touch.clientY
+      lastX = startX
+      isLookGesture = false
     }
 
-    const onTouchMove = () => {
+    // A mostly horizontal drag turns the camera; vertical drags keep native slide scrolling.
+    const onTouchMove = (e: TouchEvent) => {
       lastUserScrollAtRef.current = performance.now()
+      const touch = e.touches[0]
+      if (!touch) return
+      if (!isLookGesture) {
+        const dx = touch.clientX - startX
+        const dy = touch.clientY - startY
+        if (Math.abs(dx) < TOUCH_LOOK_START_PX || Math.abs(dx) <= Math.abs(dy)) return
+        isLookGesture = true
+      }
+      turnLook((touch.clientX - lastX) * LOOK_YAW_PER_TOUCH_PX)
+      lastX = touch.clientX
     }
 
     el.addEventListener("touchstart", onTouchStart, { passive: true })
@@ -600,7 +561,7 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
       el.removeEventListener("touchstart", onTouchStart)
       el.removeEventListener("touchmove", onTouchMove)
     }
-  }, [])
+  }, [turnLook])
 
   useEffect(() => {
     const handleResize = () => {
@@ -628,6 +589,7 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
       if (!el) return
 
       lastUserScrollAtRef.current = performance.now()
+      useWorldStore.getState().setLookYaw(0)
 
       const clampedSection = clampInt(nextSection, 0, 5) as DeckSection
       const targetIndex = findIndexForSection(pages, clampedSection)

@@ -148,11 +148,15 @@ async function fetchModelAsGlb({ id }) {
 }
 
 async function main() {
+  // Optional asset ids as arguments fetch a subset, e.g. `node scripts/fetch-polyhaven-hq-models.mjs dandelion_01`.
+  const only = new Set(process.argv.filter((arg) => !arg.startsWith("--")).slice(2))
+  const assets = only.size > 0 ? [...only].map((id) => ({ id, type: "models" })) : ASSETS
+
   await ensureDir(HQ_DIR)
   await ensureDir(STAGING_DIR)
   await ensureDir(NPM_CACHE_DIR)
 
-  for (const asset of ASSETS) {
+  for (const asset of assets) {
     // Currently only models (glTF) are fetched in this script.
     if (asset.type !== "models") continue
     await fetchModelAsGlb(asset)

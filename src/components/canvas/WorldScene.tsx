@@ -3,7 +3,7 @@ import { Canvas, useLoader, useThree } from "@react-three/fiber"
 import { Cloud, Clouds, PerformanceMonitor, useGLTF, useProgress, useTexture } from "@react-three/drei"
 import * as THREE from "three"
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js"
-import { FirstPersonController, IslandTrail } from "./camera"
+import { FirstPersonController } from "./camera"
 import { EarthIsland } from "./islands"
 import { Ocean, ProceduralSky } from "./environment"
 import { ModelErrorBoundary } from "./models/ModelErrorBoundary"
@@ -32,10 +32,26 @@ const FIRST_FRAME_TEXTURES = [withBase("/textures/waternormals.jpg"), withBase("
 
 const PRELOAD_GLTFS = [
   MODEL_PATHS.earth.hqGrassMedium01,
+  MODEL_PATHS.earth.hqGrassMedium02,
+  MODEL_PATHS.earth.hqGrassBermuda,
+  MODEL_PATHS.earth.hqDandelion,
+  MODEL_PATHS.earth.hqGazania,
+  MODEL_PATHS.earth.hqSorrel,
   MODEL_PATHS.earth.hqTreeStump,
   MODEL_PATHS.earth.hqTree,
+  MODEL_PATHS.earth.hqTreeLarge,
+  MODEL_PATHS.earth.hqTreeSmall,
   MODEL_PATHS.earth.hqBoulder,
+  MODEL_PATHS.earth.hqBoulder02,
+  MODEL_PATHS.earth.hqMossRocks,
   MODEL_PATHS.earth.hqFern,
+  MODEL_PATHS.earth.hqLantern,
+  MODEL_PATHS.earth.hqPier,
+  MODEL_PATHS.earth.hqShip,
+  MODEL_PATHS.earth.hqFirePit,
+  MODEL_PATHS.earth.hqBarrels,
+  MODEL_PATHS.earth.hqCrate,
+  MODEL_PATHS.earth.hqSeaMarker,
   MODEL_PATHS.earth.fantasyInn,
   MODEL_PATHS.earth.barracks,
   MODEL_PATHS.earth.sawmill,
@@ -50,12 +66,8 @@ const PRELOAD_GLTFS = [
   MODEL_PATHS.earth.marketStand02,
   MODEL_PATHS.earth.well,
   MODEL_PATHS.earth.cart,
-  MODEL_PATHS.earth.barrel,
-  MODEL_PATHS.earth.crate,
   MODEL_PATHS.earth.fence,
-  MODEL_PATHS.earth.cypressTree,
-  MODEL_PATHS.earth.flowerBushes,
-  MODEL_PATHS.earth.flowers
+  MODEL_PATHS.earth.cypressTree
 ]
 
 const SUN_ELEVATION = 2
@@ -110,7 +122,6 @@ function EarthPreload({ enabled }: { enabled: boolean }) {
 }
 
 function WorldContent({ section }: { section: number }) {
-  const overviewBlend = useWorldStore((state) => state.overviewBlend)
   const [shouldPreload, setShouldPreload] = useState(false)
   const shadowMapSize = 2048
   const lightDimming = section >= 5 ? 0.55 : section >= 4 ? 0.65 : section >= 3 ? 0.75 : 1
@@ -172,15 +183,9 @@ function WorldContent({ section }: { section: number }) {
 
       <ProceduralSky elevation={SUN_ELEVATION} azimuth={SUN_AZIMUTH} mieCoefficient={0.0035} mieDirectionalG={0.74} />
 
-      <Ocean
-        sunElevation={SUN_ELEVATION}
-        sunAzimuth={SUN_AZIMUTH}
-        animationSpeed={0.85 + (1.15 - 0.85) * overviewBlend}
-      />
+      <Ocean sunElevation={SUN_ELEVATION} sunAzimuth={SUN_AZIMUTH} />
 
       <FirstPersonController />
-
-      <IslandTrail section={section} />
 
       <Suspense fallback={null}>
         <Clouds texture={withBase("/textures/cloud.png")} limit={600} frustumCulled={false}>
