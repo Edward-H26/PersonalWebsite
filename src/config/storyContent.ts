@@ -7,7 +7,7 @@ export type StoryStageId =
 
 import { INSTITUTION_LOGOS } from "@/config/profile"
 
-export type StoryLink = {
+type StoryLink = {
   label: string
   url: string
 }
@@ -28,7 +28,7 @@ export type StoryCard = {
   links?: StoryLink[]
 }
 
-export type StoryStage = {
+type StoryStage = {
   id: StoryStageId
   heading: string
   subheading?: string
@@ -70,7 +70,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
   fire_island: {
     id: "fire_island",
     heading: "Publications",
-    subheading: "Publications",
+    subheading: "Papers",
     cards: [
       {
         title: "AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation",
@@ -132,9 +132,9 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         ]
       },
       {
-        title: "CS 107 Data Science Discovery, University of Illinois at Urbana-Champaign",
+        title: "CS 107 Data Science Discovery, University of Illinois Urbana-Champaign",
         subtitle: "Teaching Assistant",
-        location: "IL, United States",
+        location: "Champaign, IL",
         date: "2023.08-Present",
         bullets: [
           "Facilitated weekly in-person/online office hours and lab sections to provide technical assistance for over 2000 students.",
@@ -147,14 +147,14 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         ]
       },
       {
-        title: "Student Government, University of Illinois at Urbana-Champaign",
+        title: "Student Government, University of Illinois Urbana-Champaign",
         subtitle: "iSchool Student Representative",
-        location: "IL, United States",
+        location: "Champaign, IL",
         date: "2022.09-2023.09",
         bullets: [
           "Supervised iSchool community forums to handle student concerns with adherence to predetermined guidelines.",
-          "Facilitated with the university and prospective students and parents during campus tours, answering questions, and providing insight.",
-          "Secured approval for program modifications to existing and new activities from students' feedback."
+          "Assisted the university with campus tours for prospective students and parents, answering questions and providing insight.",
+          "Secured approval for changes to existing and new activities based on student feedback."
         ]
       }
     ]
@@ -171,7 +171,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         bullets: [
           "Selected for the NVIDIA Academic Grant Program Award with 32000 A100 GPU-hours allocated on the Brev cloud platform to advance multimodal generative models that continuously incorporate new knowledge across text, image, and 3D data without catastrophic forgetting of previously learned cross-modal alignment.",
           "Scaled multimodal continual-learning experiments across audio, image, and text modalities through distributed training on the National Artificial Intelligence Research Resource (NAIRR), profiling throughput and memory trade-offs to enable post-hoc weight-space fusion at AudioCLIP backbone scale.",
-          "Optimized parameter-efficient post-hoc fusion framework that learns to compose frozen checkpoints from different continual-learning strategies."
+          "Optimized a parameter-efficient post-hoc fusion framework that learns to compose frozen checkpoints from different continual-learning strategies."
         ],
         links: [
           { label: "NVIDIA Grant", url: "https://ischool.illinois.edu/news-events/news/2026/04/liu-receives-support-ai-project-through-nvidia-academic-grant-program" }
@@ -185,9 +185,6 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
           "Architected an 8-agent orchestration system for HCI literature synthesis, implementing specialized agents of Planner, Researcher, Writer, Critic, SafetyGuardian, ReflexionEngine, LLMJudge, and Evaluation across a 12-step reasoning workflow, achieving 0.955 overall evaluation score, 0.925 on relevance, safety, and clarity.",
           "Designed Model Context Protocol integration for standardized tool interfaces, enabling seamless connection between LLM agents and external data sources, including academic databases, code repositories, and document management systems.",
           "Constructed parallel tool-calling infrastructure integrating Semantic Scholar API and Tavily web search with ThreadPoolExecutor, reducing query latency 40% from 8.2s to 4.9s and adding production-grade fallback handling for API failures."
-        ],
-        links: [
-          { label: "Demo", url: "https://salt-lab-human-ai-assignment-3-buildi-srcuistreamlit-app-zweknl.streamlit.app/" }
         ]
       },
       {
@@ -261,7 +258,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
             logo: INSTITUTION_LOGOS.columbia
           },
           {
-            text: "University of Illinois at Urbana-Champaign, Champaign, IL\nB.S. in Data Science and Information Science\nMinors: Computer Science and Statistics\nSiebel School of Computing and Data Science\n2022.08 - 2026.05",
+            text: "University of Illinois Urbana-Champaign, Champaign, IL\nB.S. in Data Science and Information Science\nMinors: Computer Science and Statistics\nSiebel School of Computing and Data Science\n2022.08 - 2026.05",
             logo: INSTITUTION_LOGOS.illinois
           }
         ]

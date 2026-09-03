@@ -5,7 +5,7 @@ import { CatmullRomCurve3, Vector3 } from "three"
 import { easing } from "maath"
 import { useWorldStore } from "@/store/worldStore"
 import { EARTH_ROUTE_POINTS, EARTH_SECTION_T_STOPS, WORLD_CONFIG } from "@/config"
-import { BIRD_EYE_CAMERA_CONFIG } from "./BirdEyeCamera"
+import { BIRD_EYE_CAMERA_CONFIG } from "./birdEyeCameraConfig"
 import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
 import { clamp01 } from "@/utils/math"
 

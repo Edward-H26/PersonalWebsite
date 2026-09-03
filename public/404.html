@@ -2,16 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Redirecting...</title>
+    <meta http-equiv="refresh" content="0; url=/PersonalWebsite/" />
+    <title>Redirecting</title>
     <script>
-      const path = window.location.pathname
-      const search = window.location.search
-      const hash = window.location.hash
-      sessionStorage.setItem("redirect", path + search + hash)
       window.location.replace("/PersonalWebsite/")
     </script>
   </head>
   <body>
-    <p>Redirecting...</p>
+    <p>Redirecting to <a href="/PersonalWebsite/">the portfolio</a>.</p>
   </body>
 </html>

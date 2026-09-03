@@ -3,11 +3,13 @@ import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 
-// Turns the Poly Haven originals in public/models/hq into web-sized *_web.glb files:
-// simplified meshes (meshoptimizer), 1k textures, and draco compression. The originals are
-// photogrammetry scans (up to 877k triangles and 40 MB each), far too heavy to instance in real time.
+// Turns the Poly Haven originals in .cache/polyhaven-originals (see fetch-polyhaven-hq-models.mjs)
+// into web-sized public/models/hq/*_web.glb files: simplified meshes (meshoptimizer) for the large
+// scans, 1k textures, and draco compression. The originals are photogrammetry scans (up to 877k
+// triangles and 110 MB each), far too heavy to instance in real time.
 
 const ROOT = process.cwd()
+const ORIGINALS_DIR = path.join(ROOT, ".cache", "polyhaven-originals")
 const HQ_DIR = path.join(ROOT, "public", "models", "hq")
 const NPM_CACHE_DIR = path.join(ROOT, ".npm-cache")
 const TEXTURE_SIZE = 1024
@@ -52,7 +54,7 @@ function run(args, opts = {}) {
 }
 
 async function bake(asset, workDir) {
-  const source = path.join(HQ_DIR, `${asset.id}.glb`)
+  const source = path.join(ORIGINALS_DIR, `${asset.id}.glb`)
   const output = path.join(HQ_DIR, `${asset.id}_web.glb`)
   const simplified = path.join(workDir, `${asset.id}.simplified.glb`)
   const resized = path.join(workDir, `${asset.id}.resized.glb`)

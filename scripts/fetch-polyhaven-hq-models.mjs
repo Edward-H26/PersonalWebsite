@@ -4,60 +4,21 @@ import fs from "node:fs/promises"
 import path from "node:path"
 import { pipeline } from "node:stream/promises"
 
+// Downloads Poly Haven models as single-file GLBs into the gitignored originals cache,
+// ready for scripts/bake-web-models.mjs. Usage: node scripts/fetch-polyhaven-hq-models.mjs <asset id> [...]
+// Options: --keep-staging keeps the downloaded glTF folders; POLYHAVEN_RESOLUTION picks the texture size (default 2k).
+
 const USER_AGENT = "EdwardPersonalWebsite/1.0"
-
 const ROOT = process.cwd()
-const HQ_DIR = path.join(ROOT, "public", "models", "hq")
-const STAGING_DIR = path.join(HQ_DIR, "_staging")
+const ORIGINALS_DIR = path.join(ROOT, ".cache", "polyhaven-originals")
+const STAGING_DIR = path.join(ORIGINALS_DIR, "_staging")
 const NPM_CACHE_DIR = path.join(ROOT, ".npm-cache")
-
 const KEEP_STAGING = process.argv.includes("--keep-staging")
 const RESOLUTION = process.env.POLYHAVEN_RESOLUTION || "2k"
 
-// Keep the list small and web-friendly (high quality, but not hundreds of MB).
-const ASSETS = [
-  { id: "island_tree_01", type: "models" },
-  { id: "island_tree_02", type: "models" },
-  { id: "island_tree_03", type: "models" },
-  { id: "rock_moss_set_01", type: "models" },
-  { id: "fern_02", type: "models" },
-  { id: "boulder_01", type: "models" },
-  { id: "tree_stump_01", type: "models" },
-  { id: "moss_01", type: "models" },
-  { id: "barrel_stove", type: "models" },
-  { id: "stone_fire_pit", type: "models" },
-  { id: "antique_katana_01", type: "models" },
-  { id: "katana_stand_01", type: "models" },
-  { id: "Lantern_01", type: "models" },
-  { id: "lambis_shell", type: "models" },
-  { id: "lateral_sea_marker", type: "models" },
-  { id: "wooden_bucket_01", type: "models" },
-  { id: "modular_wooden_pier", type: "models" },
-  { id: "wooden_lantern_01", type: "models" },
-  { id: "treasure_chest", type: "models" },
-  { id: "wooden_barrels_01", type: "models" },
-  { id: "wooden_crate_01", type: "models" },
-  { id: "pachira_aquatica_01", type: "models" },
-  { id: "grass_bermuda_01", type: "models" },
-  { id: "grass_medium_01", type: "models" },
-  { id: "grass_medium_02", type: "models" },
-  { id: "tree_small_02", type: "models" },
-  { id: "namaqualand_boulder_02", type: "models" },
-  { id: "mid_century_lounge_chair", type: "models" },
-  { id: "industrial_coffee_table", type: "models" },
-  { id: "modular_pipes", type: "models" },
-  { id: "industrial_wall_lamp", type: "models" },
-  { id: "ship_pinnace", type: "models" },
-  { id: "ceiling_fan", type: "models" }
-]
-
-async function ensureDir(dirPath) {
-  await fs.mkdir(dirPath, { recursive: true })
-}
-
-async function pathExists(p) {
+async function pathExists(target) {
   try {
-    await fs.access(p)
+    await fs.access(target)
     return true
   } catch {
     return false
@@ -65,110 +26,66 @@ async function pathExists(p) {
 }
 
 async function fetchJson(url) {
-  const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } })
-  if (!res.ok) {
-    const text = await res.text().catch(() => "")
-    throw new Error(`HTTP ${res.status} for ${url}\n${text.slice(0, 500)}`)
-  }
-  return await res.json()
+  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } })
+  if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`)
+  return response.json()
 }
 
 async function downloadToFile(url, outPath) {
-  await ensureDir(path.dirname(outPath))
-
-  const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } })
-  if (!res.ok || !res.body) {
-    const text = await res.text().catch(() => "")
-    throw new Error(`Download failed: HTTP ${res.status} for ${url}\n${text.slice(0, 500)}`)
-  }
-
-  await pipeline(res.body, createWriteStream(outPath))
+  await fs.mkdir(path.dirname(outPath), { recursive: true })
+  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } })
+  if (!response.ok || !response.body) throw new Error(`Download failed: HTTP ${response.status} for ${url}`)
+  await pipeline(response.body, createWriteStream(outPath))
 }
 
-function run(cmd, args, opts = {}) {
+function run(cmd, args) {
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, {
       stdio: "inherit",
-      env: {
-        ...process.env,
-        npm_config_cache: NPM_CACHE_DIR,
-        npm_config_update_notifier: "false"
-      },
-      ...opts
+      env: { ...process.env, npm_config_cache: NPM_CACHE_DIR, npm_config_update_notifier: "false" }
     })
     child.on("error", reject)
-    child.on("exit", (code) => {
-      if (code === 0) resolve()
-      else reject(new Error(`${cmd} ${args.join(" ")} exited with code ${code}`))
-    })
+    child.on("exit", (code) => (code === 0 ? resolve() : reject(new Error(`${cmd} ${args.join(" ")} exited with code ${code}`))))
   })
 }
 
-async function fetchModelAsGlb({ id }) {
-  const outGlb = path.join(HQ_DIR, `${id}.glb`)
+async function fetchModelAsGlb(id) {
+  const outGlb = path.join(ORIGINALS_DIR, `${id}.glb`)
   if (await pathExists(outGlb)) {
     console.log(`[skip] ${id} already exists: ${path.relative(ROOT, outGlb)}`)
     return
   }
-
   console.log(`\n==> Fetching Poly Haven model: ${id} (${RESOLUTION})`)
   const meta = await fetchJson(`https://api.polyhaven.com/files/${id}`)
   const gltfEntry = meta?.gltf?.[RESOLUTION]?.gltf
-  if (!gltfEntry?.url) {
-    throw new Error(`No glTF entry found for ${id} at resolution ${RESOLUTION}`)
-  }
+  if (!gltfEntry?.url) throw new Error(`No glTF entry found for ${id} at resolution ${RESOLUTION}`)
 
   const stagingRoot = path.join(STAGING_DIR, id)
-  await ensureDir(stagingRoot)
+  const gltfFile = path.join(stagingRoot, path.basename(gltfEntry.url))
+  await downloadToFile(gltfEntry.url, gltfFile)
+  const includes = Object.entries(gltfEntry.include ?? {}).filter(([, file]) => file?.url)
+  console.log(`Downloading include files: ${includes.length}`)
+  for (const [relPath, file] of includes) await downloadToFile(file.url, path.join(stagingRoot, relPath))
 
-  const gltfUrl = gltfEntry.url
-  const gltfFile = path.join(stagingRoot, path.basename(gltfUrl))
-
-  // Download root .gltf
-  await downloadToFile(gltfUrl, gltfFile)
-
-  // Download all included files (textures + .bin) preserving paths
-  const include = gltfEntry.include || {}
-  const includeEntries = Object.entries(include)
-  console.log(`Downloading include files: ${includeEntries.length}`)
-
-  for (const [relPath, f] of includeEntries) {
-    if (!f?.url) continue
-    await downloadToFile(f.url, path.join(stagingRoot, relPath))
-  }
-
-  // Convert to .glb (embed textures/buffers)
   console.log(`Converting to GLB: ${path.relative(ROOT, outGlb)}`)
-  await ensureDir(HQ_DIR)
   await run("npx", ["--yes", "@gltf-transform/cli", "copy", gltfFile, outGlb])
-
-  if (!KEEP_STAGING) {
-    await fs.rm(stagingRoot, { recursive: true, force: true })
-  }
+  if (!KEEP_STAGING) await fs.rm(stagingRoot, { recursive: true, force: true })
 }
 
 async function main() {
-  // Optional asset ids as arguments fetch a subset, e.g. `node scripts/fetch-polyhaven-hq-models.mjs dandelion_01`.
-  const only = new Set(process.argv.filter((arg) => !arg.startsWith("--")).slice(2))
-  const assets = only.size > 0 ? [...only].map((id) => ({ id, type: "models" })) : ASSETS
-
-  await ensureDir(HQ_DIR)
-  await ensureDir(STAGING_DIR)
-  await ensureDir(NPM_CACHE_DIR)
-
-  for (const asset of assets) {
-    // Currently only models (glTF) are fetched in this script.
-    if (asset.type !== "models") continue
-    await fetchModelAsGlb(asset)
+  const ids = process.argv.slice(2).filter((arg) => !arg.startsWith("--"))
+  if (ids.length === 0) {
+    console.error("Usage: node scripts/fetch-polyhaven-hq-models.mjs <asset id> [more ids]")
+    process.exit(1)
   }
-
-  console.log("\nDone.")
-  console.log(`HQ models directory: ${path.relative(ROOT, HQ_DIR)}`)
+  await fs.mkdir(STAGING_DIR, { recursive: true })
+  await fs.mkdir(NPM_CACHE_DIR, { recursive: true })
+  // Sequential on purpose: parallel runs share the staging directory.
+  for (const id of ids) await fetchModelAsGlb(id)
+  console.log(`\nDone. Originals directory: ${path.relative(ROOT, ORIGINALS_DIR)}`)
 }
 
-main().catch((err) => {
-  console.error(err)
+main().catch((error) => {
+  console.error(error)
   process.exit(1)
 })
-
-

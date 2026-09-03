@@ -33,9 +33,9 @@ function App() {
 
   return (
     <div className="w-full h-full overflow-hidden">
-      <SkipLink href="#main-content" />
+      <SkipLink />
 
-      <ParticleBackground variant="minimal" opacity={0.4} className="z-[50]" />
+      <ParticleBackground opacity={0.4} className="z-[50]" />
 
       <WorldScene section={section} />
 
@@ -45,8 +45,6 @@ function App() {
         <Navigation scrollToSection={scrollToSection} activeSection={section} />
         <SectionNav section={section} scrollToSection={scrollToSection} />
       </ScrollDeck>
-
-      <div id="main-content" className="sr-only" aria-hidden="true" />
     </div>
   )
 }

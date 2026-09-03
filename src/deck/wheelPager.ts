@@ -1,4 +1,4 @@
-export type WheelPagerOptions = {
+type WheelPagerOptions = {
   // Accumulated wheel distance that counts as one slide (a mouse notch is 100px in Chrome).
   thresholdPx: number
   // Minimum time between two slide steps, so continuous input pages at a readable pace.
@@ -7,13 +7,13 @@ export type WheelPagerOptions = {
   burstGapMs: number
 }
 
-export const DEFAULT_WHEEL_PAGER_OPTIONS: WheelPagerOptions = {
+const DEFAULT_WHEEL_PAGER_OPTIONS: WheelPagerOptions = {
   thresholdPx: 100,
   cooldownMs: 550,
   burstGapMs: 180
 }
 
-export type StepDirection = -1 | 0 | 1
+type StepDirection = -1 | 0 | 1
 
 // Turns a stream of wheel deltas into slide steps. One mouse notch or 100px of trackpad travel
 // steps once; holding the wheel or dragging on keeps stepping every cooldown; trackpad momentum
@@ -66,5 +66,3 @@ export function createWheelPager(options: Partial<WheelPagerOptions> = {}) {
     }
   }
 }
-
-export type WheelPager = ReturnType<typeof createWheelPager>

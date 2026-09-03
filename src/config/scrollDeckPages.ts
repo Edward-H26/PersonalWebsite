@@ -1,6 +1,8 @@
 import { STORY_STAGES, type StoryCard, type StoryStageId } from "@/config/storyContent"
 
-export type DeckSection = 0 | 1 | 2 | 3 | 4 | 5
+import type { DeckSection } from "@/deck/deckMath"
+
+export type { DeckSection }
 
 export const STAGE_ORDER: Array<{ section: Exclude<DeckSection, 0>; stageId: StoryStageId }> = [
   { section: 1, stageId: "fire_island" },
@@ -14,7 +16,7 @@ export const NAV_SECTIONS: Array<{ label: string; section: DeckSection }> = [
   { label: "Overview", section: 0 },
   { label: "Publications", section: 1 },
   { label: "Research", section: 2 },
-  { label: "Project", section: 3 },
+  { label: "Projects", section: 3 },
   { label: "Experience", section: 4 },
   { label: "Info", section: 5 }
 ]
