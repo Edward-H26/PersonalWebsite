@@ -2,6 +2,7 @@ import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import path from "path"
 import { VitePWA } from "vite-plugin-pwa"
+import { SITE_DESCRIPTION } from "./scripts/seo.mjs"
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production"
@@ -16,6 +17,11 @@ export default defineConfig(({ mode }) => {
         injectRegister: null,
         includeAssets: [],
         manifest: {
+          name: "Qiran Hu | Research Assistant",
+          short_name: "Qiran Hu",
+          description: SITE_DESCRIPTION,
+          theme_color: "#0a0a0f",
+          background_color: "#0a0a0f",
           scope: basePath,
           start_url: basePath
         },
