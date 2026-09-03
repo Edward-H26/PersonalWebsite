@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { MODEL_PATHS } from "@/hooks/useIslandModels"
+import { MODEL_PATHS } from "@/config/modelPaths"
 import { seededRandom as rand, seededRandomSigned as randSigned } from "@/utils/math"
 import {
   type Footprint,
@@ -14,7 +14,7 @@ import {
 } from "./islandGeometry"
 import { PATH_WIDTH } from "./islandGeometry"
 
-export type Placement = {
+type Placement = {
   key: string
   path: string
   position: [number, number, number]
@@ -24,9 +24,9 @@ export type Placement = {
   pivot?: "origin" | "center" | "center-bottom"
 }
 
-export type InstanceTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: number }
+type InstanceTransform = { position: [number, number, number]; rotation: [number, number, number]; scale: number }
 
-export type InstancedGroup = {
+type InstancedGroup = {
   key: string
   path: string
   meshName?: string
@@ -74,7 +74,7 @@ export const INTERIOR_BUILDINGS = [
 
 type RoadPropSpec = { key: string; path: string; t: number; side: 1 | -1; out: number; along: number; fitHeight: number; rotOffset: number }
 
-export const ROAD_PROPS: RoadPropSpec[] = [
+const ROAD_PROPS: RoadPropSpec[] = [
   { key: "marketStandA", path: MODEL_PATHS.earth.marketStand01, t: 0.42, side: 1, out: PATH_WIDTH / 2 + 9.5, along: 2.0, fitHeight: 4.1, rotOffset: 0.1 },
   { key: "marketStandB", path: MODEL_PATHS.earth.marketStand02, t: 0.43, side: -1, out: PATH_WIDTH / 2 + 9.0, along: -1.5, fitHeight: 4.1, rotOffset: -0.2 },
   { key: "marketStandC", path: MODEL_PATHS.earth.marketStand02, t: 0.44, side: 1, out: PATH_WIDTH / 2 + 8.5, along: -2.0, fitHeight: 4.0, rotOffset: 0.35 },
@@ -87,7 +87,7 @@ export const ROAD_PROPS: RoadPropSpec[] = [
 // lanterns by doorways.
 type RoadClusterSpec = { key: string; path: string; meshName?: string; fitHeight: number; anchors: Array<{ t: number; side: 1 | -1; out: number; along: number; scale?: number }> }
 
-export const ROAD_CLUSTERS: RoadClusterSpec[] = [
+const ROAD_CLUSTERS: RoadClusterSpec[] = [
   {
     key: "barrels",
     path: MODEL_PATHS.earth.hqBarrels,
@@ -134,18 +134,18 @@ export const ROAD_CLUSTERS: RoadClusterSpec[] = [
 ]
 
 // Runs of fence pieces along the roadside, given as a t-range and a fixed offset from the road.
-export const FENCE_RUNS = [
+const FENCE_RUNS = [
   { tStart: 0.085, tEnd: 0.135, side: 1 as const, out: PATH_WIDTH / 2 + 6.5 },
   { tStart: 0.47, tEnd: 0.53, side: -1 as const, out: PATH_WIDTH / 2 + 7 },
   { tStart: 0.86, tEnd: 0.905, side: -1 as const, out: PATH_WIDTH / 2 + 7 }
 ]
-export const FENCE_FIT_HEIGHT = 1.3
-export const FENCE_PIECE_WIDTH = 3.1
+const FENCE_FIT_HEIGHT = 1.3
+const FENCE_PIECE_WIDTH = 3.1
 
 // A harbor off the north-west coast, which faces the overview camera: a pier, a moored pinnace,
 // and two lateral sea markers. Everything floats at sea level, below the cliff top.
-export const HARBOR_BEARING = Math.atan2(-1, -1)
-export const HARBOR = {
+const HARBOR_BEARING = Math.atan2(-1, -1)
+const HARBOR = {
   pierOffset: 7,
   pierLength: 24,
   shipOffset: 34,
@@ -155,7 +155,7 @@ export const HARBOR = {
   waterY: -0.4 / 1.6
 }
 
-export type ScatterSpec = {
+type ScatterSpec = {
   key: string
   path: string
   meshName?: string
@@ -171,13 +171,13 @@ export type ScatterSpec = {
   addsFootprint?: boolean
 }
 
-export const TREE_SCATTERS: ScatterSpec[] = [
+const TREE_SCATTERS: ScatterSpec[] = [
   { key: "islandTrees", path: MODEL_PATHS.earth.hqTree, fitHeight: 18, count: 6, seed: 11, radius: 4.5, shoreMargin: 10, roadClearance: 6, minScale: 0.85, maxScale: 1.25, castShadow: true, addsFootprint: true },
   { key: "broadTrees", path: MODEL_PATHS.earth.hqTreeLarge, fitHeight: 21, count: 2, seed: 23, radius: 5, shoreMargin: 12, roadClearance: 7, minScale: 0.9, maxScale: 1.15, castShadow: true, addsFootprint: true },
   { key: "smallTrees", path: MODEL_PATHS.earth.hqTreeSmall, fitHeight: 13, count: 3, seed: 37, radius: 3.5, shoreMargin: 8, roadClearance: 5, minScale: 0.85, maxScale: 1.2, castShadow: true, addsFootprint: true }
 ]
 
-export const GROUND_SCATTERS: ScatterSpec[] = [
+const GROUND_SCATTERS: ScatterSpec[] = [
   { key: "bouldersLarge", path: MODEL_PATHS.earth.hqBoulder, fitHeight: 2.2, count: 3, seed: 41, radius: 3, shoreMargin: 4, roadClearance: 1.5, minScale: 0.8, maxScale: 1.2, castShadow: true, addsFootprint: true },
   { key: "bouldersFlat", path: MODEL_PATHS.earth.hqBoulder02, fitHeight: 1.3, count: 6, seed: 43, radius: 2.4, shoreMargin: 4, roadClearance: 1.2, minScale: 0.8, maxScale: 1.3, castShadow: true, addsFootprint: true },
   { key: "mossRocksA", path: MODEL_PATHS.earth.hqMossRocks, meshName: "rock_moss_set_01_rock03", fitHeight: 1.4, count: 5, seed: 47, radius: 2, shoreMargin: 4, roadClearance: 1, minScale: 0.8, maxScale: 1.3, castShadow: true, addsFootprint: true },
@@ -193,7 +193,7 @@ export const GRASS_SCATTERS: ScatterSpec[] = [
   { key: "grassSeedlings", path: MODEL_PATHS.earth.hqGrassBermuda, meshName: "grass_bermuda_01_seedling_a", fitHeight: 0.5, count: 120, seed: 71, radius: 0.35, shoreMargin: 3, roadClearance: 0.3, minScale: 0.8, maxScale: 1.4, castShadow: false }
 ]
 
-export const FLOWER_SCATTERS: ScatterSpec[] = [
+const FLOWER_SCATTERS: ScatterSpec[] = [
   { key: "dandelionsA", path: MODEL_PATHS.earth.hqDandelion, meshName: "dandelion_01_c_LOD0", fitHeight: 0.5, count: 70, seed: 97, radius: 0.3, shoreMargin: 3, roadClearance: 0.3, minScale: 0.9, maxScale: 1.5, castShadow: false },
   { key: "dandelionsB", path: MODEL_PATHS.earth.hqDandelion, meshName: "dandelion_01_e_LOD0", fitHeight: 0.42, count: 70, seed: 101, radius: 0.3, shoreMargin: 3, roadClearance: 0.3, minScale: 0.9, maxScale: 1.5, castShadow: false },
   { key: "gazaniasA", path: MODEL_PATHS.earth.hqGazania, meshName: "flower_gazania_c_LOD0", fitHeight: 0.6, count: 45, seed: 103, radius: 0.35, shoreMargin: 3, roadClearance: 0.3, minScale: 0.9, maxScale: 1.4, castShadow: false },
@@ -201,7 +201,7 @@ export const FLOWER_SCATTERS: ScatterSpec[] = [
   { key: "sorrel", path: MODEL_PATHS.earth.hqSorrel, meshName: "shrub_sorrel_01_d", fitHeight: 0.3, count: 60, seed: 109, radius: 0.3, shoreMargin: 3, roadClearance: 0.3, minScale: 0.9, maxScale: 1.5, castShadow: false }
 ]
 
-export type LayoutContext = {
+type LayoutContext = {
   routeCurve: THREE.CatmullRomCurve3
   outline: IslandOutline
   roads: ReadonlyArray<RoadSample>
@@ -209,7 +209,7 @@ export type LayoutContext = {
   sampleGroundY: (x: number, z: number) => number
 }
 
-export type VillageLayout = {
+type VillageLayout = {
   buildings: Placement[]
   props: Placement[]
   harbor: Placement[]

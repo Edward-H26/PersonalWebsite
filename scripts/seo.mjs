@@ -6,7 +6,8 @@ import { readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-export const SITE_URL = "https://edward-h26.github.io/PersonalWebsite"
+export const BASE_PATH = "/PersonalWebsite/"
+export const SITE_URL = `https://edward-h26.github.io${BASE_PATH.slice(0, -1)}`
 export const SISTER_SITE_URL = "https://edward-h26.github.io/"
 export const OG_IMAGE_URL = `${SITE_URL}/images/og-card.png`
 export const PHOTO_URL = `${SITE_URL}/images/profile-1024.jpg`
@@ -19,9 +20,9 @@ export const BODY_MARKERS = ["<!-- seo:body -->", "<!-- /seo:body -->"]
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const PAGE_URL = `${SITE_URL}/`
 
-const STATIC_STYLE = `.static-profile{font-family:Rajdhani,system-ui,sans-serif;max-width:52rem;margin:0 auto;padding:2.5rem 1.25rem;line-height:1.6;font-size:1.05rem;color:#e6e9f2;background:#0a0a0f}
+const STATIC_STYLE = `.static-profile{max-width:52rem;margin:0 auto;padding:2.5rem 1.25rem;line-height:1.6;font-size:1.05rem;color:#e6e9f2;background:#0a0a0f}
 .static-profile a{color:#8ec5ff}
-.static-profile h1{font-family:Orbitron,system-ui,sans-serif;font-size:2rem;margin:0 0 .25rem}
+.static-profile h1{font-size:2rem;margin:0 0 .25rem}
 .static-profile h2{font-size:1.4rem;margin:2rem 0 .5rem}
 .static-profile h3{font-size:1.1rem;margin:1.25rem 0 .25rem}
 .static-profile .meta{margin:0 0 .35rem;color:#aab3c5}
@@ -243,7 +244,7 @@ export function buildBody(content) {
     `<header>`,
     `<h1>${escapeHtml(PROFILE_OVERVIEW.name)}</h1>`,
     `<p class="meta">${escapeHtml(`${JOB_TITLE}, ${PROFILE_OVERVIEW.institutions.map((institution) => institution.name).join(" and ")}`)}</p>`,
-    `<nav aria-label="Sections"><ul>${sections.map((section) => `<li><a href="#${slug(section.label)}">${escapeHtml(section.label)}</a></li>`).join("")}</ul></nav>`,
+    `<nav aria-label="Sections"><ul><li><a href="#about">Overview</a></li>${sections.map((section) => `<li><a href="#${slug(section.label)}">${escapeHtml(section.label)}</a></li>`).join("")}</ul></nav>`,
     `</header>`,
     `<section id="about">`,
     `<h2>About</h2>`,

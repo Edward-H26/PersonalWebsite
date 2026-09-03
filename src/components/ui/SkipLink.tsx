@@ -1,19 +1,8 @@
 import { memo } from "react"
 
-interface SkipLinkProps {
-  href?: string
-  className?: string
-}
-
-export const SkipLink = memo(function SkipLink({
-  href = "#main-content",
-  className = "",
-}: SkipLinkProps) {
+export const SkipLink = memo(function SkipLink() {
   return (
-    <a
-      href={href}
-      className={`skip-link ${className}`}
-    >
+    <a href="#main-content" className="skip-link">
       Skip to main content
     </a>
   )

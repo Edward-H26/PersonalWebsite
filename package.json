@@ -1,5 +1,5 @@
 {
-  "name": "nexus-portfolio",
+  "name": "qiran-hu-3d-portfolio",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -14,8 +14,8 @@
     "test:e2e": "playwright test",
     "preview": "vite preview",
     "ktx2:textures": "node scripts/encode-ktx2-textures.mjs",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "models:fetch": "node scripts/fetch-polyhaven-hq-models.mjs",
+    "models:bake": "node scripts/bake-web-models.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.97.0",
@@ -32,6 +32,7 @@
   "devDependencies": {
     "@eslint/js": "^9.15.0",
     "@playwright/test": "^1.62.1",
+    "@tsparticles/engine": "^3.9.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/three": "^0.161.2",
@@ -41,7 +42,6 @@
     "eslint": "^9.15.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
-    "gh-pages": "^6.1.1",
     "globals": "^15.12.0",
     "jsdom": "^25.0.1",
     "postcss": "^8.4.35",
@@ -51,5 +51,6 @@
     "vite": "^6.0.1",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^2.1.9"
-  }
+  },
+  "description": "Interactive 3D island portfolio of Qiran Hu, built with React, three.js, and Vite"
 }

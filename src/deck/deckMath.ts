@@ -4,7 +4,7 @@ import { clamp01 } from "@/utils/math"
 
 export type DeckSection = 0 | 1 | 2 | 3 | 4 | 5
 
-export type SectionRange = { startIndex: number; endIndex: number }
+type SectionRange = { startIndex: number; endIndex: number }
 
 // Slides are 100svh while the fixed container follows the dynamic viewport (mobile URL bar),
 // so page math has to use the slide height rather than the container height.

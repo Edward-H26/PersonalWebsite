@@ -397,9 +397,9 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     }, 140)
   }, [firstRealIndex, syncFromScroll])
 
-  // Wheel and keyboard move whole slides. Native wheel scrolling was left to mandatory scroll
-  // snapping, which snaps back to the *nearest* slide, so any flick shorter than half a viewport
-  // pulled the visitor back to the overview after the camera had started to descend.
+  // Wheel and keyboard move whole slides instead of scrolling natively: with mandatory scroll
+  // snapping a flick shorter than half a viewport snaps back to the nearest slide, which pulled
+  // visitors back to the overview after the camera had started to descend.
   const stepPage = useCallback(
     (direction: 1 | -1) => {
       const el = containerRef.current

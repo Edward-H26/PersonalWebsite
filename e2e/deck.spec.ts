@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 
-const DECK = ".scroll-snap-type-y-mandatory"
+const DECK = "#main-content"
 
 async function openDeck(page: Page) {
   const errors: string[] = []
@@ -178,7 +178,7 @@ test.describe("scroll deck", () => {
 
   test("navigation buttons jump to each section", async ({ page }) => {
     await openDeck(page)
-    for (const label of ["Publications", "Research", "Project", "Experience", "Info"]) {
+    for (const label of ["Publications", "Research", "Projects", "Experience", "Info"]) {
       await page.getByRole("button", { name: new RegExp(`^${label}$`, "i") }).first().click()
       await page.waitForTimeout(1200)
       expect(await activeNav(page)).toMatch(new RegExp(label, "i"))

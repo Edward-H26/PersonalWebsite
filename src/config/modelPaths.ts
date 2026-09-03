@@ -2,8 +2,8 @@ import { withBase } from "@/utils/assets"
 
 export const MODEL_PATHS = {
   earth: {
-    // *_web.glb are the Poly Haven originals simplified, resized to 1k textures, and draco-compressed
-    // (see scripts/bake-web-models.mjs); the originals were 40 MB and up to 877k triangles each.
+    // *_web.glb are baked from the Poly Haven originals by scripts/bake-web-models.mjs (large scans
+    // simplified, 1k textures, draco); the originals run up to 110 MB and 877k triangles each.
     hqTree: withBase("/models/hq/island_tree_02_web.glb"),
     hqTreeLarge: withBase("/models/hq/island_tree_01_web.glb"),
     hqTreeSmall: withBase("/models/hq/tree_small_02_web.glb"),

@@ -2,10 +2,10 @@ import { create } from "zustand"
 import { clamp01 } from "@/utils/math"
 
 // Ground height in world units at a world-space x/z, published by the island once it is built.
-export type GroundHeightSampler = (x: number, z: number) => number
+type GroundHeightSampler = (x: number, z: number) => number
 
 // Horizontal look-around limit in radians (about 70 degrees either side of the road).
-export const LOOK_YAW_LIMIT = 1.2
+const LOOK_YAW_LIMIT = 1.2
 
 interface WorldState {
   routeT: number

@@ -1,6 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest"
 import indexHtml from "../../index.html?raw"
+import sitemapXml from "../../public/sitemap.xml?raw"
+import llmsTxt from "../../public/llms.txt?raw"
 import * as storyContent from "@/config/storyContent"
 import * as profile from "@/config/profile"
 import * as scrollDeckPages from "@/config/scrollDeckPages"
@@ -74,7 +76,7 @@ describe("parseCitation", () => {
 
 describe("content helpers", () => {
   it("orders sections like the deck navigation", () => {
-    expect(getSections(content).map((section) => section.label)).toEqual(["Publications", "Research", "Project", "Experience", "Info"])
+    expect(getSections(content).map((section) => section.label)).toEqual(["Publications", "Research", "Projects", "Experience", "Info"])
   })
 
   it("reads contact details from the Contact card", () => {
@@ -246,6 +248,8 @@ describe("index.html", () => {
   it("is in sync with the generator (run: node scripts/seo.mjs)", () => {
     expect(normalize(extractBetween(indexHtml, HEAD_MARKERS))).toBe(normalize(buildHead(content)))
     expect(normalize(extractBetween(indexHtml, BODY_MARKERS))).toBe(normalize(buildBody(content)))
+    expect(sitemapXml).toBe(buildSitemap())
+    expect(llmsTxt).toBe(buildLlmsTxt(content))
   })
 
   it("replaces only the block between markers and keeps them for the next run", () => {

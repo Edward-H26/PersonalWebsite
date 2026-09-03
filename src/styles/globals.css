@@ -381,14 +381,6 @@
 }
 
 @layer utilities {
-  .font-orbitron {
-    font-family: "Orbitron", monospace;
-  }
-
-  .font-rajdhani {
-    font-family: "Rajdhani", sans-serif;
-  }
-
   .text-shadow-glow {
     text-shadow: 0 0 20px currentColor;
   }
@@ -600,18 +592,6 @@
     @apply py-2;
     background: transparent;
   }
-}
-
-@layer utilities {
-  .focus-ring {
-    @apply outline-none ring-2 ring-cyber-violet ring-offset-2 ring-offset-cyber-dark;
-  }
-
-  .stagger-1 { animation-delay: 0.1s; }
-  .stagger-2 { animation-delay: 0.2s; }
-  .stagger-3 { animation-delay: 0.3s; }
-  .stagger-4 { animation-delay: 0.4s; }
-  .stagger-5 { animation-delay: 0.5s; }
 }
 
 @media (prefers-reduced-motion: reduce) {

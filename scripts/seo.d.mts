@@ -2,6 +2,7 @@ export type SeoContent = Record<string, unknown>
 export type ContactInfo = { email: string; phone: string; links: Array<{ label: string; url: string }> }
 export type SeoSection = { label: string; stage: { id: string; heading: string; subheading?: string; cards: Array<Record<string, unknown>> } }
 
+export const BASE_PATH: string
 export const SITE_URL: string
 export const SISTER_SITE_URL: string
 export const OG_IMAGE_URL: string

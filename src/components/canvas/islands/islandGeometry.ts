@@ -5,14 +5,14 @@ import { seededRandom, smoothstep01 } from "@/utils/math"
 export const ISLAND_DEPTH = 42
 export const ISLAND_SHORE_RADIUS = 36
 export const ISLAND_OUTLINE_SEGMENTS = 288
-export const ISLAND_RINGS = 44
-export const CLIFF_ROWS = 14
+const ISLAND_RINGS = 44
+const CLIFF_ROWS = 14
 const ROAD_OUTLINE_SAMPLES = 400
 
 // Texture tile sizes in local units; UVs are generated in tile space so every surface tiles squarely.
-export const GRASS_TILE = 11
-export const CLIFF_TILE = 15
-export const COBBLE_TILE = 9
+const GRASS_TILE = 11
+const CLIFF_TILE = 15
+const COBBLE_TILE = 9
 
 export const PATH_WIDTH = 7.8
 export const BRANCH_WIDTH = PATH_WIDTH * 0.7
@@ -21,7 +21,7 @@ export const SIDE_ROAD_Y_OFFSET = 0.2
 export const PATH_RIBBON_SEGMENTS = 170
 // Side roads meet the main road at right angles, run underneath it, and overrun its centerline by
 // just under half its width, so their square ends stay hidden and junctions read as clean T-joins.
-export const SIDE_ROAD_APPROACH = 8
+const SIDE_ROAD_APPROACH = 8
 export const SIDE_ROAD_OVERRUN = PATH_WIDTH / 2 - 0.4
 
 const CAMERA_BACK_OFFSET_WORLD = 12
@@ -31,7 +31,7 @@ const HILL_START_WORLD_Z = -120
 const HILL_END_WORLD_Z = 120
 const HILL_HEIGHT_WORLD = 18
 
-export function applyAoUv(geo: THREE.BufferGeometry) {
+function applyAoUv(geo: THREE.BufferGeometry) {
   if (geo.attributes.uv && !geo.attributes.uv1) {
     geo.setAttribute("uv1", new THREE.BufferAttribute(geo.attributes.uv.array, 2))
   }
@@ -49,24 +49,6 @@ function hillHeightWorld(worldZ: number) {
 export function surfaceHeight(x: number, z: number, worldScale: number) {
   const worldZ = z * worldScale
   return groundNoise(x, z) + hillHeightWorld(worldZ) / worldScale
-}
-
-export function isPointInPolygon2D(px: number, py: number, polygon: ReadonlyArray<THREE.Vector2>) {
-  let inside = false
-  const count = polygon.length
-  if (count < 3) return false
-
-  for (let i = 0, j = count - 1; i < count; j = i, i += 1) {
-    const xi = polygon[i].x
-    const yi = polygon[i].y
-    const xj = polygon[j].x
-    const yj = polygon[j].y
-
-    const intersects = yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi
-    if (intersects) inside = !inside
-  }
-
-  return inside
 }
 
 export function clampOffsetToIsland(
@@ -90,7 +72,7 @@ export function clampOffsetToIsland(
   return fallbackPoint ?? { x: baseX, z: baseZ }
 }
 
-export function getFlatTangent(tangent: THREE.Vector3) {
+function getFlatTangent(tangent: THREE.Vector3) {
   tangent.y = 0
   if (tangent.lengthSq() > 1e-8) tangent.normalize()
   else tangent.set(0, 0, 1)
@@ -217,7 +199,7 @@ export function buildIslandOutline(routeCurve: THREE.CatmullRomCurve3, worldScal
   return { centerX, centerZ, radii, arcLengths, perimeter }
 }
 
-export function outlinePoint(outline: IslandOutline, index: number, radiusScale = 1) {
+function outlinePoint(outline: IslandOutline, index: number, radiusScale = 1) {
   const i = index % ISLAND_OUTLINE_SEGMENTS
   const theta = (i / ISLAND_OUTLINE_SEGMENTS) * Math.PI * 2
   const r = outline.radii[i] * radiusScale
@@ -450,7 +432,7 @@ export function makePathRibbonGeometry(
 
 export type RoadSample = { x: number; z: number; halfWidth: number; tangentX: number; tangentZ: number }
 
-export type RoadCurveSpec = { curve: THREE.CatmullRomCurve3; halfWidth: number; followCameraTrack: boolean }
+type RoadCurveSpec = { curve: THREE.CatmullRomCurve3; halfWidth: number; followCameraTrack: boolean }
 
 export function sampleRoadNetwork(roads: RoadCurveSpec[], worldScale: number, spacing = 1.5): RoadSample[] {
   const samples: RoadSample[] = []
@@ -487,14 +469,14 @@ export function distanceToRoadEdge(x: number, z: number, roads: ReadonlyArray<Ro
 
 export type Footprint = { x: number; z: number; radius: number }
 
-export function overlapsFootprint(x: number, z: number, radius: number, footprints: ReadonlyArray<Footprint>) {
+function overlapsFootprint(x: number, z: number, radius: number, footprints: ReadonlyArray<Footprint>) {
   for (const f of footprints) {
     if (Math.hypot(f.x - x, f.z - z) < f.radius + radius) return true
   }
   return false
 }
 
-export type ScatterOptions = {
+type ScatterOptions = {
   count: number
   seed: number
   // Own footprint radius; also the clearance required from road edges and other footprints.
@@ -509,7 +491,7 @@ export type ScatterOptions = {
   accept?: (x: number, z: number) => boolean
 }
 
-export type ScatteredInstance = { x: number; z: number; rotY: number; scale: number }
+type ScatteredInstance = { x: number; z: number; rotY: number; scale: number }
 
 // Seeded rejection sampling inside the coastline. Deterministic for a given seed so the island
 // looks the same on every visit.

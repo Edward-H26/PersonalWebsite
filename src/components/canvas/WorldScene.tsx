@@ -7,7 +7,7 @@ import { FirstPersonController } from "./camera"
 import { EarthIsland } from "./islands"
 import { Ocean, ProceduralSky } from "./environment"
 import { ModelErrorBoundary } from "./models/ModelErrorBoundary"
-import { MODEL_PATHS } from "@/hooks/useIslandModels"
+import { MODEL_PATHS } from "@/config/modelPaths"
 import { useIsMobile } from "@/hooks/useIsMobile"
 import { supportsKtx2Textures, toKtx2Url } from "@/utils/textures"
 import { useWorldStore } from "@/store/worldStore"
@@ -255,8 +255,6 @@ export function WorldScene({
   const loadingTotal = useProgress((state) => state.total)
   const loadingErrors = useProgress((state) => state.errors)
 
-  const [enableIntroVideo, setEnableIntroVideo] = useState(false)
-  const [didVideoFail, setDidVideoFail] = useState(false)
   const [forceReady, setForceReady] = useState(false)
   const lastProgressRef = useRef(0)
   const lastProgressTimeRef = useRef(0)
@@ -272,27 +270,6 @@ export function WorldScene({
   // Render sharp by default and drop to 1x when the device cannot hold the frame rate.
   const sharpDpr = isMobile ? 1.25 : 1.5
   const [dpr, setDpr] = useState(sharpDpr)
-
-  useEffect(() => {
-    let cancelled = false
-
-    const cancelIdleTask = scheduleIdleTask(() => {
-      fetch(withBase("/intro/island-loop.mp4"), { method: "HEAD" })
-        .then((res) => {
-          if (cancelled) return
-          const contentType = res.headers.get("content-type") ?? ""
-          if (res.ok && contentType.startsWith("video/")) setEnableIntroVideo(true)
-        })
-        .catch(() => {
-          if (!cancelled) setEnableIntroVideo(false)
-        })
-    }, 700)
-
-    return () => {
-      cancelled = true
-      cancelIdleTask()
-    }
-  }, [])
 
   useEffect(() => {
     for (const tex of FIRST_FRAME_TEXTURES) {
@@ -481,20 +458,6 @@ export function WorldScene({
           alt=""
           style={{ filter: "brightness(1.1) saturate(1.1)" }}
         />
-
-        {enableIntroVideo && !didVideoFail ? (
-          <video
-            className="absolute inset-0 w-full h-full object-cover"
-            src={withBase("/intro/island-loop.mp4")}
-            poster={withBase("/intro/island-loop-poster.svg")}
-            muted
-            playsInline
-            autoPlay
-            loop
-            preload="metadata"
-            onError={() => setDidVideoFail(true)}
-          />
-        ) : null}
 
         <div
           className={progressLineClassName}

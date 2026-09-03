@@ -22,6 +22,8 @@ export const ScrollDeck = forwardRef<HTMLDivElement, { pages: ScrollDeckPage[]; 
   return (
     <div
       ref={ref}
+      id="main-content"
+      tabIndex={-1}
       className={deckClassName}
     >
       {pages.map((page) => {
@@ -36,6 +38,7 @@ export const ScrollDeck = forwardRef<HTMLDivElement, { pages: ScrollDeckPage[]; 
               data-deck-sentinel="true"
               data-deck-render-key={page.renderAsKey}
               aria-hidden="true"
+              {...{ inert: "" }}
             >
               {renderPage ? <DeckPageContent page={renderPage} /> : null}
             </section>
