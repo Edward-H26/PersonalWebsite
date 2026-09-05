@@ -4,6 +4,7 @@ import type { DisplayCard } from "@/config/scrollDeckPages"
 import type { StoryBullet } from "@/config/storyContent"
 import { LinkedText } from "@/components/ui/LinkedText"
 import { LinkIcon } from "@/components/ui/LinkIcon"
+import { PublicationCardContent } from "./PublicationCardContent"
 
 function BulletText({ text }: { text: string }) {
   if (!text.includes("\n")) return <LinkedText text={text} />
@@ -116,7 +117,7 @@ export function StoryCardPanel({ card }: { card: DisplayCard }) {
       style={glassStyle}
     >
       <div className="relative flex flex-col px-5 py-4 md:px-7 md:py-3.5 h-full">
-        <CardContent card={card} />
+        {card.authors ? <PublicationCardContent card={card} /> : <CardContent card={card} />}
       </div>
     </div>
   )

@@ -114,13 +114,18 @@
     animation: liquidText 7s ease-in-out infinite;
   }
 
+  /* Liquid glass: a frosted, translucent body with a luminous rim and a specular top edge. */
   .liquid-link-chip {
-    @apply inline-flex items-center gap-2 text-[11px] px-3 py-1.5 rounded-full border border-white/20 text-white/85;
+    @apply inline-flex items-center gap-2 text-[11px] px-3 py-1.5 rounded-full text-white;
     position: relative;
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.08) 100%);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.15),
+      0 10px 24px rgba(0, 0, 0, 0.22);
     transform: translateZ(0);
     transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
     overflow: hidden;
@@ -130,7 +135,7 @@
     content: "";
     position: absolute;
     inset: -40%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
     transform: translateX(-40%) rotate(12deg);
     opacity: 0;
     transition: opacity 160ms ease;
@@ -144,9 +149,12 @@
 
   .liquid-link-chip:hover {
     transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(6, 182, 212, 0.35);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+    border-color: rgba(255, 255, 255, 0.85);
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.24) 45%, rgba(255, 255, 255, 0.14) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.2),
+      0 16px 40px rgba(0, 0, 0, 0.28);
   }
 
   .liquid-link-chip:hover::before {
@@ -156,6 +164,51 @@
 
   .liquid-link-chip:active {
     transform: translateY(0);
+  }
+
+  /* Publication cards: a figure that reads as a physical print with the venue stamped on it. */
+  .paper-thumb {
+    @apply relative block aspect-[10/7] w-full overflow-hidden rounded-xl border border-white/20;
+    background: rgba(10, 12, 18, 0.6);
+    box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.6);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+
+  .paper-thumb img {
+    @apply h-full w-full object-cover object-top;
+  }
+
+  .paper-thumb::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+  }
+
+  a.paper-thumb:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 36px -10px rgba(0, 0, 0, 0.65);
+  }
+
+  .paper-badge {
+    @apply absolute left-2 top-2 rounded-md px-2 py-0.5 text-[11px] font-bold tracking-[0.04em] text-white md:left-2.5 md:top-2.5 md:rounded-lg md:px-3 md:py-1 md:text-[13px];
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%), #13294b;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  }
+
+  .paper-badge-muted {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%), #4c5b73;
+  }
+
+  /* Paper buttons: plain outlined pills on the dark panel, as on an academic homepage. */
+  .paper-link {
+    @apply inline-flex items-center gap-1.5 rounded-md border border-white/40 bg-white/10 px-3 py-1.5 text-[13px] font-medium text-white transition-colors duration-150;
+  }
+
+  .paper-link:hover {
+    @apply border-white/70 bg-white/20 no-underline;
   }
 
   .liquid-card-scroll {

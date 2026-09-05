@@ -25,12 +25,31 @@ describe("story content", () => {
     expect(contact.links?.find((l) => l.label === "X")?.url).toBe("https://x.com/QiranHu")
   })
 
-  it("links the AC3S paper to arXiv, the project page, and the demo video", () => {
+  it("links the AC3S paper to its PDF, project page, demo video, and BibTeX", () => {
     const ac3s = STORY_STAGES.fire_island.cards[0]
     expect(ac3s.title).toMatch(/^AC3S/)
-    expect(ac3s.bullets[0]).toContain("European Conference on Computer Vision (ECCV) 2026")
-    expect(ac3s.links?.map((l) => l.label)).toEqual(["arXiv", "Project", "Video"])
+    expect(ac3s.bullets[0]).toContain("European Conference on Computer Vision (ECCV), 2026")
+    expect(ac3s.links?.map((l) => l.label)).toEqual(["PDF", "Project Page", "Video", "BibTeX"])
     expect(ac3s.links?.find((l) => l.label === "Video")?.url).toBe("https://youtu.be/3jOJaT2a8iQ")
+    expect(ac3s.links?.find((l) => l.label === "BibTeX")?.url).toBe("https://arxiv.org/bibtex/2606.31204")
+  })
+
+  it("gives every paper a figure and badge, links only the published one, and derives every citation", () => {
+    const papers = STORY_STAGES.fire_island.cards
+    expect(papers.length).toBe(4)
+    expect(papers[0].image?.src).toMatch(/\/images\/papers\/ac3s\.webp$/)
+    expect(papers[0].badge).toBe("ECCV")
+    papers.forEach((paper, index) => {
+      expect(paper.image?.src).toMatch(/\/images\/papers\/[a-z0-9-]+\.webp$/)
+      expect(paper.image?.alt.length).toBeGreaterThan(10)
+      expect(paper.badge).toBe(paper.venue === "Under Review" ? "Under Review" : "ECCV")
+      expect((paper.links ?? []).length > 0).toBe(paper.venue !== "Under Review")
+      expect(paper.authors).toContain("Qiran Hu")
+      expect(paper.venue).toBeTruthy()
+      const authors = paper.authors!
+      const names = authors.length > 1 ? `${authors.slice(0, -1).join(", ")}, and ${authors[authors.length - 1]}` : authors[0]
+      expect(paper.bullets).toEqual([`[${index + 1}] ${names}. ${paper.title}. ${paper.venue}.`])
+    })
   })
 
   it("uses absolute https URLs for every link", () => {

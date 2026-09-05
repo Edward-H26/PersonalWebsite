@@ -6,10 +6,16 @@ export type StoryStageId =
   | "water_island"
 
 import { INSTITUTION_LOGOS } from "@/config/profile"
+import { withBase } from "@/utils/assets"
 
 type StoryLink = {
   label: string
   url: string
+}
+
+export type StoryImage = {
+  src: string
+  alt: string
 }
 
 export type StoryBullet =
@@ -26,7 +32,29 @@ export type StoryCard = {
   date?: string
   bullets: StoryBullet[]
   links?: StoryLink[]
+  // Publication cards: a figure with the venue badge, structured authors and venue for the paper
+  // layout, and an optional highlight note.
+  image?: StoryImage
+  badge?: string
+  authors?: string[]
+  venue?: string
+  note?: string
 }
+
+type Paper = Omit<StoryCard, "bullets" | "authors" | "venue" | "image"> & {
+  authors: string[]
+  venue: string
+  image?: StoryImage
+}
+
+// The citation bullet ("[n] A, B, and C. Title. Venue.") is what the SEO generator, llms.txt, and
+// the tests read, so it is derived from the structured fields instead of being written twice.
+function publication(index: number, paper: Paper): StoryCard {
+  const names = paper.authors.length > 1 ? `${paper.authors.slice(0, -1).join(", ")}, and ${paper.authors[paper.authors.length - 1]}` : paper.authors[0]
+  return { ...paper, bullets: [`[${index}] ${names}. ${paper.title}. ${paper.venue}.`] }
+}
+
+const paperFigure = (id: string, alt: string): StoryImage => ({ src: withBase(`/images/papers/${id}.webp`), alt })
 
 type StoryStage = {
   id: StoryStageId
@@ -34,6 +62,44 @@ type StoryStage = {
   subheading?: string
   cards: StoryCard[]
 }
+
+// README order; the citation number comes from the position in this list.
+const PUBLICATIONS: Paper[] = [
+  {
+    title: "AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation",
+    authors: ["Eric Ji", "Qiran Hu", "Wufei Ma", "Sarthak Jain", "Yingying Li", "Minh N. Do", "Yaoyao Liu"],
+    venue: "European Conference on Computer Vision (ECCV), 2026",
+    badge: "ECCV",
+    image: paperFigure("ac3s", "AC3S pipeline: visual prompt extractor, adaptive modulator, image generator, and multi-agent VLM"),
+    links: [
+      { label: "PDF", url: "https://arxiv.org/pdf/2606.31204" },
+      { label: "Project Page", url: "https://ac3s.cvmlgroup.web.illinois.edu/" },
+      { label: "Video", url: "https://youtu.be/3jOJaT2a8iQ" },
+      { label: "BibTeX", url: "https://arxiv.org/bibtex/2606.31204" }
+    ]
+  },
+  {
+    title: "Crowdsourced Open-Source Research: A Research Paradigm Probe",
+    authors: ["Hangyue Zhang", "Qiran Hu", "Ziyi Zhang", "Yun Huang"],
+    venue: "Under Review",
+    badge: "Under Review",
+    image: paperFigure("crowdsourced", "Contributors feeding a shared open research record")
+  },
+  {
+    title: "Context Under Budget: A Controlled Benchmark for Post-Retrieval Compression in Retrieval-Augmented Generation",
+    authors: ["Tuan Minh Nguyen", "Qiran Hu", "Banruo Liu", "Khoa D Doan", "Kok-Seng Wong", "Fan Lai"],
+    venue: "Under Review",
+    badge: "Under Review",
+    image: paperFigure("context-under-budget", "Retrieved documents compressed into a compact context for a model")
+  },
+  {
+    title: "AlphaWiseFT: Adaptive Weight Interpolation for Continual Multimodal Representation Learning",
+    authors: ["Sarthak Jain", "Qiran Hu", "Zhen Zhu", "Yaoyao Liu"],
+    venue: "Under Review",
+    badge: "Under Review",
+    image: paperFigure("alphawiseft", "Two model checkpoints blended into one fused model")
+  }
+]
 
 export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
   earth_island: {
@@ -71,37 +137,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
     id: "fire_island",
     heading: "Publications",
     subheading: "Papers",
-    cards: [
-      {
-        title: "AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation",
-        bullets: [
-          "[1] Eric Ji, Qiran Hu, Wufei Ma, Sarthak Jain, Yingying Li, Minh N. Do, and Yaoyao Liu. AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation. European Conference on Computer Vision (ECCV) 2026."
-        ],
-        links: [
-          { label: "arXiv", url: "https://arxiv.org/abs/2606.31204" },
-          { label: "Project", url: "https://ac3s.cvmlgroup.web.illinois.edu/" },
-          { label: "Video", url: "https://youtu.be/3jOJaT2a8iQ" }
-        ]
-      },
-      {
-        title: "Crowdsourced Open-Source Research: A Research Paradigm Probe",
-        bullets: [
-          "[2] Hangyue Zhang, Qiran Hu, Ziyi Zhang, and Yun Huang. Crowdsourced Open-Source Research: A Research Paradigm Probe. Under Review."
-        ]
-      },
-      {
-        title: "Context Under Budget",
-        bullets: [
-          "[3] Tuan Minh Nguyen, Qiran Hu, Banruo Liu, Khoa D Doan, Kok-Seng Wong, and Fan Lai. Context Under Budget: A Controlled Benchmark for Post-Retrieval Compression in Retrieval-Augmented Generation. Under Review."
-        ]
-      },
-      {
-        title: "AlphaWiseFT",
-        bullets: [
-          "[4] Sarthak Jain, Qiran Hu, Zhen Zhu, and Yaoyao Liu. AlphaWiseFT: Adaptive Weight Interpolation for Continual Multimodal Representation Learning. Under Review."
-        ]
-      }
-    ]
+    cards: PUBLICATIONS.map((paper, index) => publication(index + 1, paper))
   },
   professional_experience: {
     id: "professional_experience",

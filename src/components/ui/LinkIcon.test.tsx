@@ -9,7 +9,7 @@ function render(label: string) {
 
 describe("LinkIcon", () => {
   it("renders a stroked lucide icon for paper, project, and video links", () => {
-    for (const label of ["arXiv", "Project", "Video"]) {
+    for (const label of ["PDF", "Project Page", "Video", "BibTeX"]) {
       const markup = render(label)
       expect(markup).toContain("<svg")
       expect(markup).toContain('stroke="currentColor"')

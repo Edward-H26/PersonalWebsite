@@ -154,8 +154,9 @@ describe("json-ld", () => {
     }
     const accepted = articles.find((article) => article.headline.startsWith("AC3S"))!
     expect(accepted.publication.name).toMatch(/ECCV/)
-    expect(accepted.url).toBe("https://arxiv.org/abs/2606.31204")
-    expect(accepted.subjectOf.map((page: { name: string }) => page.name)).toEqual(["Project", "Video"])
+    expect(accepted.url).toBe("https://arxiv.org/pdf/2606.31204")
+    expect(accepted.subjectOf.map((page: { name: string }) => page.name)).toEqual(["Project Page", "Video", "BibTeX"])
+    expect(accepted.image).toBe(`${SITE_URL}/images/papers/ac3s.webp`)
   })
 
   it("tolerates a publication card without a citation", () => {
