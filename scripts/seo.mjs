@@ -54,6 +54,9 @@ export function escapeHtml(value) {
 }
 
 const bulletText = (bullet) => (typeof bullet === "string" ? bullet : bullet.text)
+// Content asset paths come from withBase, which prefixes the base path in the app but not under
+// vitest, so the base is stripped before the site URL is added.
+const absoluteUrl = (assetPath) => `${SITE_URL}/${assetPath.replace(BASE_PATH, "").replace(/^\//, "")}`
 const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
 
 // Citations look like "[1] A. Author, B. Author. Title. Venue." and a card title may be only a prefix
@@ -126,6 +129,7 @@ function buildArticle(card, cardId, name, personId) {
     name: title,
     url,
     author: authors.map((author) => (author === name ? { "@id": personId } : { "@type": "Person", name: author })),
+    ...(card.image ? { image: absoluteUrl(card.image.src) } : {}),
     ...(related.length ? { subjectOf: related } : {}),
     ...status
   }
@@ -227,6 +231,7 @@ function renderCard(card, id) {
   return [
     `<article id="${id}">`,
     `<h3>${escapeHtml(card.title)}</h3>`,
+    card.image ? `<img src="${escapeHtml(absoluteUrl(card.image.src))}" alt="${escapeHtml(card.image.alt)}" width="400" height="280" loading="lazy" />` : "",
     meta ? `<p class="meta">${escapeHtml(meta)}</p>` : "",
     `<ul>${card.bullets.map((bullet) => `<li>${escapeHtml(bulletText(bullet)).replace(/\n/g, "<br />")}</li>`).join("")}</ul>`,
     links,

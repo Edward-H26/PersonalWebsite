@@ -21,18 +21,18 @@ Papers
 
 ### AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation
 
-- [1] Eric Ji, Qiran Hu, Wufei Ma, Sarthak Jain, Yingying Li, Minh N. Do, and Yaoyao Liu. AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation. European Conference on Computer Vision (ECCV) 2026.
-- Links: [arXiv](https://arxiv.org/abs/2606.31204), [Project](https://ac3s.cvmlgroup.web.illinois.edu/), [Video](https://youtu.be/3jOJaT2a8iQ)
+- [1] Eric Ji, Qiran Hu, Wufei Ma, Sarthak Jain, Yingying Li, Minh N. Do, and Yaoyao Liu. AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation. European Conference on Computer Vision (ECCV), 2026.
+- Links: [PDF](https://arxiv.org/pdf/2606.31204), [Project Page](https://ac3s.cvmlgroup.web.illinois.edu/), [Video](https://youtu.be/3jOJaT2a8iQ), [BibTeX](https://arxiv.org/bibtex/2606.31204)
 
 ### Crowdsourced Open-Source Research: A Research Paradigm Probe
 
 - [2] Hangyue Zhang, Qiran Hu, Ziyi Zhang, and Yun Huang. Crowdsourced Open-Source Research: A Research Paradigm Probe. Under Review.
 
-### Context Under Budget
+### Context Under Budget: A Controlled Benchmark for Post-Retrieval Compression in Retrieval-Augmented Generation
 
 - [3] Tuan Minh Nguyen, Qiran Hu, Banruo Liu, Khoa D Doan, Kok-Seng Wong, and Fan Lai. Context Under Budget: A Controlled Benchmark for Post-Retrieval Compression in Retrieval-Augmented Generation. Under Review.
 
-### AlphaWiseFT
+### AlphaWiseFT: Adaptive Weight Interpolation for Continual Multimodal Representation Learning
 
 - [4] Sarthak Jain, Qiran Hu, Zhen Zhu, and Yaoyao Liu. AlphaWiseFT: Adaptive Weight Interpolation for Continual Multimodal Representation Learning. Under Review.
 

@@ -131,6 +131,16 @@ const ICONS: Record<string, IconSpec> = {
 }
 
 ICONS["neo4j gds"] = ICONS["neo4j professional"]
+ICONS["project page"] = ICONS.project
+ICONS.pdf = ICONS.arxiv
+ICONS.bibtex = {
+  node: (
+    <>
+      <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" />
+      <path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" />
+    </>
+  )
+}
 
 export function LinkIcon({ label, size = 12 }: { label: string; size?: number }) {
   const icon = ICONS[label.toLowerCase()]
