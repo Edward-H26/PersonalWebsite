@@ -1,74 +1,18 @@
 import { Suspense, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Canvas, useLoader, useThree } from "@react-three/fiber"
-import { Cloud, Clouds, PerformanceMonitor, useGLTF, useProgress, useTexture } from "@react-three/drei"
+import { Cloud, Clouds, PerformanceMonitor, useProgress } from "@react-three/drei"
 import * as THREE from "three"
-import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js"
 import { FirstPersonController } from "./camera"
 import { EarthIsland } from "./islands"
 import { Ocean, ProceduralSky } from "./environment"
 import { ModelErrorBoundary } from "./models/ModelErrorBoundary"
-import { MODEL_PATHS } from "@/config/modelPaths"
 import { useIsMobile } from "@/hooks/useIsMobile"
-import { supportsKtx2Textures, toKtx2Url } from "@/utils/textures"
 import { useWorldStore } from "@/store/worldStore"
 import { withBase } from "@/utils/assets"
 import { clamp } from "@/utils/math"
-import { scheduleIdleTask } from "@/utils/scheduling"
 import { PostProcessing } from "./PostProcessing"
 
-const PRELOAD_TEXTURES = [
-  withBase("/textures/hq/cliff_side/cliff_side_diff_2k.jpg"),
-  withBase("/textures/hq/cliff_side/cliff_side_nor_gl_2k.jpg"),
-  withBase("/textures/hq/cliff_side/cliff_side_arm_2k.jpg"),
-  withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_diff_2k.jpg"),
-  withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_nor_gl_2k.jpg"),
-  withBase("/textures/hq/cobblestone_pavement/cobblestone_pavement_arm_2k.jpg"),
-  withBase("/textures/hq/sparse_grass/sparse_grass_diff_2k.jpg"),
-  withBase("/textures/hq/sparse_grass/sparse_grass_nor_gl_2k.jpg"),
-  withBase("/textures/hq/sparse_grass/sparse_grass_arm_2k.jpg")
-]
-
 const FIRST_FRAME_TEXTURES = [withBase("/textures/waternormals.jpg"), withBase("/textures/cloud.png")]
-
-const PRELOAD_GLTFS = [
-  MODEL_PATHS.earth.hqGrassMedium01,
-  MODEL_PATHS.earth.hqGrassMedium02,
-  MODEL_PATHS.earth.hqGrassBermuda,
-  MODEL_PATHS.earth.hqDandelion,
-  MODEL_PATHS.earth.hqGazania,
-  MODEL_PATHS.earth.hqSorrel,
-  MODEL_PATHS.earth.hqTreeStump,
-  MODEL_PATHS.earth.hqTree,
-  MODEL_PATHS.earth.hqTreeLarge,
-  MODEL_PATHS.earth.hqTreeSmall,
-  MODEL_PATHS.earth.hqBoulder,
-  MODEL_PATHS.earth.hqBoulder02,
-  MODEL_PATHS.earth.hqMossRocks,
-  MODEL_PATHS.earth.hqFern,
-  MODEL_PATHS.earth.hqLantern,
-  MODEL_PATHS.earth.hqPier,
-  MODEL_PATHS.earth.hqShip,
-  MODEL_PATHS.earth.hqFirePit,
-  MODEL_PATHS.earth.hqBarrels,
-  MODEL_PATHS.earth.hqCrate,
-  MODEL_PATHS.earth.hqSeaMarker,
-  MODEL_PATHS.earth.fantasyInn,
-  MODEL_PATHS.earth.barracks,
-  MODEL_PATHS.earth.sawmill,
-  MODEL_PATHS.earth.stable,
-  MODEL_PATHS.earth.house01,
-  MODEL_PATHS.earth.house02,
-  MODEL_PATHS.earth.house03,
-  MODEL_PATHS.earth.bellTower,
-  MODEL_PATHS.earth.mill,
-  MODEL_PATHS.earth.blacksmith,
-  MODEL_PATHS.earth.marketStand01,
-  MODEL_PATHS.earth.marketStand02,
-  MODEL_PATHS.earth.well,
-  MODEL_PATHS.earth.cart,
-  MODEL_PATHS.earth.fence,
-  MODEL_PATHS.earth.cypressTree
-]
 
 const SUN_ELEVATION = 2
 const SUN_AZIMUTH = 180
@@ -89,40 +33,7 @@ function RendererConfig({ exposure = 0.5 }: { exposure?: number }) {
   return null
 }
 
-function EarthPreload({ enabled }: { enabled: boolean }) {
-  const { gl } = useThree()
-
-  useEffect(() => {
-    if (!enabled) return
-
-    return scheduleIdleTask(() => {
-      const gltfs = Array.from(new Set(PRELOAD_GLTFS))
-      const textures = Array.from(new Set(PRELOAD_TEXTURES))
-      const useKtx2 = supportsKtx2Textures(gl)
-
-      for (const tex of textures) {
-        if (useKtx2) {
-          useLoader.preload(KTX2Loader, toKtx2Url(tex), (loader) => {
-            const ktx2 = loader as KTX2Loader
-            ktx2.setTranscoderPath(withBase("/examples/jsm/libs/basis/"))
-            ktx2.detectSupport(gl)
-          })
-        } else {
-          useTexture.preload(tex)
-        }
-      }
-
-      for (const gltf of gltfs) {
-        useGLTF.preload(gltf)
-      }
-    }, 1600)
-  }, [enabled, gl])
-
-  return null
-}
-
 function WorldContent({ section }: { section: number }) {
-  const [shouldPreload, setShouldPreload] = useState(false)
   const shadowMapSize = 2048
   const lightDimming = section >= 5 ? 0.55 : section >= 4 ? 0.65 : section >= 3 ? 0.75 : 1
   const sunIntensity = 3.2 * lightDimming
@@ -135,10 +46,6 @@ function WorldContent({ section }: { section: number }) {
     const sun = new THREE.Vector3().setFromSphericalCoords(1, phi, theta).normalize()
     const distance = 700
     return [sun.x * distance, sun.y * distance, sun.z * distance]
-  }, [])
-
-  useEffect(() => {
-    return scheduleIdleTask(() => setShouldPreload(true), 1200)
   }, [])
 
   return (
@@ -176,8 +83,6 @@ function WorldContent({ section }: { section: number }) {
         distance={300}
         color="#ffe0b0"
       />
-
-      <EarthPreload enabled={shouldPreload} />
 
       <RendererConfig exposure={exposure} />
 
@@ -249,6 +154,7 @@ export function WorldScene({
   const setLoaderBypassed = useWorldStore((state) => state.setLoaderBypassed)
   const isLoaderBypassed = useWorldStore((state) => state.isLoaderBypassed)
   const setLoadingOverlayVisible = useWorldStore((state) => state.setLoadingOverlayVisible)
+  const isEarthSceneReady = useWorldStore((state) => state.isEarthSceneReady)
   const isLoadingActive = useProgress((state) => state.active)
   const loadingProgress = useProgress((state) => state.progress)
   const loadingLoaded = useProgress((state) => state.loaded)
@@ -293,19 +199,24 @@ export function WorldScene({
   }, [isFullyLoaded, isLoadingActive, loadingProgress, setLoaderBypassed])
 
   useEffect(() => {
+    if (loadingErrors.length === 0) return
+    setForceReady(true)
+    setLoaderBypassed(true)
+  }, [loadingErrors.length, setLoaderBypassed])
+
+  useEffect(() => {
     if (!isLoadingActive) return
     const intervalId = window.setInterval(() => {
       const now = performance.now()
       const stagnantMs = now - lastProgressTimeRef.current
-      const hasErrors = loadingErrors.length > 0
       const isStalled = loadingProgress >= 99 && stagnantMs > 4000
-      if (hasErrors || isStalled) {
+      if (isStalled) {
         setForceReady(true)
         setLoaderBypassed(true)
       }
     }, 500)
     return () => window.clearInterval(intervalId)
-  }, [isLoadingActive, isMobile, loadingErrors.length, loadingProgress, setLoaderBypassed])
+  }, [isLoadingActive, isMobile, loadingProgress, setLoaderBypassed])
 
   const showOverlay = !isFullyLoaded
 
@@ -324,14 +235,18 @@ export function WorldScene({
     }
   }, [])
 
+  // The overlay lifts only when every download has finished and the island has drawn with all of
+  // its models in place, so nothing pops in afterwards. Errors or a stalled download still let the
+  // page through rather than leaving the loader up forever.
   useEffect(() => {
     if (fullyLoadedRef.current) return
     const isLoadComplete =
       loadingTotal > 0 &&
       loadingLoaded >= loadingTotal &&
       !isLoadingActive &&
-      loadingProgress >= 100
-    const shouldForceComplete = isMobile && isLoaderBypassed
+      loadingProgress >= 100 &&
+      isEarthSceneReady
+    const shouldForceComplete = isLoaderBypassed
     if (!isLoadComplete && !shouldForceComplete) {
       if (loadCompleteTimerRef.current != null) {
         window.clearTimeout(loadCompleteTimerRef.current)
@@ -348,7 +263,7 @@ export function WorldScene({
       setIsFullyLoaded(true)
       loadCompleteTimerRef.current = null
     }, delay)
-  }, [isLoadingActive, isLoaderBypassed, isMobile, loadingLoaded, loadingProgress, loadingTotal, minOverlayMs])
+  }, [isEarthSceneReady, isLoadingActive, isLoaderBypassed, loadingLoaded, loadingProgress, loadingTotal, minOverlayMs])
 
   useEffect(() => {
     setLoadingOverlayVisible(showOverlay)
