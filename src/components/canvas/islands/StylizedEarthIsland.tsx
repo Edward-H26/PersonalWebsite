@@ -1,4 +1,5 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef } from "react"
+import { Suspense, useEffect, useMemo, useRef } from "react"
+import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
 import { EARTH_ISLAND, EARTH_ROUTE_POINTS } from "@/config"
 import type { PbrTextureSet } from "@/hooks/usePbrTextureSet"
@@ -89,23 +90,16 @@ function TexturedIslandCore({
   topY,
   terrainGeometry,
   cliffGeometry,
-  pathGeometries,
-  onReady
+  pathGeometries
 }: {
   topY: number
   terrainGeometry: THREE.BufferGeometry
   cliffGeometry: THREE.BufferGeometry
   pathGeometries: THREE.BufferGeometry[]
-  onReady?: () => void
 }) {
   const terrainPbr = useTiledPbrTextureSet("sparseGrass", 1)
   const cliffPbr = useTiledPbrTextureSet("cliffSide", 1)
   const pathPbr = useTiledPbrTextureSet("cobblestonePavement", 1)
-
-  useEffect(() => {
-    if (!onReady) return
-    onReady()
-  }, [onReady])
 
   return (
     <>
@@ -118,17 +112,23 @@ function TexturedIslandCore({
   )
 }
 
+// Rendered last inside the island's Suspense boundary, so it only mounts once every texture and
+// model in the boundary has loaded; it then reports the island as ready after two drawn frames, and
+// the loading screen waits for that flag rather than for the first batch of downloads.
+function SceneReadyBeacon() {
+  const framesRef = useRef(0)
+
+  useFrame(() => {
+    if (framesRef.current >= 2) return
+    framesRef.current += 1
+    if (framesRef.current === 2) useWorldStore.getState().setEarthSceneReady(true)
+  })
+
+  return null
+}
+
 export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean }) {
   const config = EARTH_ISLAND
-  // Scanned vegetation, rocks, and the harbor are decoration: they mount once the textured island
-  // and its buildings are in, so the loading screen only waits for the core scene.
-  const decorationsReady = useWorldStore((state) => state.isEarthTexturedReady)
-  const texturedReadyRef = useRef(false)
-  const markTexturedReady = useCallback(() => {
-    if (texturedReadyRef.current) return
-    texturedReadyRef.current = true
-    useWorldStore.getState().setEarthTexturedReady(true)
-  }, [])
 
   const topY = 14 + 0.02 / config.scale
 
@@ -232,54 +232,39 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
           terrainGeometry={terrainGeometry}
           cliffGeometry={cliffGeometry}
           pathGeometries={roads.geometries}
-          onReady={markTexturedReady}
         />
+
+        {layout
+          ? [...layout.buildings, ...layout.props, ...layout.harbor].map((p) => (
+              <GltfModel
+                key={p.key}
+                path={p.path}
+                position={p.position}
+                rotation={p.rotation}
+                fitHeight={p.fitHeight}
+                scale={p.scale}
+                pivot={p.pivot}
+              />
+            ))
+          : null}
+
+        {layout
+          ? layout.instanced.map((group) => (
+              <InstancedGltfModel
+                key={group.key}
+                path={group.path}
+                meshName={group.meshName}
+                fitHeight={group.fitHeight}
+                instances={group.instances}
+                castShadow={group.castShadow}
+                receiveShadow={false}
+                excludeFromReflection={group.excludeFromReflection}
+              />
+            ))
+          : null}
+
+        <SceneReadyBeacon />
       </Suspense>
-
-      {layout ? (
-        <Suspense fallback={null}>
-          {[...layout.buildings, ...layout.props].map((p) => (
-            <GltfModel
-              key={p.key}
-              path={p.path}
-              position={p.position}
-              rotation={p.rotation}
-              fitHeight={p.fitHeight}
-              scale={p.scale}
-              pivot={p.pivot}
-            />
-          ))}
-        </Suspense>
-      ) : null}
-
-      {layout && decorationsReady ? (
-        <Suspense fallback={null}>
-          {layout.harbor.map((p) => (
-            <GltfModel
-              key={p.key}
-              path={p.path}
-              position={p.position}
-              rotation={p.rotation}
-              fitHeight={p.fitHeight}
-              scale={p.scale}
-              pivot={p.pivot}
-            />
-          ))}
-
-          {layout.instanced.map((group) => (
-            <InstancedGltfModel
-              key={group.key}
-              path={group.path}
-              meshName={group.meshName}
-              fitHeight={group.fitHeight}
-              instances={group.instances}
-              castShadow={group.castShadow}
-              receiveShadow={false}
-              excludeFromReflection={group.excludeFromReflection}
-            />
-          ))}
-        </Suspense>
-      ) : null}
     </group>
   )
 }

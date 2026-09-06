@@ -14,10 +14,10 @@ import { useIsMobile } from "@/hooks/useIsMobile"
 
 function App() {
   const setMousePosition = useWorldStore((state) => state.setMousePosition)
-  const isEarthTexturedReady = useWorldStore((state) => state.isEarthTexturedReady)
+  const isEarthSceneReady = useWorldStore((state) => state.isEarthSceneReady)
   const isLoadingOverlayVisible = useWorldStore((state) => state.isLoadingOverlayVisible)
   const isMobile = useIsMobile()
-  const scrollLocked = isLoadingOverlayVisible || (!isEarthTexturedReady && !isMobile)
+  const scrollLocked = isLoadingOverlayVisible || (!isEarthSceneReady && !isMobile)
   const { pages, section, containerRef, scrollToSection } = useScrollSnapNavigation({ scrollLocked })
 
   useEffect(() => {

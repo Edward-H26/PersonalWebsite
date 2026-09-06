@@ -13,7 +13,7 @@ interface WorldState {
   titleCardBlend: number
   lookYaw: number
   groundHeightAt: GroundHeightSampler | null
-  isEarthTexturedReady: boolean
+  isEarthSceneReady: boolean
   isLoaderBypassed: boolean
   isLoadingOverlayVisible: boolean
   travelDir: 1 | -1
@@ -26,7 +26,7 @@ interface WorldActions {
   setTitleCardBlend: (t: number) => void
   setLookYaw: (yaw: number) => void
   setGroundHeightSampler: (sampler: GroundHeightSampler | null) => void
-  setEarthTexturedReady: (ready: boolean) => void
+  setEarthSceneReady: (ready: boolean) => void
   setLoaderBypassed: (bypassed: boolean) => void
   setLoadingOverlayVisible: (visible: boolean) => void
   setTravelDir: (dir: 1 | -1) => void
@@ -41,7 +41,7 @@ export const useWorldStore = create<WorldStore>((set) => ({
   titleCardBlend: 0,
   lookYaw: 0,
   groundHeightAt: null,
-  isEarthTexturedReady: false,
+  isEarthSceneReady: false,
   isLoaderBypassed: false,
   isLoadingOverlayVisible: true,
   travelDir: 1,
@@ -67,8 +67,8 @@ export const useWorldStore = create<WorldStore>((set) => ({
     set({ groundHeightAt: sampler })
   },
 
-  setEarthTexturedReady: (ready) => {
-    set({ isEarthTexturedReady: ready })
+  setEarthSceneReady: (ready) => {
+    set({ isEarthSceneReady: ready })
   },
 
   setLoaderBypassed: (bypassed) => {
