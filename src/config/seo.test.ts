@@ -81,7 +81,7 @@ describe("content helpers", () => {
 
   it("reads contact details from the Contact card", () => {
     const contact = getContact(content)
-    expect(contact.email).toBe("qiranhu8@gmail.com")
+    expect(contact.email).toBe("qh2332@columbia.edu")
     expect(contact.phone).toMatch(/^\+1/)
     expect(contact.links.map((link) => link.label)).toContain("GitHub")
   })
@@ -135,7 +135,7 @@ describe("json-ld", () => {
   it("describes the person with contact details, social profiles, and both institutions", () => {
     const person = graph.find((node) => node["@type"] === "Person")!
     expect(person.name).toBe(profile.PROFILE_OVERVIEW.name)
-    expect(person.email).toBe("mailto:qiranhu8@gmail.com")
+    expect(person.email).toBe("mailto:qh2332@columbia.edu")
     expect(person.image).toBe(PHOTO_URL)
     expect(person.sameAs).toContain("https://github.com/Edward-H26")
     expect(person.sameAs).toContain(SISTER_SITE_URL)
