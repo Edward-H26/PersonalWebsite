@@ -26,7 +26,7 @@ describe("story content", () => {
   })
 
   it("links the AC3S paper to its PDF, project page, demo video, and BibTeX", () => {
-    const ac3s = STORY_STAGES.fire_island.cards[0]
+    const ac3s = STORY_STAGES.fire_island.cards.find((card) => card.title.startsWith("AC3S"))!
     expect(ac3s.title).toMatch(/^AC3S/)
     expect(ac3s.bullets[0]).toContain("European Conference on Computer Vision (ECCV), 2026")
     expect(ac3s.links?.map((l) => l.label)).toEqual(["PDF", "Project Page", "Video", "BibTeX"])
@@ -36,14 +36,16 @@ describe("story content", () => {
 
   it("gives every paper a figure and badge, links only the published one, and derives every citation", () => {
     const papers = STORY_STAGES.fire_island.cards
-    expect(papers.length).toBe(4)
-    expect(papers[0].image?.src).toMatch(/\/images\/papers\/ac3s\.webp$/)
-    expect(papers[0].badge).toBe("ECCV")
+    expect(papers.length).toBe(5)
+    const ac3s = papers.find((paper) => paper.title.startsWith("AC3S"))!
+    expect(ac3s.image?.src).toMatch(/\/images\/papers\/ac3s\.webp$/)
+    expect(ac3s.badge).toBe("ECCV")
     papers.forEach((paper, index) => {
       expect(paper.image?.src).toMatch(/\/images\/papers\/[a-z0-9-]+\.webp$/)
       expect(paper.image?.alt.length).toBeGreaterThan(10)
-      expect(paper.badge).toBe(paper.venue === "Under Review" ? "Under Review" : "ECCV")
-      expect((paper.links ?? []).length > 0).toBe(paper.venue !== "Under Review")
+      // Under-review papers carry the neutral badge; accepted ones name their venue's acronym.
+      expect(paper.badge).toBe(paper.venue === "Under Review" ? "Under Review" : paper.venue!.match(/\(([A-Z]+)\)/)?.[1])
+      expect((paper.links ?? []).length > 0).toBe(paper.title.startsWith("AC3S"))
       expect(paper.authors).toContain("Qiran Hu")
       expect(paper.venue).toBeTruthy()
       const authors = paper.authors!
