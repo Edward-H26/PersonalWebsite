@@ -71,7 +71,7 @@ const PUBLICATIONS: Paper[] = [
     authors: ["Qiran Hu", "Wei Cao", "Yaoyao Liu"],
     venue: "Under Review",
     badge: "Under Review",
-    image: paperFigure("sv4d", "One diffusion step turning noise into a scene that stays consistent across camera views over time"),
+    image: paperFigure("sv4d", "No public figure yet; this paper is under review"),
   },
   {
     title: "AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation",
@@ -80,7 +80,7 @@ const PUBLICATIONS: Paper[] = [
     badge: "ECCV",
     image: paperFigure("ac3s", "AC3S pipeline: visual prompt extractor, adaptive modulator, image generator, and multi-agent VLM"),
     links: [
-      { label: "PDF", url: "https://arxiv.org/pdf/2606.31204" },
+      { label: "arXiv", url: "https://arxiv.org/abs/2606.31204" },
       { label: "Project Page", url: "https://ac3s.cvmlgroup.web.illinois.edu/" },
       { label: "Video", url: "https://youtu.be/3jOJaT2a8iQ" },
       { label: "BibTeX", url: "https://arxiv.org/bibtex/2606.31204" },
@@ -93,7 +93,7 @@ const PUBLICATIONS: Paper[] = [
     badge: "ICDM",
     image: paperFigure("reva", "Three charts from the paper: online overhead per query across five compressors, F1 change over global truncation on four QA datasets, and the share of queries that re-access a stored document"),
     links: [
-      { label: "PDF", url: "https://arxiv.org/pdf/2609.11209" },
+      { label: "arXiv", url: "https://arxiv.org/abs/2609.11209" },
       { label: "BibTeX", url: "https://arxiv.org/bibtex/2609.11209" },
     ],
   },
@@ -102,14 +102,14 @@ const PUBLICATIONS: Paper[] = [
     authors: ["Hangyue Zhang", "Qiran Hu", "Ziyi Zhang", "Hyanghee Park", "Yun Huang"],
     venue: "Under Review",
     badge: "Under Review",
-    image: paperFigure("aisim", "Simulated interview transcripts scaffolding an early-stage qualitative study design"),
+    image: paperFigure("aisim", "No public figure yet; this paper is under review"),
   },
   {
     title: "AlphaWiSE: Adaptive Weight Interpolation for Continual Multimodal Representation Learning",
     authors: ["Sarthak Jain", "Qiran Hu", "Zhen Zhu", "Yaoyao Liu"],
     venue: "Under Review",
     badge: "Under Review",
-    image: paperFigure("alphawise", "Two model checkpoints blended into one fused model"),
+    image: paperFigure("alphawise", "No public figure yet; this paper is under review"),
   },
 ]
 
@@ -332,7 +332,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
             url: "https://www.engineering.columbia.edu/",
           },
           {
-            text: "University of Illinois Urbana-Champaign, Champaign, IL\nB.S. in Data Science and Information Science\nMinors: Computer Science and Statistics\nSiebel School of Computing and Data Science\nCourses: Applied Machine Learning, Generative AI for Human-AI Collaboration, Advanced AI Web-App Development, Graph Databases, Data Visualization, Computational Photography, Linear Algebra with Computational Applications\n2022.08 - 2026.05",
+            text: "University of Illinois Urbana-Champaign, Champaign, IL\nB.S. in Data Science and Information Science\nMinors: Computer Science and Statistics\nSiebel School of Computing and Data Science\nHonors: Dean's List and James Scholar\nCourses: Applied Machine Learning, Generative AI for Human-AI Collaboration, Advanced AI Web-App Development, Graph Databases, Data Visualization, Computational Photography, Linear Algebra with Computational Applications\n2022.08 - 2026.05",
             logo: INSTITUTION_LOGOS.illinois,
             url: "https://siebelschool.illinois.edu/",
           },
