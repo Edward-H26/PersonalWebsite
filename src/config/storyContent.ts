@@ -23,6 +23,7 @@ export type StoryBullet =
   | {
       text: string
       logo: { name: string; image: string }
+      url?: string
     }
 
 export type StoryCard = {
@@ -328,10 +329,12 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
           {
             text: "Columbia University, New York City, NY\nM.S. in Data Science\nFu Foundation School of Engineering and Applied Science\nCourses: High Performance Machine Learning\n2026.08 - 2028.05",
             logo: INSTITUTION_LOGOS.columbia,
+            url: "https://www.engineering.columbia.edu/",
           },
           {
             text: "University of Illinois Urbana-Champaign, Champaign, IL\nB.S. in Data Science and Information Science\nMinors: Computer Science and Statistics\nSiebel School of Computing and Data Science\nCourses: Applied Machine Learning, Generative AI for Human-AI Collaboration, Advanced AI Web-App Development, Graph Databases, Data Visualization, Computational Photography, Linear Algebra with Computational Applications\n2022.08 - 2026.05",
             logo: INSTITUTION_LOGOS.illinois,
+            url: "https://siebelschool.illinois.edu/",
           },
         ],
       },

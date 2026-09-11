@@ -131,6 +131,25 @@
     overflow: hidden;
   }
 
+  /* A whole logo-and-text row that links out, borrowing the chip's glass hover without its pill shape. */
+  .liquid-link-row {
+    @apply flex w-full items-start gap-3 rounded-2xl border border-transparent px-2 py-1.5 text-left md:gap-4;
+    transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .liquid-link-row:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.45);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 14px 32px rgba(0, 0, 0, 0.26);
+  }
+
+  .liquid-link-row:active {
+    transform: translateY(0);
+  }
+
   .liquid-link-chip::before {
     content: "";
     position: absolute;

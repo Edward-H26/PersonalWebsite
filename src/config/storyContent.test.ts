@@ -4,7 +4,7 @@ import { INSTITUTION_LOGOS, PROFILE_OVERVIEW } from "./profile"
 import { buildScrollDeckPages, NAV_SECTIONS, STAGE_ORDER } from "./scrollDeckPages"
 
 describe("story content", () => {
-  it("shows a school logo on every education entry", () => {
+  it("shows a school logo on every education entry and links it to the school", () => {
     const education = STORY_STAGES.water_island.cards.find((c) => c.title === "Education")!
     expect(education.bullets.length).toBe(2)
     for (const bullet of education.bullets) {
@@ -12,6 +12,7 @@ describe("story content", () => {
       if (typeof bullet === "string") continue
       expect(bullet.logo.image).toMatch(/\.(png|jpe?g)$/)
       expect(bullet.text.length).toBeGreaterThan(20)
+      expect(bullet.url).toMatch(/^https:\/\//)
     }
     const [columbia, illinois] = education.bullets
     if (typeof columbia !== "string") expect(columbia.logo).toBe(INSTITUTION_LOGOS.columbia)

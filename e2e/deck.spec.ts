@@ -129,15 +129,22 @@ test.describe("scroll deck", () => {
   test("scrolling inside a card's text never turns the page", async ({ page, isMobile }) => {
     test.skip(isMobile, "wheel input is a desktop interaction")
     await openDeck(page)
-    for (let i = 0; i < 7; i += 1) {
+    // Page down to the first card whose text overflows its box. Counting keystrokes would break
+    // every time a publication or an experience is added, because that shifts every later slide.
+    let index = await settle(page)
+    let scroller = page.locator("never-matches")
+    for (let step = 0; step < 24; step += 1) {
       await page.keyboard.press("ArrowDown")
       await page.waitForTimeout(700)
+      index = await settle(page)
+      const candidate = page.locator(`${DECK} > section`).nth(index).locator("[data-story-scroll]")
+      if ((await candidate.count()) === 0) continue
+      if (await candidate.evaluate((el) => el.scrollHeight > el.clientHeight + 1)) {
+        scroller = candidate
+        break
+      }
     }
-    const index = await settle(page)
-    const scroller = page.locator(`${DECK} > section`).nth(index).locator("[data-story-scroll]")
-    await expect(scroller).toBeVisible()
-    const canScroll = await scroller.evaluate((el) => el.scrollHeight > el.clientHeight + 1)
-    expect(canScroll).toBe(true)
+    await expect(scroller, "no card in the deck has overflowing text").toBeVisible()
 
     const box = (await scroller.boundingBox())!
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
@@ -149,6 +156,40 @@ test.describe("scroll deck", () => {
     expect(await slideIndex(page)).toBe(index)
     const atEnd = await scroller.evaluate((el) => el.scrollTop + el.clientHeight >= el.scrollHeight - 2)
     expect(atEnd).toBe(true)
+  })
+
+  test("one trackpad flick moves exactly one slide", async ({ page, isMobile }) => {
+    test.skip(isMobile, "wheel input is a desktop interaction")
+    await openDeck(page)
+    const before = await settle(page)
+    // A real macOS flick: a short push, then a momentum tail Chrome rounds to integers, so the
+    // decay repeats values instead of falling on every event. Dispatched inside the page because
+    // driving it over CDP stretches the gaps past the gesture window on a loaded machine, which
+    // would split one flick into two. The unit suite covers the range of flick strengths; this
+    // pins the whole chain from the wheel listener through the pager to the page step.
+    await page.evaluate(
+      ({ selector, frameMs }) => {
+        const deck = document.querySelector(selector) as HTMLElement
+        // macOS momentum decays slowly: the tail runs about a second, well past the pager's
+        // cooldown, which is exactly the window in which a repeated delta used to page again.
+        const deltas = [22, 54, 90]
+        for (let v = 76; v >= 1; v *= 0.94) deltas.push(Math.max(1, Math.round(v)))
+        return deltas.reduce(
+          (chain, deltaY) =>
+            chain.then(
+              () =>
+                new Promise<void>((resolve) => {
+                  deck.dispatchEvent(new WheelEvent("wheel", { deltaY, bubbles: true, cancelable: true }))
+                  setTimeout(resolve, frameMs)
+                })
+            ),
+          Promise.resolve()
+        )
+      },
+      { selector: DECK, frameMs: 16 }
+    )
+    await page.waitForTimeout(2000)
+    expect(await settle(page)).toBe(before + 1)
   })
 
   test("horizontal wheel looks sideways without changing the slide", async ({ page, isMobile }) => {
