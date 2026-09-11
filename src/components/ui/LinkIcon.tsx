@@ -132,6 +132,7 @@ const ICONS: Record<string, IconSpec> = {
 
 ICONS["neo4j gds"] = ICONS["neo4j professional"]
 ICONS["project page"] = ICONS.project
+ICONS.code = ICONS.github
 ICONS.pdf = ICONS.arxiv
 ICONS.bibtex = {
   node: (

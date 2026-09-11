@@ -26,11 +26,11 @@ describe("story content", () => {
     expect(contact.links?.find((l) => l.label === "X")?.url).toBe("https://x.com/QiranHu")
   })
 
-  it("links the AC3S paper to its arXiv page, project page, demo video, and BibTeX", () => {
+  it("links the AC3S paper to its arXiv page, code, demo video, and BibTeX", () => {
     const ac3s = STORY_STAGES.fire_island.cards.find((card) => card.title.startsWith("AC3S"))!
     expect(ac3s.title).toMatch(/^AC3S/)
     expect(ac3s.bullets[0]).toContain("European Conference on Computer Vision (ECCV), 2026")
-    expect(ac3s.links?.map((l) => l.label)).toEqual(["arXiv", "Project Page", "Video", "BibTeX"])
+    expect(ac3s.links?.map((l) => l.label)).toEqual(["arXiv", "Code", "Video", "BibTeX"])
     expect(ac3s.links?.find((l) => l.label === "Video")?.url).toBe("https://youtu.be/3jOJaT2a8iQ")
     expect(ac3s.links?.find((l) => l.label === "BibTeX")?.url).toBe("https://arxiv.org/bibtex/2606.31204")
   })
