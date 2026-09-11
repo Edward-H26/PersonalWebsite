@@ -188,6 +188,7 @@
   /* Publication cards: a figure that reads as a physical print with the venue stamped on it. */
   .paper-thumb {
     @apply relative block aspect-[10/7] w-full overflow-hidden rounded-xl border border-white/20;
+    container-type: inline-size;
     background: rgba(10, 12, 18, 0.6);
     box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.6);
     transition: transform 200ms ease, box-shadow 200ms ease;
@@ -212,7 +213,19 @@
   }
 
   .paper-badge {
-    @apply absolute left-2 top-2 rounded-md px-2 py-0.5 text-[11px] font-bold tracking-[0.04em] text-white md:left-2.5 md:top-2.5 md:rounded-lg md:px-3 md:py-1 md:text-[13px];
+    @apply absolute rounded-md font-bold tracking-[0.04em] text-white md:rounded-lg;
+    left: 2.2cqw;
+    top: 2cqw;
+    padding: 0.2em 0.58em;
+    font-size: max(8px, 3.6cqw);
+  }
+
+  /* Below this the thumbnail is too small for a legible badge to clear the figure, and the card
+     already prints the venue in its text, so the badge is dropped rather than laid over the art. */
+  @container (max-width: 170px) {
+    .paper-badge {
+      display: none;
+    }
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%), #13294b;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   }
