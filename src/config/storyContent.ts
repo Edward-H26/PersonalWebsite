@@ -91,7 +91,7 @@ const PUBLICATIONS: Paper[] = [
     authors: ["Tuan Nguyen", "Qiran Hu", "Banruo Liu", "Khoa D. Doan", "Kok-Seng Wong", "Fan Lai"],
     venue: "IEEE International Conference on Data Mining (ICDM), 2026",
     badge: "ICDM",
-    image: paperFigure("reva", "Retrieved documents compressed into a compact context for a model"),
+    image: paperFigure("reva", "Three charts from the paper: online overhead per query across five compressors, F1 change over global truncation on four QA datasets, and the share of queries that re-access a stored document"),
     links: [
       { label: "PDF", url: "https://arxiv.org/pdf/2609.11209" },
       { label: "BibTeX", url: "https://arxiv.org/bibtex/2609.11209" },
