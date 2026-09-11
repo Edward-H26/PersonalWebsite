@@ -26,8 +26,8 @@ function Bullet({ bullet }: { bullet: StoryBullet }) {
     )
   }
 
-  return (
-    <li className="-ml-5 flex list-none items-start gap-3 md:-ml-6 md:gap-4">
+  const row = (
+    <>
       <img
         src={bullet.logo.image}
         alt={bullet.logo.name}
@@ -36,6 +36,26 @@ function Bullet({ bullet }: { bullet: StoryBullet }) {
       <span className="min-w-0">
         <BulletText text={bullet.text} />
       </span>
+    </>
+  )
+
+  return (
+    <li className="-ml-5 list-none md:-ml-6">
+      {bullet.url ? (
+        <a
+          href={bullet.url}
+          target="_blank"
+          rel="noreferrer"
+          className="pointer-events-auto liquid-link-row"
+        >
+          {row}
+          <span aria-hidden="true" className="mt-0.5 shrink-0 text-white/70">
+            ↗
+          </span>
+        </a>
+      ) : (
+        <div className="flex items-start gap-3 md:gap-4">{row}</div>
+      )}
     </li>
   )
 }

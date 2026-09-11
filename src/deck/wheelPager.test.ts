@@ -48,6 +48,45 @@ describe("createWheelPager", () => {
     expect(results.every((r) => r === 0)).toBe(true)
   })
 
+  // A macOS trackpad flick: the finger ramps the delta up, then the momentum tail decays. Chrome
+  // rounds those deltas, so the tail repeats values instead of falling on every event.
+  function trackpadFlick(peak: number, startAt = 1000) {
+    const deltas: number[] = []
+    for (let i = 1; i <= 7; i += 1) deltas.push(Math.max(1, Math.round((peak * i) / 7)))
+    let velocity = peak
+    for (;;) {
+      velocity *= 0.955
+      const delta = Math.round(velocity)
+      if (delta < 1) break
+      deltas.push(delta)
+    }
+    return deltas.map((delta, i) => ({ delta, at: startAt + i * 16 }))
+  }
+
+  it.each([60, 90, 160])("steps once for a whole trackpad flick peaking at %i", (peak) => {
+    const pager = createWheelPager()
+    const steps = trackpadFlick(peak).map((event) => pager.feed(event.delta, event.at))
+    expect(steps.filter((step) => step !== 0)).toEqual([1])
+  })
+
+  it("never steps on a momentum tail that repeats the same delta", () => {
+    const pager = createWheelPager({ thresholdPx: 100, cooldownMs: 550 })
+    expect(pager.feed(120, 1000)).toBe(1)
+    const tail = [60, 40, 20, 10, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1]
+    const results = tail.map((delta, i) => pager.feed(delta, 1050 + i * 60))
+    expect(results.every((result) => result === 0)).toBe(true)
+  })
+
+  it("steps again for a gentler flick that cuts the previous momentum short", () => {
+    const pager = createWheelPager()
+    const firstFlick = trackpadFlick(160).filter((event) => event.at <= 1700)
+    const nudge = trackpadFlick(40, 1820)
+    const stepsOf = (events: ReturnType<typeof trackpadFlick>) =>
+      events.map((event) => pager.feed(event.delta, event.at)).filter((step) => step !== 0)
+    expect(stepsOf(firstFlick)).toEqual([1])
+    expect(stepsOf(nudge)).toEqual([1])
+  })
+
   it("steps again after the cooldown when the finger keeps pushing", () => {
     const pager = createWheelPager({ thresholdPx: 100, cooldownMs: 550, burstGapMs: 180 })
     expect(pager.feed(120, 1000)).toBe(1)
