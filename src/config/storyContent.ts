@@ -91,6 +91,10 @@ const PUBLICATIONS: Paper[] = [
     venue: "IEEE International Conference on Data Mining (ICDM), 2026",
     badge: "ICDM",
     image: paperFigure("reva", "Retrieved documents compressed into a compact context for a model"),
+    links: [
+      { label: "PDF", url: "https://arxiv.org/pdf/2609.11209" },
+      { label: "BibTeX", url: "https://arxiv.org/bibtex/2609.11209" },
+    ],
   },
   {
     title: "AISim: Using LLM-Simulation as Epistemic Scaffolds for Early Stage Qualitative Research Design",
@@ -247,7 +251,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         date: "2026.02-2026.09",
         bullets: [
           "Proposed attention-based scoring for post-retrieval RAG context compression to reuse the generator's own attention traces across queries with a document-keyed score store built offline, achieving a 92.0% cache hit rate on HotpotQA.",
-          "Developed word-unit scoring with original-order rendering for budgeted evidence materialization to preserve document structure under compression, increasing F1 by 13.2% on Natural Questions and reducing compression overhead by 96.7% compared to Selective Context.",
+          "Developed word-unit scoring with original-order rendering for budgeted evidence materialization to preserve document structure under compression, increasing F1 by 13.2% on Natural Questions and reducing compression overhead by 93.6%.",
           "Optimized the online path of score lookup, quota allocation, and budget repair for interactive RAG serving, reducing compression latency by 98.9% compared to EXIT and 99.7% compared to FaviComp.",
         ],
       },

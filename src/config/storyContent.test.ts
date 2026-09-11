@@ -45,7 +45,8 @@ describe("story content", () => {
       expect(paper.image?.alt.length).toBeGreaterThan(10)
       // Under-review papers carry the neutral badge; accepted ones name their venue's acronym.
       expect(paper.badge).toBe(paper.venue === "Under Review" ? "Under Review" : paper.venue!.match(/\(([A-Z]+)\)/)?.[1])
-      expect((paper.links ?? []).length > 0).toBe(paper.title.startsWith("AC3S"))
+      // Accepted papers carry links; papers still under review have nowhere to point yet.
+      expect((paper.links ?? []).length > 0).toBe(paper.venue !== "Under Review")
       expect(paper.authors).toContain("Qiran Hu")
       expect(paper.venue).toBeTruthy()
       const authors = paper.authors!
