@@ -37,7 +37,7 @@ describe("story content", () => {
 
   it("gives every paper a figure and badge, links only the published one, and derives every citation", () => {
     const papers = STORY_STAGES.fire_island.cards
-    expect(papers.length).toBe(5)
+    expect(papers.length).toBe(6)
     const ac3s = papers.find((paper) => paper.title.startsWith("AC3S"))!
     expect(ac3s.image?.src).toMatch(/\/images\/papers\/ac3s\.webp$/)
     expect(ac3s.badge).toBe("ECCV")
