@@ -187,7 +187,7 @@
 
   /* Publication cards: a figure that reads as a physical print with the venue stamped on it. */
   .paper-thumb {
-    @apply relative block aspect-[10/7] w-full overflow-hidden rounded-xl border border-white/20;
+    @apply relative block w-full overflow-hidden rounded-xl border border-white/20;
     container-type: inline-size;
     background: rgba(10, 12, 18, 0.6);
     box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.6);
@@ -195,7 +195,9 @@
   }
 
   .paper-thumb img {
-    @apply h-full w-full object-cover object-top;
+    /* The frame follows each figure's own ratio (the files are cropped to their content), so nothing is
+       cut off and there is no dead band above or below the diagram. */
+    @apply block h-auto w-full;
   }
 
   .paper-thumb::after {
@@ -218,6 +220,8 @@
     top: 2cqw;
     padding: 0.2em 0.58em;
     font-size: max(8px, 3.6cqw);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%), #13294b;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   }
 
   /* Below this the thumbnail is too small for a legible badge to clear the figure, and the card
@@ -226,8 +230,6 @@
     .paper-badge {
       display: none;
     }
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%), #13294b;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   }
 
   .paper-badge-muted {
