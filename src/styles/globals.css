@@ -188,6 +188,9 @@
   /* Publication cards: a figure that reads as a physical print with the venue stamped on it. */
   .paper-thumb {
     @apply relative block w-full overflow-hidden rounded-xl border border-white/20;
+    /* scripts/normalize-paper-figures.py in the Edward-H26 repo pads every figure onto one 10:7
+       canvas with the same margin, so the frame matches the file and adds no letterboxing. */
+    aspect-ratio: 10 / 7;
     container-type: inline-size;
     background: rgba(10, 12, 18, 0.6);
     box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.6);
@@ -195,9 +198,7 @@
   }
 
   .paper-thumb img {
-    /* The frame follows each figure's own ratio (the files are cropped to their content), so nothing is
-       cut off and there is no dead band above or below the diagram. */
-    @apply block h-auto w-full;
+    @apply block h-full w-full object-contain;
   }
 
   .paper-thumb::after {
@@ -220,6 +221,7 @@
     top: 2cqw;
     padding: 0.2em 0.58em;
     font-size: max(8px, 3.6cqw);
+    line-height: 1.15;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%), #13294b;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   }
