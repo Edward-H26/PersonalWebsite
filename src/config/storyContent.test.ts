@@ -72,8 +72,8 @@ describe("scroll deck pages", () => {
 
   it("orders sections as the navigation lists them", () => {
     const navSections = NAV_SECTIONS.map((n) => n.section)
-    expect(navSections).toEqual([0, 1, 2, 3, 4, 5])
-    expect(STAGE_ORDER.map((s) => s.section)).toEqual([1, 2, 3, 4, 5])
+    expect(navSections).toEqual([0, 1, 2, 3, 4, 5, 6])
+    expect(STAGE_ORDER.map((s) => s.section)).toEqual([1, 2, 3, 4, 5, 6])
   })
 
   it("contains a title slide and one slide per card for every stage", () => {

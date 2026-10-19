@@ -2,7 +2,8 @@ import type { ScrollDeckPage } from "@/config/scrollDeckPages"
 import { EARTH_SECTION_T_STOPS } from "@/config"
 import { clamp01 } from "@/utils/math"
 
-export type DeckSection = 0 | 1 | 2 | 3 | 4 | 5
+export type DeckSection = 0 | 1 | 2 | 3 | 4 | 5 | 6
+export const LAST_SECTION: DeckSection = 6
 
 type SectionRange = { startIndex: number; endIndex: number }
 
@@ -60,12 +61,12 @@ export function getSectionRanges(pages: ScrollDeckPage[]) {
 
   const sentinelBottomIndex = pages.length - 1
 
-  for (let section = 1; section <= 5; section += 1) {
+  for (let section = 1; section <= LAST_SECTION; section += 1) {
     const startIndex = titleIndexBySection.get(section as DeckSection)
     if (startIndex == null) continue
 
     const endIndex =
-      section === 5 ? sentinelBottomIndex : titleIndexBySection.get((section + 1) as DeckSection) ?? sentinelBottomIndex
+      section === LAST_SECTION ? sentinelBottomIndex : titleIndexBySection.get((section + 1) as DeckSection) ?? sentinelBottomIndex
 
     ranges.set(section as DeckSection, { startIndex, endIndex })
   }

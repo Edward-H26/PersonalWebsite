@@ -4,6 +4,7 @@ import { useWorldStore } from "@/store/worldStore"
 import { clamp01, clampInt, lerp, smoothstep01 } from "@/utils/math"
 import {
   type DeckSection,
+  LAST_SECTION,
   findIndexForSection,
   findInnerScroller,
   getPageHeight,
@@ -591,7 +592,7 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
       lastUserScrollAtRef.current = performance.now()
       useWorldStore.getState().setLookYaw(0)
 
-      const clampedSection = clampInt(nextSection, 0, 5) as DeckSection
+      const clampedSection = clampInt(nextSection, 0, LAST_SECTION) as DeckSection
       const targetIndex = findIndexForSection(pages, clampedSection)
       if (targetIndex < 0) return
 

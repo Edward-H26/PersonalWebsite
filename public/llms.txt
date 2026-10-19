@@ -113,7 +113,7 @@ Undergraduate Research Assistant, 2025.02-2025.06, Champaign, IL
 
 ## Experience
 
-Professional, Teaching, and Service
+Professional and Teaching
 
 ### IBM Research
 
@@ -159,6 +159,10 @@ Teaching Assistant, 2023.08-2026.05, Champaign, IL
 - Designed problem sets, exam questions, test suites, and autograder scripts to deliver instant, consistent feedback to 1,200 students every semester on Mastery Platform.
 - Links: [Guides](https://discovery.cs.illinois.edu/guides/), [Mastery](https://mastery.cs.illinois.edu/)
 
+## Service
+
+Open Source and Community
+
 ### OnePromptClaudeCode
 
 Lead Developer, 2026.03-Present, Champaign, IL
@@ -175,8 +179,8 @@ Education, Skills, and Contact
 ### Technical Skills
 
 - Programming Languages and AI/ML Frameworks: Python, C++, C, Rust, Go, Java, Swift, Kotlin, Ruby, R, PyTorch, CUDA, JAX, TensorFlow, Triton, TensorRT, vLLM, SGLang, NeMo, Megatron-LM, LangGraph, NCCL, GPU/TPU/CPU Architecture.
-- Foundation Model Training: Pre-training, Post-training, Test-time Training, Reinforcement Learning, Continual Learning, SFT, RLHF, RLAIF, RLVF, PPO, DPO, GRPO, Reward Modeling, Model Alignment, Synthetic Data Generation, Knowledge Distillation, Quantization, Context Compression, Token Pruning, Kernel Optimization, LoRA, QLoRA, Distributed Training, FSDP.
-- Computer Vision and Agentic AI: World Models, Diffusion Models, Autoregressive Models, Flow Matching, 3D/4D Generation, Multi-View Geometry, 3D Reconstruction, Novel View Synthesis, Spatial Intelligence, Visual-Inertial Odometry, Depth Estimation, NeRFs, 3D Gaussian Splatting, OpenCV, SLAM, Multi-Agent Orchestration, Sub-Agent Parallelization, Computer-Use Agents, Agent Harness, Policy Guardrails, Context Engineering, Prompt Caching, MCP, A2A, Tool Calling, Autonomous Workflows, Long-Horizon Memory, RAG.
+- Foundation Model Training: Pre-training, Post-training, Test-time Training, Reinforcement Learning, Continual Learning, SFT, RLHF, RLAIF, RLVF, PPO, DPO, GRPO, Reward Modeling, Model Alignment and Instruction Following, Synthetic Data Generation, Knowledge Distillation, Quantization, Context Compression, Token Pruning, Kernel Optimization, LoRA, QLoRA, Distributed Training, FSDP.
+- Computer Vision and Agentic AI: World Models, Diffusion Models, Autoregressive Models, Flow Matching, 3D/4D Image and Video Generation, Multi-View Geometry, 3D Reconstruction, Novel View Synthesis, Spatial Intelligence, Visual-Inertial Odometry, Depth Estimation, NeRFs, 3D Gaussian Splatting, OpenCV, SLAM, Multi-Agent Orchestration, Sub-Agent Parallelization, Computer-Use Agents, Agent Harness, Policy Guardrails, Context Engineering, Prompt Caching, MCP, A2A, Tool Calling, Multi-Step Autonomous Workflows, Long-Horizon Agent Memory, RAG.
 - Full-stack, Databases, Infrastructure, and Design: React, Vue, Angular, JavaScript, TypeScript, HTML5, Tailwind CSS, FastAPI, PostgreSQL, Neo4j, MongoDB, Kafka, Docker, Kubernetes, CI/CD, AWS, GCP, Azure, Figma, Canva, Adobe Creative Suite, Microsoft Office Suite, Unity.
 - Languages: Chinese (Native), English (Native), Spanish (Elementary).
 

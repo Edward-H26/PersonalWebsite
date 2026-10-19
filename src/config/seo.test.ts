@@ -76,7 +76,7 @@ describe("parseCitation", () => {
 
 describe("content helpers", () => {
   it("orders sections like the deck navigation", () => {
-    expect(getSections(content).map((section) => section.label)).toEqual(["Publications", "Research", "Projects", "Experience", "Info"])
+    expect(getSections(content).map((section) => section.label)).toEqual(["Publications", "Research", "Projects", "Experience", "Service", "Info"])
   })
 
   it("reads contact details from the Contact card", () => {
