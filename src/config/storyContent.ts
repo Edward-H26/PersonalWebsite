@@ -2,6 +2,7 @@ export type StoryStageId =
   | "earth_island"
   | "fire_island"
   | "professional_experience"
+  | "service"
   | "air_island"
   | "water_island"
 
@@ -177,7 +178,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
   professional_experience: {
     id: "professional_experience",
     heading: "Experience",
-    subheading: "Professional, Teaching, and Service",
+    subheading: "Professional and Teaching",
     cards: [
       {
         title: "IBM Research",
@@ -247,6 +248,13 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
           { label: "Mastery", url: "https://mastery.cs.illinois.edu/" },
         ],
       },
+    ],
+  },
+  service: {
+    id: "service",
+    heading: "Service",
+    subheading: "Open Source and Community",
+    cards: [
       {
         title: "OnePromptClaudeCode",
         subtitle: "Lead Developer",
@@ -329,8 +337,8 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Technical Skills",
         bullets: [
           "Programming Languages and AI/ML Frameworks: Python, C++, C, Rust, Go, Java, Swift, Kotlin, Ruby, R, PyTorch, CUDA, JAX, TensorFlow, Triton, TensorRT, vLLM, SGLang, NeMo, Megatron-LM, LangGraph, NCCL, GPU/TPU/CPU Architecture.",
-          "Foundation Model Training: Pre-training, Post-training, Test-time Training, Reinforcement Learning, Continual Learning, SFT, RLHF, RLAIF, RLVF, PPO, DPO, GRPO, Reward Modeling, Model Alignment, Synthetic Data Generation, Knowledge Distillation, Quantization, Context Compression, Token Pruning, Kernel Optimization, LoRA, QLoRA, Distributed Training, FSDP.",
-          "Computer Vision and Agentic AI: World Models, Diffusion Models, Autoregressive Models, Flow Matching, 3D/4D Generation, Multi-View Geometry, 3D Reconstruction, Novel View Synthesis, Spatial Intelligence, Visual-Inertial Odometry, Depth Estimation, NeRFs, 3D Gaussian Splatting, OpenCV, SLAM, Multi-Agent Orchestration, Sub-Agent Parallelization, Computer-Use Agents, Agent Harness, Policy Guardrails, Context Engineering, Prompt Caching, MCP, A2A, Tool Calling, Autonomous Workflows, Long-Horizon Memory, RAG.",
+          "Foundation Model Training: Pre-training, Post-training, Test-time Training, Reinforcement Learning, Continual Learning, SFT, RLHF, RLAIF, RLVF, PPO, DPO, GRPO, Reward Modeling, Model Alignment and Instruction Following, Synthetic Data Generation, Knowledge Distillation, Quantization, Context Compression, Token Pruning, Kernel Optimization, LoRA, QLoRA, Distributed Training, FSDP.",
+          "Computer Vision and Agentic AI: World Models, Diffusion Models, Autoregressive Models, Flow Matching, 3D/4D Image and Video Generation, Multi-View Geometry, 3D Reconstruction, Novel View Synthesis, Spatial Intelligence, Visual-Inertial Odometry, Depth Estimation, NeRFs, 3D Gaussian Splatting, OpenCV, SLAM, Multi-Agent Orchestration, Sub-Agent Parallelization, Computer-Use Agents, Agent Harness, Policy Guardrails, Context Engineering, Prompt Caching, MCP, A2A, Tool Calling, Multi-Step Autonomous Workflows, Long-Horizon Agent Memory, RAG.",
           "Full-stack, Databases, Infrastructure, and Design: React, Vue, Angular, JavaScript, TypeScript, HTML5, Tailwind CSS, FastAPI, PostgreSQL, Neo4j, MongoDB, Kafka, Docker, Kubernetes, CI/CD, AWS, GCP, Azure, Figma, Canva, Adobe Creative Suite, Microsoft Office Suite, Unity.",
           "Languages: Chinese (Native), English (Native), Spanish (Elementary).",
         ],

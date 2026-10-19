@@ -57,16 +57,16 @@ describe("section ranges and route mapping", () => {
     expect(pages[1].kind).toBe("overview")
   })
 
-  it("covers sections 1 to 5 in order without gaps", () => {
-    for (let section = 1; section <= 5; section += 1) {
-      expect(ranges.get(section as 1 | 2 | 3 | 4 | 5)).toBeDefined()
+  it("covers sections 1 to 6 in order without gaps", () => {
+    for (let section = 1; section <= 6; section += 1) {
+      expect(ranges.get(section as 1 | 2 | 3 | 4 | 5 | 6)).toBeDefined()
     }
-    for (let section = 1; section < 5; section += 1) {
-      const current = ranges.get(section as 1 | 2 | 3 | 4)!
-      const next = ranges.get((section + 1) as 2 | 3 | 4 | 5)!
+    for (let section = 1; section < 6; section += 1) {
+      const current = ranges.get(section as 1 | 2 | 3 | 4 | 5)!
+      const next = ranges.get((section + 1) as 2 | 3 | 4 | 5 | 6)!
       expect(current.endIndex).toBe(next.startIndex)
     }
-    expect(ranges.get(5)!.endIndex).toBe(pages.length - 1)
+    expect(ranges.get(6)!.endIndex).toBe(pages.length - 1)
   })
 
   it("keeps the camera at the route start until the first section", () => {

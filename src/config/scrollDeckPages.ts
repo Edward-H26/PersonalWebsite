@@ -9,7 +9,8 @@ export const STAGE_ORDER: Array<{ section: Exclude<DeckSection, 0>; stageId: Sto
   { section: 2, stageId: "earth_island" },
   { section: 3, stageId: "air_island" },
   { section: 4, stageId: "professional_experience" },
-  { section: 5, stageId: "water_island" }
+  { section: 5, stageId: "service" },
+  { section: 6, stageId: "water_island" }
 ]
 
 export const NAV_SECTIONS: Array<{ label: string; section: DeckSection }> = [
@@ -18,7 +19,8 @@ export const NAV_SECTIONS: Array<{ label: string; section: DeckSection }> = [
   { label: "Research", section: 2 },
   { label: "Projects", section: 3 },
   { label: "Experience", section: 4 },
-  { label: "Info", section: 5 }
+  { label: "Service", section: 5 },
+  { label: "Info", section: 6 }
 ]
 
 export const SIDE_NAV_SECTIONS = NAV_SECTIONS.filter((item) => item.section !== 0)
