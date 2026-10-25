@@ -49,11 +49,10 @@ type Paper = Omit<StoryCard, "bullets" | "authors" | "venue" | "image"> & {
   image?: StoryImage
 }
 
-// The citation bullet ("[n] A, B, and C. Title. Venue.") is what the SEO generator, llms.txt, and
+// The citation bullet ("[n] A, B, C. Title. Venue.") is what the SEO generator, llms.txt, and
 // the tests read, so it is derived from the structured fields instead of being written twice.
 function publication(index: number, paper: Paper): StoryCard {
-  const names = paper.authors.length > 1 ? `${paper.authors.slice(0, -1).join(", ")}, and ${paper.authors[paper.authors.length - 1]}` : paper.authors[0]
-  return { ...paper, bullets: [`[${index}] ${names}. ${paper.title}. ${paper.venue}.`] }
+  return { ...paper, bullets: [`[${index}] ${paper.authors.join(", ")}. ${paper.title}. ${paper.venue}.`] }
 }
 
 const paperFigure = (id: string, alt: string): StoryImage => ({ src: withBase(`/images/papers/${id}.webp`), alt })
@@ -70,21 +69,20 @@ const PUBLICATIONS: Paper[] = [
   {
     title: "AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation",
     authors: ["Eric Ji", "Qiran Hu", "Wufei Ma", "Sarthak Jain", "Yingying Li", "Minh N. Do", "Yaoyao Liu"],
-    venue: "European Conference on Computer Vision (ECCV), 2026",
+    venue: "European Conference on Computer Vision (ECCV) 2026",
     badge: "ECCV",
     image: paperFigure("ac3s", "AC3S pipeline: visual prompt extractor, adaptive modulator, image generator, and multi-agent VLM"),
     links: [
       { label: "arXiv", url: "https://arxiv.org/abs/2606.31204" },
       { label: "Code", url: "https://ac3s.cvmlgroup.web.illinois.edu/" },
       { label: "Video", url: "https://youtu.be/3jOJaT2a8iQ" },
-      { label: "Poster", url: "https://eccv.ecva.net/virtual/2026/poster/5183" },
       { label: "BibTeX", url: "https://arxiv.org/bibtex/2606.31204" },
     ],
   },
   {
     title: "REVA: Reusable Evidence View Aggregation for Context-Efficient RAG Serving",
     authors: ["Tuan Nguyen", "Qiran Hu", "Banruo Liu", "Khoa D. Doan", "Kok-Seng Wong", "Fan Lai"],
-    venue: "IEEE International Conference on Data Mining (ICDM), 2026",
+    venue: "IEEE International Conference on Data Mining (ICDM) 2026",
     badge: "ICDM",
     image: paperFigure("reva", "The REVA system: past requests leave reusable word scores in a word-score store, and a new request materializes per-document views from them"),
     links: [
@@ -96,29 +94,29 @@ const PUBLICATIONS: Paper[] = [
   {
     title: "ACDN: Agent-Aware Content Delivery Network",
     authors: ["Tuan Nguyen", "Qiran Hu", "Dibyadeep Saha", "Banruo Liu", "Khoa D. Doan", "Kok-Seng Wong", "Fan Lai"],
-    venue: "Under Review",
-    badge: "Under Review",
+    venue: "Under review",
+    badge: "Under review",
     image: paperFigure("acdn", "No public figure yet; this paper is under review"),
   },
   {
     title: "SV4D 3.0: Single-Step 3D-Aware Diffusion for Multi-View-Consistent 4D Scene Generation",
     authors: ["Qiran Hu", "Wei Cao", "Yaoyao Liu"],
-    venue: "Under Review",
-    badge: "Under Review",
+    venue: "Under review",
+    badge: "Under review",
     image: paperFigure("sv4d", "No public figure yet; this paper is under review"),
   },
   {
     title: "AISim: Using LLM-Simulation as Epistemic Scaffolds for Early Stage Qualitative Research Design",
     authors: ["Hangyue Zhang", "Qiran Hu", "Ziyi Zhang", "Hyanghee Park", "Yun Huang"],
-    venue: "Under Review",
-    badge: "Under Review",
+    venue: "Under review",
+    badge: "Under review",
     image: paperFigure("aisim", "No public figure yet; this paper is under review"),
   },
   {
     title: "AlphaWiSE: Adaptive Weight Interpolation for Continual Multimodal Representation Learning",
     authors: ["Sarthak Jain", "Qiran Hu", "Zhen Zhu", "Yaoyao Liu"],
-    venue: "Under Review",
-    badge: "Under Review",
+    venue: "Under review",
+    badge: "Under review",
     image: paperFigure("alphawise", "No public figure yet; this paper is under review"),
   },
 ]
@@ -130,10 +128,10 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
     subheading: "Labs and Experience",
     cards: [
       {
-        title: "UIUC Computer Vision and Machine Learning Group",
+        title: "Computer Vision and Machine Learning Group, University of Illinois Urbana-Champaign",
         subtitle: "Undergraduate Research Assistant (Advisor: Prof. Yaoyao Liu)",
         location: "Champaign, IL",
-        date: "2025.05-Present",
+        date: "2025.05 - Present",
         bullets: [
           "Develop adaptive conditioning methods for 3D-aware synthetic data generation to enhance world model understanding and embodied agent performance in interactive simulations with geometry-conditioned diffusion approaches, reducing FID by 32.8% on ImageNet and enhancing pose accuracy by 4.2x on PASCAL3D+.",
           "Conduct large-scale foundation model training across TB-level datasets on National Center for Supercomputing Applications (NCSA) HPC clusters to enforce multi-view consistency with 4-bit NF4 quantization and low-level custom kernels, improving pose accuracy by 11.3% on PASCAL3D+ and reducing generation latency by 78.7% at p95.",
@@ -144,10 +142,10 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         ],
       },
       {
-        title: "Multi-modal Generative Models for Continual Learning",
+        title: "Multi-modal Generative Models for Continual Learning, University of Illinois Urbana-Champaign",
         subtitle: "Undergraduate Research Assistant (Advisor: Prof. Yaoyao Liu)",
         location: "Champaign, IL",
-        date: "2026.02-2026.08",
+        date: "2026.02 - 2026.08",
         bullets: [
           "Selected for NVIDIA Academic Grant Program Award, AMD University Program, and Lambda Research Grant to streamline multimodal foundation models in class-incremental learning across audio, image, and text without catastrophic forgetting and cross-modal alignment drift, increasing R@1 by 27.6% on AudioSet.",
           "Implemented post-hoc tensor-level weight-interpolation methods for multimodal retrieval on National Artificial Intelligence Research Resource (NAIRR) HPC clusters, minimizing trainable parameters from 182M to 499 sigmoid-parameterized coefficients and increasing R@1 by 33.5% on AudioSet.",
@@ -161,11 +159,14 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "REVA: Reusable Evidence View Aggregation for Context-Efficient RAG Serving",
         subtitle: "Undergraduate Research Assistant, University of Illinois Urbana-Champaign (Advisor: Prof. Fan Lai)",
         location: "Champaign, IL",
-        date: "2026.02-2026.06",
+        date: "2026.02 - 2026.06",
         bullets: [
           "Proposed attention-based scoring for post-retrieval RAG context compression to reuse generator attention traces across queries and update the system offline, achieving a 91.6% cache hit rate on HotpotQA.",
           "Developed reusable evidence views to scale compression cost with unique documents rather than query volume, improving F1 by 13.2% on Natural Questions and decreasing online compression overhead by 6.1x at under 40 ms per request.",
           "Optimized online serving to keep context compression off the GPU critical path for high-volume production RAG traffic under strict per-request latency targets, minimizing compression latency by 99.3% compared to EXIT and 99.8% compared to FaviComp.",
+        ],
+        links: [
+          { label: "IEEE ICDM 2026", url: "https://arxiv.org/abs/2609.11209" },
         ],
       },
     ],
@@ -185,7 +186,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "IBM Research",
         subtitle: "Research Intern (Advisor: Dr. Dhaval Patel)",
         location: "New York, NY",
-        date: "2026.09-Present",
+        date: "2026.09 - Present",
         bullets: [
           "Lead MCP server architecture for AssetOpsBench to give tool-using LLM agents typed access to failure-mode knowledge graphs, causal root-cause ranking, and intervention estimation with deterministic Neo4j queries and provenance on every result.",
           "Create industrial fault-diagnosis RL environments for multi-step LLM agents over predictive-maintenance telemetry from 100 machines to benchmark evidence gathering and maintenance actions under hidden ground truth, look-alike faults, and incomplete observations.",
@@ -199,7 +200,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Memoria",
         subtitle: "Technical Lead",
         location: "Champaign, IL",
-        date: "2026.01-2026.08",
+        date: "2026.01 - 2026.08",
         bullets: [
           "Led end-to-end agentic workflow deployments across MCP servers, sub-agents, and agent skills with multi-agent orchestration, permission-aware tool calling, and policy guardrails, accelerating product delivery by 4.0x compared to traditional approaches.",
           "Managed production operations for deployed workflows with logging, evaluation harnesses, and monthly improvement cycles with client stakeholders, saving 90.5% in serving cost.",
@@ -213,7 +214,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Two by Two Learning Center",
         subtitle: "Full Stack Developer",
         location: "Champaign, IL",
-        date: "2025.08-2026.08",
+        date: "2025.08 - 2026.08",
         bullets: [
           "Launched NOODEIA to help K-12 students falling behind grade level with multi-agent tutoring systems to plan, critique, and monitor each user with long-horizon memory, boosting user confidence by 2.4x in counterbalanced within-subjects studies.",
           "Designed self-evolving long-term memory architectures to replace recency-biased FIFO memory architectures by retrieving contextually relevant prior interactions, accelerating memory queries by 3.6x compared to PostgreSQL.",
@@ -227,7 +228,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "WRC, University of Illinois Urbana-Champaign",
         subtitle: "Data Analyst",
         location: "Champaign, IL",
-        date: "2024.08-2024.12",
+        date: "2024.08 - 2024.12",
         bullets: [
           "Built paired pre/post analytics pipelines over survey data from 9,935 incoming students to better allocate program resources in the upcoming years, increasing correct responses among the next cohort by 14.0% with 61.9% fewer ambiguous responses.",
           "Conducted A/B tests on two consent scenarios stratified across five gender-identity subgroups to locate where misconceptions persisted after each workshop, increasing accuracy on consent comprehension by 19.5%.",
@@ -238,7 +239,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "CS 107 Data Science Discovery, University of Illinois Urbana-Champaign",
         subtitle: "Teaching Assistant",
         location: "Champaign, IL",
-        date: "2023.08-2026.05",
+        date: "2023.08 - 2026.05",
         bullets: [
           "Led weekly lab sections and office hours for in-person and online sessions, mentoring 1,200 students every semester through data science foundations in Python, statistical inference, data wrangling, and machine learning.",
           "Authored DISCOVERY Guides on the course website to provide detailed explanations with applied Python and statistics walkthroughs.",
@@ -260,7 +261,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "OnePromptClaudeCode",
         subtitle: "Lead Developer",
         location: "Champaign, IL",
-        date: "2026.03-Present",
+        date: "2026.03 - Present",
         bullets: [
           "Lead development of an MIT-licensed open-source agent harness for agentic software development, minimizing setup time by 99.5%.",
           "Design three-tier capability routers for the agent harness to optimize tokens, latency, and cost on every turn, with keyword matching and session-memory recall ahead of a 4.5 s model reasoning pass, resolving intent in 120 ms and running 37.5x faster than routing every prompt through the model.",
@@ -281,7 +282,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Long-Form Video-Language and Audio-Visual Social Understanding",
         subtitle: "Undergraduate Research Assistant, University of Illinois Urbana-Champaign",
         location: "Champaign, IL",
-        date: "2025.12-2026.05",
+        date: "2025.12 - 2026.05",
         bullets: [
           "Trained streaming video-language models with temporal transformer blocks for long-form video understanding beyond 30-minute sequences, boosting zero-shot accuracy by 17.4%.",
           "Designed context fluidity pipelines to fuse facial action units, body pose, and prosody through cross-modal attention and infer social intent and conversational role from raw recordings, achieving 89.1% accuracy on speaker-role classification.",
@@ -292,7 +293,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Multi-agent Research Synthesis Engine",
         subtitle: "Undergraduate Research Assistant",
         location: "Champaign, IL",
-        date: "2025.11-2026.05",
+        date: "2025.11 - 2026.05",
         bullets: [
           "Orchestrated eight specialized agents across a 12-step workflow for automated literature synthesis to cover planning, retrieval, drafting, reflection, and safety review in a single loop with LLM-as-judge evaluation, achieving 95.5% accuracy on deep research pipelines.",
           "Developed concurrent multi-source retrieval across Semantic Scholar and Tavily with production-grade fallback handling for API failures, minimizing query latency by 40.2%.",
@@ -306,7 +307,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Realistic Neural Style Transfer Architecture",
         subtitle: "Undergraduate Research Assistant",
         location: "Champaign, IL",
-        date: "2025.01-2025.08",
+        date: "2025.01 - 2025.08",
         bullets: [
           "Proposed style transfer frameworks to maintain photorealistic results under highly abstract styles with VGG perceptual losses and edge-preserving constraints, improving SSIM by 77.0% and MS-SSIM by 49.0% compared to TensorFlow's NST.",
           "Proposed multi-layer Gram matrix losses with adaptive layer weighting to suppress texture and chromatic artifacts, boosting SSIM by 4.4x and MS-SSIM by 6.4x compared to ChatGPT-4o.",
@@ -319,7 +320,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Anime Statistics and Analysis Platform, ASAP",
         subtitle: "Undergraduate Research Assistant",
         location: "Champaign, IL",
-        date: "2025.02-2025.06",
+        date: "2025.02 - 2025.06",
         bullets: [
           "Deployed interactive R Shiny analytics platforms to surface anime popularity trends and market opportunities with live Jikan REST API data and predictive analysis on shinyapps.io.",
         ],
@@ -337,11 +338,11 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
       {
         title: "Technical Skills",
         bullets: [
-          "Programming Languages and AI/ML Frameworks: Python, C++, C, Rust, Go, Java, Swift, Kotlin, Ruby, R, PyTorch, CUDA, JAX, TensorFlow, Triton, TensorRT, vLLM, SGLang, NeMo, Megatron-LM, LangGraph, NCCL, GPU/TPU/CPU Architecture.",
-          "Foundation Model Training: Pre-training, Post-training, Test-time Training, Reinforcement Learning, Continual Learning, SFT, RLHF, RLAIF, RLVF, PPO, DPO, GRPO, Reward Modeling, Model Alignment and Instruction Following, Synthetic Data Generation, Knowledge Distillation, Quantization, Context Compression, Token Pruning, Kernel Optimization, LoRA, QLoRA, Distributed Training, FSDP.",
-          "Computer Vision and Agentic AI: World Models, Diffusion Models, Autoregressive Models, Flow Matching, 3D/4D Image and Video Generation, Multi-View Geometry, 3D Reconstruction, Novel View Synthesis, Spatial Intelligence, Visual-Inertial Odometry, Depth Estimation, NeRFs, 3D Gaussian Splatting, OpenCV, SLAM, Multi-Agent Orchestration, Sub-Agent Parallelization, Computer-Use Agents, Agent Harness, Policy Guardrails, Context Engineering, Prompt Caching, MCP, A2A, Tool Calling, Multi-Step Autonomous Workflows, Long-Horizon Agent Memory, RAG.",
-          "Full-stack, Databases, Infrastructure, and Design: React, Vue, Angular, JavaScript, TypeScript, HTML5, Tailwind CSS, FastAPI, PostgreSQL, Neo4j, MongoDB, Kafka, Docker, Kubernetes, CI/CD, AWS, GCP, Azure, Figma, Canva, Adobe Creative Suite, Microsoft Office Suite, Unity.",
-          "Languages: Chinese (Native), English (Native), Spanish (Limited Working Proficiency).",
+          "Programming Languages and AI/ML Frameworks: Python, C++, C, Rust, Go, Java, Swift, Kotlin, Ruby, R, PyTorch, CUDA, JAX, TensorFlow, Triton, TensorRT, vLLM, SGLang, NeMo, Megatron-LM, LangGraph, NCCL, GPU/TPU/CPU architecture.",
+          "Foundation Model Training: pre-training, post-training, test-time training, reinforcement learning, continual learning, SFT, RLHF, RLAIF, RLVF, PPO, DPO, GRPO, reward modeling, model alignment and instruction following, synthetic data generation, knowledge distillation, quantization, context compression, token pruning, kernel optimization, LoRA, QLoRA, distributed training, FSDP.",
+          "Computer Vision and Agentic AI: world models, diffusion models, autoregressive models, flow matching, 3D/4D image and video generation, multi-view geometry, 3D reconstruction, novel view synthesis, spatial intelligence, visual-inertial odometry, depth estimation, NeRFs, 3D Gaussian Splatting, OpenCV, SLAM, multi-agent orchestration, sub-agent parallelization, computer-use agents, agent harness, policy guardrails, context engineering, prompt caching, MCP, A2A, tool calling, multi-step autonomous workflows, long-horizon agent memory, RAG.",
+          "Full-stack, Databases, Infrastructure, and Design: React, Vue, Angular, JavaScript, TypeScript, HTML5, Tailwind CSS, FastAPI, PostgreSQL, Neo4j, MongoDB, Kafka, Docker, Kubernetes, CI/CD, cloud platforms (AWS, GCP, Azure), Figma, Canva, Adobe Creative Suite, Microsoft Office Suite, Unity.",
+          "Languages: Chinese (native), English (native), Spanish (limited working proficiency).",
         ],
       },
       {
@@ -359,14 +360,14 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Education",
         bullets: [
           {
-            text: "Columbia University, New York, NY\nM.S. in Data Science\nFu Foundation School of Engineering and Applied Science\nCourses: High Performance Machine Learning, Algorithms\n2026.08 - 2028.05",
+            text: "Columbia University, New York, NY\nM.S. in Data Science\nFu Foundation School of Engineering and Applied Science\nCourses: High Performance Machine Learning, Algorithms\n2026.08 - Expected 2028.05",
             logo: INSTITUTION_LOGOS.columbia,
             url: "https://www.engineering.columbia.edu/",
           },
           {
             text: "University of Illinois Urbana-Champaign, Champaign, IL\nB.S. in Data Science and Information Science\nMinors: Computer Science and Statistics\nSiebel School of Computing and Data Science\nHonors: Dean's List and James Scholar\nCourses: Applied Machine Learning, Generative AI for Human-AI Collaboration, Advanced AI Web-App Development, Graph Databases, Data Visualization, Computational Photography, Linear Algebra with Computational Applications\n2022.08 - 2026.05",
             logo: INSTITUTION_LOGOS.illinois,
-            url: "https://siebelschool.illinois.edu/",
+            url: "https://www.illinois.edu/",
           },
         ],
       },

@@ -26,11 +26,11 @@ describe("story content", () => {
     expect(contact.links?.find((l) => l.label === "X")?.url).toBe("https://x.com/QiranHu")
   })
 
-  it("links the AC3S paper to its arXiv page, code, demo video, poster, and BibTeX", () => {
+  it("links the AC3S paper to its arXiv page, code, demo video, and BibTeX", () => {
     const ac3s = STORY_STAGES.fire_island.cards.find((card) => card.title.startsWith("AC3S"))!
     expect(ac3s.title).toMatch(/^AC3S/)
-    expect(ac3s.bullets[0]).toContain("European Conference on Computer Vision (ECCV), 2026")
-    expect(ac3s.links?.map((l) => l.label)).toEqual(["arXiv", "Code", "Video", "Poster", "BibTeX"])
+    expect(ac3s.bullets[0]).toContain("European Conference on Computer Vision (ECCV) 2026")
+    expect(ac3s.links?.map((l) => l.label)).toEqual(["arXiv", "Code", "Video", "BibTeX"])
     expect(ac3s.links?.find((l) => l.label === "Video")?.url).toBe("https://youtu.be/3jOJaT2a8iQ")
     expect(ac3s.links?.find((l) => l.label === "BibTeX")?.url).toBe("https://arxiv.org/bibtex/2606.31204")
   })
@@ -45,13 +45,13 @@ describe("story content", () => {
       expect(paper.image?.src).toMatch(/\/images\/papers\/[a-z0-9-]+\.webp$/)
       expect(paper.image?.alt.length).toBeGreaterThan(10)
       // Under-review papers carry the neutral badge; accepted ones name their venue's acronym.
-      expect(paper.badge).toBe(paper.venue === "Under Review" ? "Under Review" : paper.venue!.match(/\(([A-Z]+)\)/)?.[1])
+      expect(paper.badge).toBe(paper.venue === "Under review" ? "Under review" : paper.venue!.match(/\(([A-Z]+)\)/)?.[1])
       // Accepted papers carry links; papers still under review have nowhere to point yet.
-      expect((paper.links ?? []).length > 0).toBe(paper.venue !== "Under Review")
+      expect((paper.links ?? []).length > 0).toBe(paper.venue !== "Under review")
       expect(paper.authors).toContain("Qiran Hu")
       expect(paper.venue).toBeTruthy()
       const authors = paper.authors!
-      const names = authors.length > 1 ? `${authors.slice(0, -1).join(", ")}, and ${authors[authors.length - 1]}` : authors[0]
+      const names = authors.join(", ")
       expect(paper.bullets).toEqual([`[${index + 1}] ${names}. ${paper.title}. ${paper.venue}.`])
     })
   })

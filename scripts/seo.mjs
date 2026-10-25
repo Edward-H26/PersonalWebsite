@@ -13,7 +13,7 @@ export const OG_IMAGE_URL = `${SITE_URL}/images/og-card.png`
 export const PHOTO_URL = `${SITE_URL}/images/profile-1024.jpg`
 export const JOB_TITLE = "Research Assistant"
 export const SITE_DESCRIPTION =
-  "Interactive 3D portfolio of Qiran Hu, Columbia M.S. student and UIUC research assistant in multimodal learning, 3D-aware generative models, and multi-agent AI."
+  "3D portfolio of Qiran Hu, Columbia University M.S. student and University of Illinois Urbana-Champaign research assistant in multimodal, 3D-aware generative AI."
 export const HEAD_MARKERS = ["<!-- seo:head -->", "<!-- /seo:head -->"]
 export const BODY_MARKERS = ["<!-- seo:body -->", "<!-- /seo:body -->"]
 

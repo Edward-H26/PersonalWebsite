@@ -35,7 +35,7 @@ export function PublicationCardContent({ card }: { card: DisplayCard }) {
   const figure = card.image ? (
     <>
       <img src={card.image.src} alt={card.image.alt} loading="lazy" decoding="async" />
-      {card.badge ? <span className={card.badge === "Under Review" ? "paper-badge paper-badge-muted" : "paper-badge"}>{card.badge}</span> : null}
+      {card.badge ? <span className={card.badge === "Under review" ? "paper-badge paper-badge-muted" : "paper-badge"}>{card.badge}</span> : null}
     </>
   ) : null
 

@@ -2,7 +2,7 @@ import { withBase } from "@/utils/assets"
 
 export const INSTITUTION_LOGOS = {
   columbia: {
-    name: "Columbia Engineering",
+    name: "Columbia University",
     image: withBase("/images/columbia-engineering-crown.png")
   },
   illinois: {
