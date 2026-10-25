@@ -77,6 +77,7 @@ const PUBLICATIONS: Paper[] = [
       { label: "arXiv", url: "https://arxiv.org/abs/2606.31204" },
       { label: "Code", url: "https://ac3s.cvmlgroup.web.illinois.edu/" },
       { label: "Video", url: "https://youtu.be/3jOJaT2a8iQ" },
+      { label: "Poster", url: "https://eccv.ecva.net/virtual/2026/poster/5183" },
       { label: "BibTeX", url: "https://arxiv.org/bibtex/2606.31204" },
     ],
   },
@@ -85,7 +86,7 @@ const PUBLICATIONS: Paper[] = [
     authors: ["Tuan Nguyen", "Qiran Hu", "Banruo Liu", "Khoa D. Doan", "Kok-Seng Wong", "Fan Lai"],
     venue: "IEEE International Conference on Data Mining (ICDM), 2026",
     badge: "ICDM",
-    image: paperFigure("reva", "Three charts from the paper: online overhead per query across five compressors, F1 change over global truncation on four QA datasets, and the share of queries that re-access a stored document"),
+    image: paperFigure("reva", "The REVA system: past requests leave reusable word scores in a word-score store, and a new request materializes per-document views from them"),
     links: [
       { label: "arXiv", url: "https://arxiv.org/abs/2609.11209" },
       { label: "Code", url: "https://github.com/UIUC-MLSys/REVA" },
@@ -188,7 +189,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         bullets: [
           "Lead MCP server architecture for AssetOpsBench to give tool-using LLM agents typed access to failure-mode knowledge graphs, causal root-cause ranking, and intervention estimation with deterministic Neo4j queries and provenance on every result.",
           "Create industrial fault-diagnosis RL environments for multi-step LLM agents over predictive-maintenance telemetry from 100 machines to benchmark evidence gathering and maintenance actions under hidden ground truth, look-alike faults, and incomplete observations.",
-          "Conduct controlled evaluations of four LLM agents under one model and action budget, raising Top-1 diagnosis accuracy by 88% over a Plan-Execute agent, and profile inference latency with PyTorch Profiler and Nsight on H100 GPUs.",
+          "Conduct controlled evaluations of four LLM agents under one model and action budget, raising Top-1 diagnosis accuracy by 88.0% over a Plan-Execute agent, and profile inference latency with PyTorch Profiler and Nsight on H100 GPUs.",
         ],
         links: [
           { label: "AssetOpsBench", url: "https://github.com/IBM/AssetOpsBench" },
@@ -209,7 +210,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         ],
       },
       {
-        title: "Two by Two Learning",
+        title: "Two by Two Learning Center",
         subtitle: "Full Stack Developer",
         location: "Champaign, IL",
         date: "2025.08-2026.08",
@@ -340,7 +341,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
           "Foundation Model Training: Pre-training, Post-training, Test-time Training, Reinforcement Learning, Continual Learning, SFT, RLHF, RLAIF, RLVF, PPO, DPO, GRPO, Reward Modeling, Model Alignment and Instruction Following, Synthetic Data Generation, Knowledge Distillation, Quantization, Context Compression, Token Pruning, Kernel Optimization, LoRA, QLoRA, Distributed Training, FSDP.",
           "Computer Vision and Agentic AI: World Models, Diffusion Models, Autoregressive Models, Flow Matching, 3D/4D Image and Video Generation, Multi-View Geometry, 3D Reconstruction, Novel View Synthesis, Spatial Intelligence, Visual-Inertial Odometry, Depth Estimation, NeRFs, 3D Gaussian Splatting, OpenCV, SLAM, Multi-Agent Orchestration, Sub-Agent Parallelization, Computer-Use Agents, Agent Harness, Policy Guardrails, Context Engineering, Prompt Caching, MCP, A2A, Tool Calling, Multi-Step Autonomous Workflows, Long-Horizon Agent Memory, RAG.",
           "Full-stack, Databases, Infrastructure, and Design: React, Vue, Angular, JavaScript, TypeScript, HTML5, Tailwind CSS, FastAPI, PostgreSQL, Neo4j, MongoDB, Kafka, Docker, Kubernetes, CI/CD, AWS, GCP, Azure, Figma, Canva, Adobe Creative Suite, Microsoft Office Suite, Unity.",
-          "Languages: Chinese (Native), English (Native), Spanish (Elementary).",
+          "Languages: Chinese (Native), English (Native), Spanish (Limited Working Proficiency).",
         ],
       },
       {
@@ -358,7 +359,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Education",
         bullets: [
           {
-            text: "Columbia University, New York City, NY\nM.S. in Data Science\nFu Foundation School of Engineering and Applied Science\nCourses: High Performance Machine Learning, Algorithms\n2026.08 - 2028.05",
+            text: "Columbia University, New York, NY\nM.S. in Data Science\nFu Foundation School of Engineering and Applied Science\nCourses: High Performance Machine Learning, Algorithms\n2026.08 - 2028.05",
             logo: INSTITUTION_LOGOS.columbia,
             url: "https://www.engineering.columbia.edu/",
           },
@@ -373,7 +374,7 @@ export const STORY_STAGES: Record<StoryStageId, StoryStage> = {
         title: "Contact",
         bullets: [
           "Email: qh2332@columbia.edu",
-          "Phone: +1 (347)-957-9176",
+          "Phone: +1 (347) 957-9176",
         ],
         links: [
           { label: "GitHub", url: "https://github.com/Edward-H26" },

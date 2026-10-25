@@ -155,7 +155,7 @@ describe("json-ld", () => {
     const accepted = articles.find((article) => article.headline.startsWith("AC3S"))!
     expect(accepted.publication.name).toMatch(/ECCV/)
     expect(accepted.url).toBe("https://arxiv.org/abs/2606.31204")
-    expect(accepted.subjectOf.map((page: { name: string }) => page.name)).toEqual(["Code", "Video", "BibTeX"])
+    expect(accepted.subjectOf.map((page: { name: string }) => page.name)).toEqual(["Code", "Video", "Poster", "BibTeX"])
     expect(accepted.image).toBe(`${SITE_URL}/images/papers/ac3s.webp`)
   })
 
@@ -212,7 +212,7 @@ describe("static body", () => {
   })
 
   it("keeps education entries readable by turning line breaks into <br />", () => {
-    expect(body).toContain("Columbia University, New York City, NY<br />M.S. in Data Science")
+    expect(body).toContain("Columbia University, New York, NY<br />M.S. in Data Science")
   })
 
   it("escapes markup coming from the content and tolerates cards without optional fields", () => {

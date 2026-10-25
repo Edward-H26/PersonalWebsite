@@ -1,6 +1,6 @@
 # Qiran Hu
 
-> Interactive 3D portfolio of Qiran Hu, research assistant at UIUC working on multimodal learning, 3D-aware generative models, and multi-agent AI systems.
+> Interactive 3D portfolio of Qiran Hu, Columbia M.S. student and UIUC research assistant in multimodal learning, 3D-aware generative models, and multi-agent AI.
 
 - This page: https://edward-h26.github.io/PersonalWebsite/
 - Classic portfolio: https://edward-h26.github.io/
@@ -9,7 +9,7 @@
 - X: https://x.com/QiranHu
 - Google Scholar: https://scholar.google.com/citations?user=4jv03f4AAAAJ&hl=en
 - Email: qh2332@columbia.edu
-- Phone: +1 (347)-957-9176
+- Phone: +1 (347) 957-9176
 
 ## About
 
@@ -22,7 +22,7 @@ Papers
 ### AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation
 
 - [1] Eric Ji, Qiran Hu, Wufei Ma, Sarthak Jain, Yingying Li, Minh N. Do, and Yaoyao Liu. AC3S: Adaptive Conditioning for 3D-Aware Synthetic Data Generation. European Conference on Computer Vision (ECCV), 2026.
-- Links: [arXiv](https://arxiv.org/abs/2606.31204), [Code](https://ac3s.cvmlgroup.web.illinois.edu/), [Video](https://youtu.be/3jOJaT2a8iQ), [BibTeX](https://arxiv.org/bibtex/2606.31204)
+- Links: [arXiv](https://arxiv.org/abs/2606.31204), [Code](https://ac3s.cvmlgroup.web.illinois.edu/), [Video](https://youtu.be/3jOJaT2a8iQ), [Poster](https://eccv.ecva.net/virtual/2026/poster/5183), [BibTeX](https://arxiv.org/bibtex/2606.31204)
 
 ### REVA: Reusable Evidence View Aggregation for Context-Efficient RAG Serving
 
@@ -121,7 +121,7 @@ Research Intern (Advisor: Dr. Dhaval Patel), 2026.09-Present, New York, NY
 
 - Lead MCP server architecture for AssetOpsBench to give tool-using LLM agents typed access to failure-mode knowledge graphs, causal root-cause ranking, and intervention estimation with deterministic Neo4j queries and provenance on every result.
 - Create industrial fault-diagnosis RL environments for multi-step LLM agents over predictive-maintenance telemetry from 100 machines to benchmark evidence gathering and maintenance actions under hidden ground truth, look-alike faults, and incomplete observations.
-- Conduct controlled evaluations of four LLM agents under one model and action budget, raising Top-1 diagnosis accuracy by 88% over a Plan-Execute agent, and profile inference latency with PyTorch Profiler and Nsight on H100 GPUs.
+- Conduct controlled evaluations of four LLM agents under one model and action budget, raising Top-1 diagnosis accuracy by 88.0% over a Plan-Execute agent, and profile inference latency with PyTorch Profiler and Nsight on H100 GPUs.
 - Links: [AssetOpsBench](https://github.com/IBM/AssetOpsBench)
 
 ### Memoria
@@ -133,7 +133,7 @@ Technical Lead, 2026.01-2026.08, Champaign, IL
 - Optimized enterprise workflows with self-evolving per-user memory and cost-aware model routing across sessions, saving 96.0% in token cost compared to GPT-4 Turbo.
 - Links: [Website](https://miramemoria.com/)
 
-### Two by Two Learning
+### Two by Two Learning Center
 
 Full Stack Developer, 2025.08-2026.08, Champaign, IL
 
@@ -182,7 +182,7 @@ Education, Skills, and Contact
 - Foundation Model Training: Pre-training, Post-training, Test-time Training, Reinforcement Learning, Continual Learning, SFT, RLHF, RLAIF, RLVF, PPO, DPO, GRPO, Reward Modeling, Model Alignment and Instruction Following, Synthetic Data Generation, Knowledge Distillation, Quantization, Context Compression, Token Pruning, Kernel Optimization, LoRA, QLoRA, Distributed Training, FSDP.
 - Computer Vision and Agentic AI: World Models, Diffusion Models, Autoregressive Models, Flow Matching, 3D/4D Image and Video Generation, Multi-View Geometry, 3D Reconstruction, Novel View Synthesis, Spatial Intelligence, Visual-Inertial Odometry, Depth Estimation, NeRFs, 3D Gaussian Splatting, OpenCV, SLAM, Multi-Agent Orchestration, Sub-Agent Parallelization, Computer-Use Agents, Agent Harness, Policy Guardrails, Context Engineering, Prompt Caching, MCP, A2A, Tool Calling, Multi-Step Autonomous Workflows, Long-Horizon Agent Memory, RAG.
 - Full-stack, Databases, Infrastructure, and Design: React, Vue, Angular, JavaScript, TypeScript, HTML5, Tailwind CSS, FastAPI, PostgreSQL, Neo4j, MongoDB, Kafka, Docker, Kubernetes, CI/CD, AWS, GCP, Azure, Figma, Canva, Adobe Creative Suite, Microsoft Office Suite, Unity.
-- Languages: Chinese (Native), English (Native), Spanish (Elementary).
+- Languages: Chinese (Native), English (Native), Spanish (Limited Working Proficiency).
 
 ### Certifications and Honors
 
@@ -192,11 +192,11 @@ Education, Skills, and Contact
 
 ### Education
 
-- Columbia University, New York City, NY, M.S. in Data Science, Fu Foundation School of Engineering and Applied Science, Courses: High Performance Machine Learning, Algorithms, 2026.08 - 2028.05
+- Columbia University, New York, NY, M.S. in Data Science, Fu Foundation School of Engineering and Applied Science, Courses: High Performance Machine Learning, Algorithms, 2026.08 - 2028.05
 - University of Illinois Urbana-Champaign, Champaign, IL, B.S. in Data Science and Information Science, Minors: Computer Science and Statistics, Siebel School of Computing and Data Science, Honors: Dean's List and James Scholar, Courses: Applied Machine Learning, Generative AI for Human-AI Collaboration, Advanced AI Web-App Development, Graph Databases, Data Visualization, Computational Photography, Linear Algebra with Computational Applications, 2022.08 - 2026.05
 
 ### Contact
 
 - Email: qh2332@columbia.edu
-- Phone: +1 (347)-957-9176
+- Phone: +1 (347) 957-9176
 - Links: [GitHub](https://github.com/Edward-H26), [LinkedIn](https://www.linkedin.com/in/qiranhu/), [X](https://x.com/QiranHu), [Website](https://edward-h26.github.io/), [Google Scholar](https://scholar.google.com/citations?user=4jv03f4AAAAJ&hl=en)
