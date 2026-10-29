@@ -1,0 +1,127 @@
+/* Liquid glass: the translucent card panel, gradient text, and the link chips and rows on it. */
+@layer components {
+  .liquid-glass-panel {
+    @apply border border-white/10 rounded-2xl;
+    position: relative;
+    overflow: hidden;
+    background: rgba(10, 12, 18, var(--glass-bg-alpha, 0.12));
+    backdrop-filter: blur(16px) saturate(1.25);
+    -webkit-backdrop-filter: blur(16px) saturate(1.25);
+    box-shadow: 0 22px 74px rgba(0, 0, 0, 0.42);
+  }
+
+  .liquid-glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: -60%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(6, 182, 212, 0.12), transparent 52%),
+      radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.1), transparent 56%),
+      radial-gradient(circle at 45% 80%, rgba(236, 72, 153, 0.08), transparent 58%);
+    filter: blur(20px);
+    opacity: var(--glass-before-opacity, 0.24);
+    transform: rotate(8deg);
+    animation: liquidShift 9s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .liquid-glass-panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.01)),
+      radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.14), transparent 46%);
+    opacity: var(--glass-after-opacity, 0.24);
+    pointer-events: none;
+  }
+
+  .liquid-glass-text {
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.95), rgba(6, 182, 212, 0.9), rgba(139, 92, 246, 0.9));
+    background-size: 220% 220%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 30px rgba(6, 182, 212, 0.25);
+    animation: liquidText 7s ease-in-out infinite;
+  }
+
+  /* Liquid glass: a frosted, translucent body with a luminous rim and a specular top edge. */
+  .liquid-link-chip {
+    @apply inline-flex items-center gap-2 text-[11px] px-3 py-1.5 rounded-full text-white;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.08) 100%);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.15),
+      0 10px 24px rgba(0, 0, 0, 0.22);
+    transform: translateZ(0);
+    transition:
+      transform 160ms ease,
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+    overflow: hidden;
+  }
+
+  /* A whole logo-and-text row that links out, borrowing the chip's glass hover without its pill shape. */
+  .liquid-link-row {
+    @apply flex w-full items-start gap-3 rounded-2xl border border-transparent px-2 py-1.5 text-left md:gap-4;
+    transition:
+      transform 160ms ease,
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .liquid-link-row:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.45);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 14px 32px rgba(0, 0, 0, 0.26);
+  }
+
+  .liquid-link-row:active {
+    transform: translateY(0);
+  }
+
+  .liquid-link-chip::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    transform: translateX(-40%) rotate(12deg);
+    opacity: 0;
+    transition: opacity 160ms ease;
+    pointer-events: none;
+  }
+
+  .liquid-link-chip::after {
+    content: "↗";
+    opacity: 0.85;
+  }
+
+  .liquid-link-chip:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.85);
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.24) 45%, rgba(255, 255, 255, 0.14) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.2),
+      0 16px 40px rgba(0, 0, 0, 0.28);
+  }
+
+  .liquid-link-chip:hover::before {
+    opacity: 1;
+    animation: chipShimmer 900ms ease forwards;
+  }
+
+  .liquid-link-chip:active {
+    transform: translateY(0);
+  }
+}

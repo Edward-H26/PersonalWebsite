@@ -1,31 +1,34 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { buildScrollDeckPages } from "@/config/scrollDeckPages"
 import { useWorldStore } from "@/store/worldStore"
-import { clamp01, clampInt, lerp, smoothstep01 } from "@/utils/math"
-import {
-  type DeckSection,
-  LAST_SECTION,
-  findIndexForSection,
-  findInnerScroller,
-  getPageHeight,
-  getRouteTAtPagePos,
-  getSectionRanges,
-  isNearSnap
-} from "@/deck/deckMath"
+import { clampInt } from "@/utils/math"
+import { getSlideBlends, getWrapZoneBlends } from "@/deck/deckBlends"
+import { getDeckLayout } from "@/deck/deckLayout"
+import { type DeckSection, LAST_SECTION, findIndexForSection, getPageHeight, getSectionRanges, isNearSnap } from "@/deck/deckMath"
+import { OVERVIEW_WRAP_COOLDOWN_MS, beginWrap, createWrapState, easeScrollTowards, finishWrap, isWrapBlocked } from "@/deck/deckWrap"
+import { createEdgeArmState, disarmEdges, hasFreshUserInput, resolveEdgeWrap, updateEdgeArming } from "@/deck/edgeWrap"
+import { getTravelDirThresholdPx, lockScrollDirection } from "@/deck/scrollDirection"
+import { createSnapDriftState, trackSnapDrift } from "@/deck/snapDrift"
 import { createWheelPager } from "@/deck/wheelPager"
+import { useDeckInput } from "./useDeckInput"
 
-// Radians of camera yaw per pixel of horizontal wheel/trackpad travel, per pixel of touch drag,
-// and per arrow-key press.
-const LOOK_YAW_PER_WHEEL_PX = 0.0025
-const LOOK_YAW_PER_TOUCH_PX = 0.006
-const LOOK_YAW_PER_KEY = 0.14
-const TOUCH_LOOK_START_PX = 12
+/** Scroll events stop for this long before the deck counts as settled and arms the edges. */
+const SCROLL_END_MS = 140
+/** Scroll positions this close to the end of the deck count as touching the bottom edge. */
+const EDGE_EPSILON_PX = 3
+/** Scroll positions within half a pixel of a slide count as aligned with it. */
+const ALIGNED_EPSILON_PX = 0.5
 
+/**
+ * Drives the scroll deck: keeps the active slide and section in React state, maps the scroll
+ * position onto the world store (route position, overview and title-card blends, travel
+ * direction) on every frame, and makes the deck endless by wrapping between its two ends.
+ * Input handling lives in useDeckInput; the pure pieces of the per-frame logic live in src/deck.
+ */
 export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked?: boolean } = {}) {
   const pages = useMemo(() => buildScrollDeckPages(), [])
-  const overviewIndex = useMemo(() => pages.findIndex((p) => p.kind === "overview"), [pages])
-  const researchTitleIndex = useMemo(() => findIndexForSection(pages, 1), [pages])
-  const stageTitleIndices = useMemo(() => pages.flatMap((p, i) => (p.kind === "stage_title" ? [i] : [])), [pages])
+  const layout = useMemo(() => getDeckLayout(pages), [pages])
+  const sectionRanges = useMemo(() => getSectionRanges(pages), [pages])
 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const rafId = useRef<number | null>(null)
@@ -35,19 +38,10 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
   const scrollDirLockRef = useRef<1 | -1 | null>(null)
   const isProgrammaticJumpRef = useRef(false)
   const didInitScrollRef = useRef(false)
-  const wrapLockUntilMs = useRef(0)
-  const wrapInProgressRef = useRef(false)
-  const wrapTargetIndexRef = useRef<number | null>(null)
-  const lastWrapTargetIndexRef = useRef<number | null>(null)
-  const lastWrapEndedAtMs = useRef(0)
-  const wrapCooldownUntilMs = useRef(0)
+  const wrapRef = useRef(createWrapState())
   const lastDeltaSignRef = useRef<number>(0)
-  const settledSnapCountRef = useRef(0)
-  const lastSnapIndexRef = useRef<number | null>(null)
-  const lastCorrectedIndexRef = useRef<number | null>(null)
-  const edgeArmedRef = useRef({ top: false, bottom: false })
-  const edgeArmedAtMsRef = useRef<number | null>(null)
-  const edgeArmRequestedRef = useRef(false)
+  const snapDriftRef = useRef(createSnapDriftState())
+  const edgeArmRef = useRef(createEdgeArmState())
   const lastUserScrollAtRef = useRef(0)
   const suppressTravelDirUpdateRef = useRef(false)
   const scrollLockedRef = useRef(scrollLocked)
@@ -71,20 +65,6 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     scrollLockedRef.current = scrollLocked
   }, [scrollLocked])
 
-  const hasSentinels =
-    pages.length > 2 && pages[0]?.kind === "sentinel" && pages[pages.length - 1]?.kind === "sentinel"
-  const sentinelTopIndex = 0
-  const sentinelBottomIndex = pages.length - 1
-  const firstRealIndex = hasSentinels ? 1 : 0
-  const lastRealIndex = hasSentinels ? pages.length - 2 : pages.length - 1
-  const defaultWrapCooldownMs = 380
-  const overviewWrapCooldownMs = 650
-  const wrapEasing = 0.2
-  const recentUserInputWindowMs = 300
-
-  const sectionRanges = useMemo(() => getSectionRanges(pages), [pages])
-  const overviewTargetIndex = overviewIndex >= 0 ? overviewIndex : firstRealIndex
-
   useEffect(() => {
     const el = containerRef.current
 
@@ -97,19 +77,17 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     }
   }, [])
 
+  // Jumps to the far end of the deck with snapping switched off, then resumes syncing a frame later.
   const startWrap = useCallback((targetIndex: number) => {
     const el = containerRef.current
     if (!el) return
 
     const now = performance.now()
-    if (wrapInProgressRef.current) return
-    if (now < wrapLockUntilMs.current) return
+    const wrap = wrapRef.current
+    if (isWrapBlocked(wrap, now)) return
 
-    wrapInProgressRef.current = true
+    beginWrap(wrap, targetIndex, now)
     suppressTravelDirUpdateRef.current = true
-    wrapLockUntilMs.current = now + 800
-    wrapTargetIndexRef.current = targetIndex
-    lastWrapTargetIndexRef.current = targetIndex
 
     el.classList.add("scroll-snap-disabled")
 
@@ -121,7 +99,7 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
       requestAnimationFrame(() => {
         isProgrammaticJumpRef.current = false
         el.classList.remove("scroll-snap-disabled")
-        wrapInProgressRef.current = false
+        wrap.inProgress = false
         if (rafId.current != null) cancelAnimationFrame(rafId.current)
         rafId.current = requestAnimationFrame(() => syncFromScrollRef.current())
       })
@@ -135,85 +113,57 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
 
     const height = getPageHeight(el)
     const pagePos = el.scrollTop / height
-    let index = clampInt(Math.round(pagePos), 0, pages.length - 1)
     const now = performance.now()
-    const wrapLockedIndex =
-      now < wrapCooldownUntilMs.current ? lastWrapTargetIndexRef.current : wrapTargetIndexRef.current
-    if (wrapLockedIndex != null) {
-      index = clampInt(wrapLockedIndex, 0, pages.length - 1)
-    }
+    const wrap = wrapRef.current
+    // While a wrap lands or cools down, the landing slide stays active whatever the scroll position says.
+    const wrapLockedIndex = now < wrap.cooldownUntilMs ? wrap.lastTargetIndex : wrap.targetIndex
+    const index =
+      wrapLockedIndex != null ? clampInt(wrapLockedIndex, 0, pages.length - 1) : clampInt(Math.round(pagePos), 0, pages.length - 1)
     const page = pages[index]
+    const targetTop = index * height
 
     const isSettledOnSnap = isNearSnap(el.scrollTop, index, height)
     const maxScrollTop = Math.max(0, el.scrollHeight - height)
-    const edgeEpsilonPx = 3
-    const isAtBottomEdge = el.scrollTop >= maxScrollTop - edgeEpsilonPx
+    const isAtBottomEdge = el.scrollTop >= maxScrollTop - EDGE_EPSILON_PX
 
     const prevScrollTop = lastScrollTopRef.current
     const deltaScrollTop = prevScrollTop != null ? el.scrollTop - prevScrollTop : 0
-    const distToSnap = Math.abs(el.scrollTop - index * height)
-    const isRecentOverviewWrap = index === firstRealIndex && now - lastWrapEndedAtMs.current < overviewWrapCooldownMs
-    if (isRecentOverviewWrap && distToSnap > 0.5) {
-      const targetTop = index * height
+    const distToSnap = Math.abs(el.scrollTop - targetTop)
+    const isRecentOverviewWrap = index === layout.firstRealIndex && now - wrap.lastEndedAtMs < OVERVIEW_WRAP_COOLDOWN_MS
+    if (isRecentOverviewWrap && distToSnap > ALIGNED_EPSILON_PX) {
       el.scrollTop = targetTop
       lastScrollTopRef.current = targetTop
     }
     const deltaSign = deltaScrollTop === 0 ? 0 : Math.sign(deltaScrollTop)
     if (deltaSign !== 0) lastDeltaSignRef.current = deltaSign
 
-    if (isSettledOnSnap && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
-      if (lastSnapIndexRef.current !== index) {
-        settledSnapCountRef.current = 0
-        lastCorrectedIndexRef.current = null
-        lastSnapIndexRef.current = index
-      }
-      if (Math.abs(deltaScrollTop) < 0.6) {
-        settledSnapCountRef.current += 1
-      } else {
-        settledSnapCountRef.current = 0
-      }
-      const targetTop = index * height
-      const canCorrect =
-        settledSnapCountRef.current >= 5 &&
-        lastCorrectedIndexRef.current !== index &&
-        Math.abs(el.scrollTop - targetTop) > 6 &&
-        performance.now() > wrapCooldownUntilMs.current
-      if (canCorrect) {
-        el.scrollTop = targetTop
-        lastScrollTopRef.current = targetTop
-        lastCorrectedIndexRef.current = index
-      }
-    } else {
-      settledSnapCountRef.current = 0
-      lastSnapIndexRef.current = null
+    const isResting = isSettledOnSnap && !isProgrammaticJumpRef.current && !wrap.inProgress
+    const shouldCorrectDrift = trackSnapDrift(snapDriftRef.current, {
+      isResting,
+      index,
+      deltaScrollTop,
+      driftPx: Math.abs(el.scrollTop - targetTop),
+      isCooldownOver: performance.now() > wrap.cooldownUntilMs
+    })
+    if (shouldCorrectDrift) {
+      el.scrollTop = targetTop
+      lastScrollTopRef.current = targetTop
     }
 
-    const edgeArmRequested = edgeArmRequestedRef.current
-    if (isSettledOnSnap) {
-      const atTopEdge = index === firstRealIndex
-      const atBottomEdge = index === lastRealIndex
-      edgeArmedRef.current.top = atTopEdge
-      edgeArmedRef.current.bottom = atBottomEdge
-      if (edgeArmRequested && (atTopEdge || atBottomEdge)) {
-        edgeArmedAtMsRef.current = now
-        edgeArmRequestedRef.current = false
-      } else if (!atTopEdge && !atBottomEdge) {
-        edgeArmedAtMsRef.current = null
-        edgeArmRequestedRef.current = false
-      }
-    }
+    updateEdgeArming(edgeArmRef.current, {
+      isSettledOnSnap,
+      index,
+      firstRealIndex: layout.firstRealIndex,
+      lastRealIndex: layout.lastRealIndex,
+      now
+    })
 
     lastScrollTopRef.current = el.scrollTop
 
     const shouldUpdateTravelDir = !isProgrammaticJumpRef.current && !suppressTravelDirUpdateRef.current
     if (shouldUpdateTravelDir && prevScrollTop != null && !isSettledOnSnap) {
-      const thresholdPx = Math.max(1.5, height * 0.003)
-      if (scrollDirLockRef.current == null && Math.abs(deltaScrollTop) >= thresholdPx) {
-        scrollDirLockRef.current = deltaScrollTop > 0 ? 1 : -1
-        useWorldStore.getState().setTravelDir(scrollDirLockRef.current)
-      } else if (scrollDirLockRef.current != null) {
-        useWorldStore.getState().setTravelDir(scrollDirLockRef.current)
-      }
+      scrollDirLockRef.current = lockScrollDirection(scrollDirLockRef.current, deltaScrollTop, getTravelDirThresholdPx(height))
+      if (scrollDirLockRef.current != null) useWorldStore.getState().setTravelDir(scrollDirLockRef.current)
     }
 
     if (isSettledOnSnap && scrollDirLockRef.current != null) {
@@ -236,114 +186,52 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     }
 
     const store = useWorldStore.getState()
-    const isTopWrapZone = pagePos < firstRealIndex
-    const isBottomWrapZone = pagePos > lastRealIndex
-    const isWrapZone = hasSentinels && (isTopWrapZone || isBottomWrapZone)
-    const overviewPos = overviewIndex >= 0 ? overviewIndex : firstRealIndex
-    if (hasSentinels && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
-      const preWrapThreshold = 0.08
-      const edgeArmedAtMs = edgeArmedAtMsRef.current
-      const hasRecentUserInput = now - lastUserScrollAtRef.current < recentUserInputWindowMs
-      const hasFreshUserInput =
-        edgeArmedAtMs != null && lastUserScrollAtRef.current > edgeArmedAtMs && hasRecentUserInput
-      const wantsWrapUp =
-        edgeArmedRef.current.top &&
-        hasFreshUserInput &&
-        (scrollDirLockRef.current === -1 || deltaScrollTop < 0 || lastDeltaSignRef.current < 0) &&
-        pagePos <= firstRealIndex - preWrapThreshold
-      const wantsWrapDown =
-        edgeArmedRef.current.bottom &&
-        hasFreshUserInput &&
-        (scrollDirLockRef.current === 1 || deltaScrollTop > 0 || lastDeltaSignRef.current > 0) &&
-        pagePos >= lastRealIndex + preWrapThreshold
+    const isTopWrapZone = pagePos < layout.firstRealIndex
+    const isBottomWrapZone = pagePos > layout.lastRealIndex
+    const isWrapZone = layout.hasSentinels && (isTopWrapZone || isBottomWrapZone)
+    if (layout.hasSentinels && !isProgrammaticJumpRef.current && !wrap.inProgress) {
+      const edges = edgeArmRef.current
+      const wrapDirection = resolveEdgeWrap({
+        armed: edges,
+        hasFreshInput: hasFreshUserInput(edges.armedAtMs, lastUserScrollAtRef.current, now),
+        scrollDirLock: scrollDirLockRef.current,
+        deltaScrollTop,
+        lastDeltaSign: lastDeltaSignRef.current,
+        pagePos,
+        firstRealIndex: layout.firstRealIndex,
+        lastRealIndex: layout.lastRealIndex
+      })
 
-      if (wantsWrapUp) {
+      if (wrapDirection != null) {
         scrollDirLockRef.current = null
-        edgeArmedRef.current.top = false
-        edgeArmedRef.current.bottom = false
-        edgeArmedAtMsRef.current = null
-        store.setTravelDir(-1)
-        startWrapRef.current(lastRealIndex)
-        return
-      }
-
-      if (wantsWrapDown) {
-        scrollDirLockRef.current = null
-        edgeArmedRef.current.top = false
-        edgeArmedRef.current.bottom = false
-        edgeArmedAtMsRef.current = null
-        store.setTravelDir(1)
-        startWrapRef.current(overviewTargetIndex)
+        disarmEdges(edges)
+        store.setTravelDir(wrapDirection === "up" ? -1 : 1)
+        startWrapRef.current(wrapDirection === "up" ? layout.lastRealIndex : layout.overviewTargetIndex)
         return
       }
     }
-    if (!hasSentinels && !isProgrammaticJumpRef.current && !wrapInProgressRef.current) {
-      const wantsWrapToOverview = index === lastRealIndex && isAtBottomEdge && deltaScrollTop > 0
+    if (!layout.hasSentinels && !isProgrammaticJumpRef.current && !wrap.inProgress) {
+      const wantsWrapToOverview = index === layout.lastRealIndex && isAtBottomEdge && deltaScrollTop > 0
       if (wantsWrapToOverview) {
         scrollDirLockRef.current = null
         useWorldStore.getState().setTravelDir(1)
-        startWrapRef.current(overviewTargetIndex)
+        startWrapRef.current(layout.overviewTargetIndex)
         return
       }
     }
 
     if (isWrapZone) {
-      const wrapT = isTopWrapZone
-        ? clamp01((pagePos - sentinelTopIndex) / Math.max(1e-6, firstRealIndex - sentinelTopIndex))
-        : clamp01((pagePos - lastRealIndex) / Math.max(1e-6, sentinelBottomIndex - lastRealIndex))
-      const wrapEase = smoothstep01(wrapT)
-
-      const routeTAtLastReal = getRouteTAtPagePos(lastRealIndex, sectionRanges)
-      const routeTAtOverview = getRouteTAtPagePos(overviewPos, sectionRanges)
-      store.setRouteT(lerp(routeTAtLastReal, routeTAtOverview, wrapEase))
-      store.setOverviewBlend(lerp(1, 0, wrapEase))
-
-      const virtualPos = lerp(lastRealIndex, overviewPos, wrapEase)
-      let nearestTitleDist = Number.POSITIVE_INFINITY
-      for (const titleIndex of stageTitleIndices) {
-        const dist = Math.abs(virtualPos - titleIndex)
-        if (dist < nearestTitleDist) nearestTitleDist = dist
-      }
-
-      const titleWindow = 1.35
-      const titleBlend = smoothstep01(clamp01(1 - nearestTitleDist / titleWindow))
-      store.setTitleCardBlend(titleBlend)
+      const blends = getWrapZoneBlends(pagePos, isTopWrapZone, layout, sectionRanges)
+      store.setRouteT(blends.routeT)
+      store.setOverviewBlend(blends.overviewBlend)
+      store.setTitleCardBlend(blends.titleCardBlend)
     } else {
-      const snappedPagePos = isSettledOnSnap ? index : pagePos
-      store.setRouteT(getRouteTAtPagePos(snappedPagePos, sectionRanges))
-
-      let nearestTitleDist = Number.POSITIVE_INFINITY
-      for (const titleIndex of stageTitleIndices) {
-        const dist = Math.abs(snappedPagePos - titleIndex)
-        if (dist < nearestTitleDist) nearestTitleDist = dist
-      }
-
-      const titleWindow = 1.35
-      const titleBlend = smoothstep01(clamp01(1 - nearestTitleDist / titleWindow))
-      store.setTitleCardBlend(titleBlend)
-
-      if (overviewIndex >= 0 && researchTitleIndex > overviewIndex) {
-        const denom = Math.max(1e-6, researchTitleIndex - overviewIndex)
-        const t = clamp01((snappedPagePos - overviewIndex) / denom)
-        store.setOverviewBlend(smoothstep01(t))
-      } else {
-        store.setOverviewBlend(1)
-      }
+      const blends = getSlideBlends(isSettledOnSnap ? index : pagePos, layout, sectionRanges)
+      store.setRouteT(blends.routeT)
+      store.setTitleCardBlend(blends.titleCardBlend)
+      store.setOverviewBlend(blends.overviewBlend)
     }
-
-  }, [
-    firstRealIndex,
-    hasSentinels,
-    lastRealIndex,
-    overviewIndex,
-    overviewTargetIndex,
-    pages,
-    researchTitleIndex,
-    sectionRanges,
-    stageTitleIndices,
-    sentinelBottomIndex,
-    sentinelTopIndex
-  ])
+  }, [layout, pages, sectionRanges])
 
   syncFromScrollRef.current = syncFromScroll
   startWrapRef.current = startWrap
@@ -352,10 +240,11 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     const el = containerRef.current
     if (!el) return
     const now = performance.now()
-    if (now < wrapCooldownUntilMs.current && lastWrapTargetIndexRef.current != null) {
+    const wrap = wrapRef.current
+    if (now < wrap.cooldownUntilMs && wrap.lastTargetIndex != null) {
       const height = getPageHeight(el)
-      const targetTop = lastWrapTargetIndexRef.current * height
-      if (Math.abs(el.scrollTop - targetTop) > 0.5) {
+      const targetTop = wrap.lastTargetIndex * height
+      if (Math.abs(el.scrollTop - targetTop) > ALIGNED_EPSILON_PX) {
         el.scrollTop = targetTop
         lastScrollTopRef.current = targetTop
       }
@@ -364,13 +253,13 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
       }
       return
     }
-    if (wrapTargetIndexRef.current != null) {
+    if (wrap.targetIndex != null) {
       const height = getPageHeight(el)
-      const targetTop = wrapTargetIndexRef.current * height
-      const isNearTarget = isNearSnap(el.scrollTop, wrapTargetIndexRef.current, height)
+      const targetTop = wrap.targetIndex * height
+      const isNearTarget = isNearSnap(el.scrollTop, wrap.targetIndex, height)
       if (!isNearTarget) {
         isProgrammaticJumpRef.current = true
-        const nextTop = el.scrollTop + (targetTop - el.scrollTop) * wrapEasing
+        const nextTop = easeScrollTowards(el.scrollTop, targetTop)
         el.scrollTop = nextTop
         lastScrollTopRef.current = nextTop
         if (rafId.current == null) {
@@ -379,11 +268,7 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
         return
       }
       isProgrammaticJumpRef.current = false
-      wrapTargetIndexRef.current = null
-      lastWrapEndedAtMs.current = performance.now()
-      const cooldownMs =
-        lastWrapTargetIndexRef.current === firstRealIndex ? overviewWrapCooldownMs : defaultWrapCooldownMs
-      wrapCooldownUntilMs.current = lastWrapEndedAtMs.current + cooldownMs
+      finishWrap(wrap, performance.now(), layout.firstRealIndex)
     }
     if (rafId.current != null) return
     rafId.current = requestAnimationFrame(syncFromScroll)
@@ -393,53 +278,55 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     }
     scrollEndTimerRef.current = window.setTimeout(() => {
       scrollEndTimerRef.current = null
-      edgeArmRequestedRef.current = true
+      edgeArmRef.current.armRequested = true
       syncFromScrollRef.current()
-    }, 140)
-  }, [firstRealIndex, syncFromScroll])
+    }, SCROLL_END_MS)
+  }, [layout.firstRealIndex, syncFromScroll])
 
-  // Wheel and keyboard move whole slides instead of scrolling natively: with mandatory scroll
-  // snapping a flick shorter than half a viewport snaps back to the nearest slide, which pulled
-  // visitors back to the overview after the camera had started to descend.
+  // One slide per wheel notch or key press; stepping past either end wraps around.
   const stepPage = useCallback(
     (direction: 1 | -1) => {
       const el = containerRef.current
       if (!el) return
 
       const now = performance.now()
-      if (wrapInProgressRef.current || now < wrapLockUntilMs.current) return
+      if (isWrapBlocked(wrapRef.current, now)) return
 
       const height = getPageHeight(el)
-      const currentIndex = clampInt(Math.round(el.scrollTop / height), firstRealIndex, lastRealIndex)
+      const currentIndex = clampInt(Math.round(el.scrollTop / height), layout.firstRealIndex, layout.lastRealIndex)
       lastUserScrollAtRef.current = now
       scrollDirLockRef.current = null
       wheelPagerRef.current.markStepped(now)
       useWorldStore.getState().setLookYaw(0)
 
-      if (direction === -1 && currentIndex === firstRealIndex) {
+      if (direction === -1 && currentIndex === layout.firstRealIndex) {
         useWorldStore.getState().setTravelDir(-1)
-        startWrap(lastRealIndex)
+        startWrap(layout.lastRealIndex)
         return
       }
 
-      if (direction === 1 && currentIndex === lastRealIndex) {
+      if (direction === 1 && currentIndex === layout.lastRealIndex) {
         useWorldStore.getState().setTravelDir(1)
-        startWrap(overviewTargetIndex)
+        startWrap(layout.overviewTargetIndex)
         return
       }
 
-      const targetIndex = clampInt(currentIndex + direction, firstRealIndex, lastRealIndex)
+      const targetIndex = clampInt(currentIndex + direction, layout.firstRealIndex, layout.lastRealIndex)
       if (targetIndex === currentIndex) return
 
       useWorldStore.getState().setTravelDir(direction)
       el.scrollTo({ top: targetIndex * height, behavior: "smooth" })
     },
-    [firstRealIndex, lastRealIndex, overviewTargetIndex, startWrap]
+    [layout, startWrap]
   )
 
   const turnLook = useCallback((deltaYaw: number) => {
     const store = useWorldStore.getState()
     store.setLookYaw(store.lookYaw + deltaYaw)
+  }, [])
+
+  const markUserInput = useCallback((now: number) => {
+    lastUserScrollAtRef.current = now
   }, [])
 
   useEffect(() => {
@@ -449,10 +336,10 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     didInitScrollRef.current = true
 
     const height = getPageHeight(el)
-    el.scrollTo({ top: firstRealIndex * height, behavior: "auto" })
-    edgeArmRequestedRef.current = true
+    el.scrollTo({ top: layout.firstRealIndex * height, behavior: "auto" })
+    edgeArmRef.current.armRequested = true
     syncFromScroll()
-  }, [firstRealIndex, syncFromScroll])
+  }, [layout.firstRealIndex, syncFromScroll])
 
   useEffect(() => {
     const el = containerRef.current
@@ -462,107 +349,7 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
     return () => el.removeEventListener("scroll", onScroll)
   }, [onScroll])
 
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-
-    const onWheel = (e: WheelEvent) => {
-      if (scrollLockedRef.current) return
-
-      // Inside a card's scrollable text the wheel only scrolls the card, even at its ends.
-      if (findInnerScroller(e.target, el)) return
-
-      const absX = Math.abs(e.deltaX)
-      const absY = Math.abs(e.deltaY)
-      if (absX < 1 && absY < 1) return
-      e.preventDefault()
-
-      if (absX > absY) {
-        turnLook(-e.deltaX * LOOK_YAW_PER_WHEEL_PX)
-        return
-      }
-
-      const direction = wheelPagerRef.current.feed(e.deltaY, performance.now())
-      if (direction !== 0) stepPage(direction)
-    }
-
-    el.addEventListener("wheel", onWheel, { passive: false })
-    return () => el.removeEventListener("wheel", onWheel)
-  }, [stepPage, turnLook])
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (scrollLockedRef.current) return
-      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return
-
-      const target = e.target
-      if (target instanceof HTMLElement) {
-        const tag = target.tagName
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable) return
-      }
-
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        e.preventDefault()
-        turnLook(e.key === "ArrowLeft" ? LOOK_YAW_PER_KEY : -LOOK_YAW_PER_KEY)
-        return
-      }
-
-      let direction: 1 | -1 | null = null
-      if (e.key === "ArrowDown" || e.key === "PageDown" || (e.key === " " && !e.shiftKey)) direction = 1
-      else if (e.key === "ArrowUp" || e.key === "PageUp" || (e.key === " " && e.shiftKey)) direction = -1
-      if (direction == null) return
-
-      e.preventDefault()
-      if (!wheelPagerRef.current.canStep(performance.now())) return
-      stepPage(direction)
-    }
-
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [stepPage, turnLook])
-
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-
-    let startX = 0
-    let startY = 0
-    let lastX = 0
-    let isLookGesture = false
-
-    const onTouchStart = (e: TouchEvent) => {
-      lastUserScrollAtRef.current = performance.now()
-      const touch = e.touches[0]
-      if (!touch) return
-      startX = touch.clientX
-      startY = touch.clientY
-      lastX = startX
-      isLookGesture = false
-    }
-
-    // A mostly horizontal drag turns the camera; vertical drags keep native slide scrolling.
-    const onTouchMove = (e: TouchEvent) => {
-      lastUserScrollAtRef.current = performance.now()
-      const touch = e.touches[0]
-      if (!touch) return
-      if (!isLookGesture) {
-        const dx = touch.clientX - startX
-        const dy = touch.clientY - startY
-        if (Math.abs(dx) < TOUCH_LOOK_START_PX || Math.abs(dx) <= Math.abs(dy)) return
-        isLookGesture = true
-      }
-      turnLook((touch.clientX - lastX) * LOOK_YAW_PER_TOUCH_PX)
-      lastX = touch.clientX
-    }
-
-    el.addEventListener("touchstart", onTouchStart, { passive: true })
-    el.addEventListener("touchmove", onTouchMove, { passive: true })
-
-    return () => {
-      el.removeEventListener("touchstart", onTouchStart)
-      el.removeEventListener("touchmove", onTouchMove)
-    }
-  }, [turnLook])
+  useDeckInput({ containerRef, scrollLockedRef, wheelPagerRef, stepPage, turnLook, markUserInput })
 
   useEffect(() => {
     const handleResize = () => {
@@ -573,7 +360,7 @@ export function useScrollSnapNavigation({ scrollLocked = false }: { scrollLocked
       // from the old scroll offset, which lands between slides after a height change.
       const height = getPageHeight(el)
       const targetTop = clampInt(activeIndexRef.current, 0, pages.length - 1) * height
-      if (Math.abs(el.scrollTop - targetTop) > 0.5) {
+      if (Math.abs(el.scrollTop - targetTop) > ALIGNED_EPSILON_PX) {
         el.scrollTo({ top: targetTop, behavior: "auto" })
         lastScrollTopRef.current = targetTop
       }

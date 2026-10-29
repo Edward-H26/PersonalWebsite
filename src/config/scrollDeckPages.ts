@@ -1,4 +1,4 @@
-import { STORY_STAGES, type StoryCard, type StoryStageId } from "@/config/storyContent"
+import { STORY_STAGES, type StoryCard, type StoryStageId } from "@/config/content"
 
 import type { DeckSection } from "@/deck/deckMath"
 

@@ -1,0 +1,34 @@
+/* Scroll snapping helpers and glow text, used as plain utility classes. */
+@layer utilities {
+  .text-shadow-glow {
+    text-shadow: 0 0 20px currentColor;
+  }
+
+  .text-shadow-glow-cyan {
+    text-shadow: 0 0 30px #06b6d4;
+  }
+
+  .scroll-snap-align-start {
+    scroll-snap-align: start;
+  }
+
+  .scroll-snap-stop-always {
+    scroll-snap-stop: always;
+  }
+
+  .scroll-snap-type-y-mandatory {
+    scroll-snap-type: y mandatory;
+  }
+
+  .scroll-snap-disabled {
+    scroll-snap-type: none !important;
+  }
+
+  .scroll-snap-disabled .scroll-snap-align-start {
+    scroll-snap-align: none !important;
+  }
+
+  [data-deck-sentinel="true"] .animate-fade-up {
+    animation: none !important;
+  }
+}

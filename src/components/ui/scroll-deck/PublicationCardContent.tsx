@@ -35,7 +35,9 @@ export function PublicationCardContent({ card }: { card: DisplayCard }) {
   const figure = card.image ? (
     <>
       <img src={card.image.src} alt={card.image.alt} loading="lazy" decoding="async" />
-      {card.badge ? <span className={card.badge === "Under review" ? "paper-badge paper-badge-muted" : "paper-badge"}>{card.badge}</span> : null}
+      {card.badge ? (
+        <span className={card.badge === "Under review" ? "paper-badge paper-badge-muted" : "paper-badge"}>{card.badge}</span>
+      ) : null}
     </>
   ) : null
 
@@ -44,7 +46,13 @@ export function PublicationCardContent({ card }: { card: DisplayCard }) {
       {figure ? (
         <div className="w-[112px] shrink-0 md:w-[200px]">
           {primary ? (
-            <a href={primary.url} target="_blank" rel="noreferrer" className="paper-thumb pointer-events-auto" aria-label={`Open ${card.title}`}>
+            <a
+              href={primary.url}
+              target="_blank"
+              rel="noreferrer"
+              className="paper-thumb pointer-events-auto"
+              aria-label={`Open ${card.title}`}
+            >
               {figure}
             </a>
           ) : (
@@ -53,7 +61,10 @@ export function PublicationCardContent({ card }: { card: DisplayCard }) {
         </div>
       ) : null}
 
-      <div className="liquid-card-scroll pointer-events-auto flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pr-2" data-story-scroll="true">
+      <div
+        className="liquid-card-scroll pointer-events-auto flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto pr-2"
+        data-story-scroll="true"
+      >
         <h3 className="font-orbitron text-[14px] font-semibold leading-snug text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.6)] md:text-[17px]">
           {primary ? (
             <a href={primary.url} target="_blank" rel="noreferrer" className="transition-colors hover:text-cyber-cyan">

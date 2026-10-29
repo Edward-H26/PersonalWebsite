@@ -43,5 +43,3 @@ export function useTiledPbrTextureSet(id: PbrTextureSetId, repeat: Repeat): PbrT
     return tiled
   }, [base.armMap, base.map, base.normalMap, id, repeatKey, repeatX, repeatY])
 }
-
-

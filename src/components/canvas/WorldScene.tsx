@@ -1,90 +1,36 @@
-import { Suspense, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
-import { Canvas, useLoader, useThree } from "@react-three/fiber"
-import { Cloud, Clouds, PerformanceMonitor, useProgress } from "@react-three/drei"
-import * as THREE from "three"
+import { Suspense, useState } from "react"
+import { Canvas } from "@react-three/fiber"
+import { PerformanceMonitor } from "@react-three/drei"
 import { FirstPersonController } from "./camera"
 import { EarthIsland } from "./islands"
 import { Ocean, ProceduralSky } from "./environment"
 import { ModelErrorBoundary } from "./models/ModelErrorBoundary"
-import { useIsMobile } from "@/hooks/useIsMobile"
-import { useWorldStore } from "@/store/worldStore"
-import { withBase } from "@/utils/assets"
-import { clamp } from "@/utils/math"
 import { PostProcessing } from "./PostProcessing"
+import { LoadingOverlay } from "./scene/LoadingOverlay"
+import { RendererConfig } from "./scene/RendererConfig"
+import { SkyClouds } from "./scene/SkyClouds"
+import { WorldLighting } from "./scene/WorldLighting"
+import { SUN_AZIMUTH, SUN_ELEVATION, lightDimmingForSection, lightLevels } from "./scene/lighting"
+import { useIsMobile } from "@/hooks/useIsMobile"
+import { useWorldLoading } from "@/hooks/useWorldLoading"
 
-const FIRST_FRAME_TEXTURES = [withBase("/textures/waternormals.jpg"), withBase("/textures/cloud.png")]
+const CAMERA = { fov: 55, near: 0.1, far: 20000, position: [0, 300, 350] as [number, number, number] }
+const GL_OPTIONS = { antialias: false, alpha: false, powerPreference: "high-performance" as const, stencil: false, depth: true }
+// Render sharp by default and drop to 1x when the device cannot hold the frame rate.
+const SHARP_DPR_DESKTOP = 1.5
+const SHARP_DPR_MOBILE = 1.25
+const FALLBACK_DPR = 1
+const DPR_FLIPFLOPS = 3
 
-const SUN_ELEVATION = 2
-const SUN_AZIMUTH = 180
-// The sky keeps its low sunset sun; the key light sits at a late-afternoon angle so roofs, terrain,
-// and cliffs receive direct light and cast readable shadows. Fill lights stay low so shadows read.
-const KEY_LIGHT_ELEVATION = 30
-
-function RendererConfig({ exposure = 0.5 }: { exposure?: number }) {
-  const { gl } = useThree()
-
-  useEffect(() => {
-    gl.toneMapping = THREE.ACESFilmicToneMapping
-    gl.toneMappingExposure = exposure
-    gl.outputColorSpace = THREE.SRGBColorSpace
-    gl.info.autoReset = false
-  }, [gl, exposure])
-
-  return null
-}
-
+/** Everything inside the canvas, in draw order: lights, renderer setup, sky, sea, camera, clouds, island. */
 function WorldContent({ section }: { section: number }) {
-  const shadowMapSize = 2048
-  const lightDimming = section >= 5 ? 0.55 : section >= 4 ? 0.65 : section >= 3 ? 0.75 : 1
-  const sunIntensity = 3.2 * lightDimming
-  const ambientIntensity = 0.32 * Math.min(1, lightDimming + 0.2)
-  const pointIntensity = 0.35 * Math.min(1, lightDimming + 0.15)
-  const exposure = 0.52 - 0.12 * (1 - lightDimming)
-  const sunLightPosition = useMemo<[number, number, number]>(() => {
-    const phi = THREE.MathUtils.degToRad(90 - KEY_LIGHT_ELEVATION)
-    const theta = THREE.MathUtils.degToRad(SUN_AZIMUTH)
-    const sun = new THREE.Vector3().setFromSphericalCoords(1, phi, theta).normalize()
-    const distance = 700
-    return [sun.x * distance, sun.y * distance, sun.z * distance]
-  }, [])
+  const levels = lightLevels(lightDimmingForSection(section))
 
   return (
     <>
-      <ambientLight intensity={ambientIntensity} color="#b8c4e0" />
+      <WorldLighting levels={levels} />
 
-      <directionalLight
-        position={sunLightPosition}
-        intensity={sunIntensity}
-        castShadow
-        shadow-mapSize-width={shadowMapSize}
-        shadow-mapSize-height={shadowMapSize}
-        shadow-camera-near={300}
-        shadow-camera-far={1100}
-        shadow-camera-left={-200}
-        shadow-camera-right={200}
-        shadow-camera-top={200}
-        shadow-camera-bottom={-200}
-        shadow-bias={-0.0002}
-        shadow-normalBias={0.05}
-        color="#fff5e6"
-      />
-
-      <directionalLight
-        position={[-80, 100, -80]}
-        intensity={0.3 * Math.min(1, lightDimming + 0.25)}
-        color="#6080ff"
-      />
-
-      <hemisphereLight args={["#87ceeb", "#2a4a2a", 0.35]} />
-
-      <pointLight
-        position={[0, 50, 0]}
-        intensity={pointIntensity}
-        distance={300}
-        color="#ffe0b0"
-      />
-
-      <RendererConfig exposure={exposure} />
+      <RendererConfig exposure={levels.exposure} />
 
       <ProceduralSky elevation={SUN_ELEVATION} azimuth={SUN_AZIMUTH} mieCoefficient={0.0035} mieDirectionalG={0.74} />
 
@@ -93,52 +39,7 @@ function WorldContent({ section }: { section: number }) {
       <FirstPersonController />
 
       <Suspense fallback={null}>
-        <Clouds texture={withBase("/textures/cloud.png")} limit={600} frustumCulled={false}>
-          <Cloud
-            position={[0, 260, -120]}
-            bounds={[260, 80, 220]}
-            segments={40}
-            volume={20}
-            opacity={0.22}
-            speed={0.12}
-            growth={6}
-            fade={420}
-            color="#ffffff"
-          />
-          <Cloud
-            position={[-180, 240, 40]}
-            bounds={[240, 70, 200]}
-            segments={35}
-            volume={18}
-            opacity={0.2}
-            speed={0.1}
-            growth={5}
-            fade={400}
-            color="#ffffff"
-          />
-          <Cloud
-            position={[140, 220, 80]}
-            bounds={[220, 60, 200]}
-            segments={35}
-            volume={16}
-            opacity={0.18}
-            speed={0.09}
-            growth={4}
-            fade={380}
-            color="#ffffff"
-          />
-          <Cloud
-            position={[0, 10, 0]}
-            bounds={[520, 18, 520]}
-            segments={22}
-            volume={8}
-            opacity={0.08}
-            speed={0.04}
-            growth={1.6}
-            fade={260}
-            color="#ffffff"
-          />
-        </Clouds>
+        <SkyClouds />
       </Suspense>
 
       <EarthIsland />
@@ -146,208 +47,21 @@ function WorldContent({ section }: { section: number }) {
   )
 }
 
-export function WorldScene({
-  section,
-}: {
-  section: number
-}) {
-  const setLoaderBypassed = useWorldStore((state) => state.setLoaderBypassed)
-  const isLoaderBypassed = useWorldStore((state) => state.isLoaderBypassed)
-  const setLoadingOverlayVisible = useWorldStore((state) => state.setLoadingOverlayVisible)
-  const isEarthSceneReady = useWorldStore((state) => state.isEarthSceneReady)
-  const isLoadingActive = useProgress((state) => state.active)
-  const loadingProgress = useProgress((state) => state.progress)
-  const loadingLoaded = useProgress((state) => state.loaded)
-  const loadingTotal = useProgress((state) => state.total)
-  const loadingErrors = useProgress((state) => state.errors)
-
-  const [forceReady, setForceReady] = useState(false)
-  const lastProgressRef = useRef(0)
-  const lastProgressTimeRef = useRef(0)
-  const progressRef = useRef(0)
-  const rafProgressRef = useRef<number | null>(null)
-  const [displayProgress, setDisplayProgress] = useState(0)
-  const [isFullyLoaded, setIsFullyLoaded] = useState(false)
-  const fullyLoadedRef = useRef(false)
-  const loadCompleteTimerRef = useRef<number | null>(null)
-  const overlayStartRef = useRef<number | null>(null)
+/** The fixed full-screen canvas behind the deck, plus the loading overlay that covers it until the island is ready. */
+export function WorldScene({ section }: { section: number }) {
   const isMobile = useIsMobile()
-  const minOverlayMs = isMobile ? 1200 : 0
-  // Render sharp by default and drop to 1x when the device cannot hold the frame rate.
-  const sharpDpr = isMobile ? 1.25 : 1.5
+  const { showOverlay, displayProgress } = useWorldLoading({ isMobile })
+  const sharpDpr = isMobile ? SHARP_DPR_MOBILE : SHARP_DPR_DESKTOP
   const [dpr, setDpr] = useState(sharpDpr)
-
-  useEffect(() => {
-    for (const tex of FIRST_FRAME_TEXTURES) {
-      useLoader.preload(THREE.TextureLoader, tex)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!isLoadingActive) {
-      if (isFullyLoaded) {
-        setForceReady(false)
-        setLoaderBypassed(false)
-      }
-      return
-    }
-    lastProgressTimeRef.current = performance.now()
-    if (loadingProgress !== lastProgressRef.current) {
-      lastProgressRef.current = loadingProgress
-      lastProgressTimeRef.current = performance.now()
-    }
-  }, [isFullyLoaded, isLoadingActive, loadingProgress, setLoaderBypassed])
-
-  useEffect(() => {
-    if (loadingErrors.length === 0) return
-    setForceReady(true)
-    setLoaderBypassed(true)
-  }, [loadingErrors.length, setLoaderBypassed])
-
-  useEffect(() => {
-    if (!isLoadingActive) return
-    const intervalId = window.setInterval(() => {
-      const now = performance.now()
-      const stagnantMs = now - lastProgressTimeRef.current
-      const isStalled = loadingProgress >= 99 && stagnantMs > 4000
-      if (isStalled) {
-        setForceReady(true)
-        setLoaderBypassed(true)
-      }
-    }, 500)
-    return () => window.clearInterval(intervalId)
-  }, [isLoadingActive, isMobile, loadingProgress, setLoaderBypassed])
-
-  const showOverlay = !isFullyLoaded
-
-  const clampedProgress = clamp(loadingProgress, 0, 100)
-  const targetProgress = forceReady ? 100 : clampedProgress
-
-  useEffect(() => {
-    if (!isLoadingActive) return
-    progressRef.current = 0
-    setDisplayProgress(0)
-  }, [isLoadingActive])
-
-  useEffect(() => {
-    if (overlayStartRef.current == null) {
-      overlayStartRef.current = performance.now()
-    }
-  }, [])
-
-  // The overlay lifts only when every download has finished and the island has drawn with all of
-  // its models in place, so nothing pops in afterwards. Errors or a stalled download still let the
-  // page through rather than leaving the loader up forever.
-  useEffect(() => {
-    if (fullyLoadedRef.current) return
-    const isLoadComplete =
-      loadingTotal > 0 &&
-      loadingLoaded >= loadingTotal &&
-      !isLoadingActive &&
-      loadingProgress >= 100 &&
-      isEarthSceneReady
-    const shouldForceComplete = isLoaderBypassed
-    if (!isLoadComplete && !shouldForceComplete) {
-      if (loadCompleteTimerRef.current != null) {
-        window.clearTimeout(loadCompleteTimerRef.current)
-        loadCompleteTimerRef.current = null
-      }
-      return
-    }
-    if (loadCompleteTimerRef.current != null) return
-    const startAt = overlayStartRef.current ?? performance.now()
-    const elapsed = performance.now() - startAt
-    const delay = Math.max(500, minOverlayMs - elapsed)
-    loadCompleteTimerRef.current = window.setTimeout(() => {
-      fullyLoadedRef.current = true
-      setIsFullyLoaded(true)
-      loadCompleteTimerRef.current = null
-    }, delay)
-  }, [isEarthSceneReady, isLoadingActive, isLoaderBypassed, loadingLoaded, loadingProgress, loadingTotal, minOverlayMs])
-
-  useEffect(() => {
-    setLoadingOverlayVisible(showOverlay)
-  }, [setLoadingOverlayVisible, showOverlay])
-
-  useEffect(() => {
-    if (!showOverlay) {
-      progressRef.current = targetProgress
-      setDisplayProgress(targetProgress)
-      return
-    }
-
-    const tick = () => {
-      const current = progressRef.current
-      const desired = isLoadingActive ? Math.max(targetProgress, current) : targetProgress
-      const diff = desired - current
-      if (Math.abs(diff) < 0.2) {
-        progressRef.current = desired
-        setDisplayProgress(desired)
-        rafProgressRef.current = null
-        return
-      }
-      const next = current + diff * 0.12
-      progressRef.current = next
-      setDisplayProgress(next)
-      rafProgressRef.current = requestAnimationFrame(tick)
-    }
-
-    if (rafProgressRef.current != null) {
-      cancelAnimationFrame(rafProgressRef.current)
-    }
-    rafProgressRef.current = requestAnimationFrame(tick)
-
-    return () => {
-      if (rafProgressRef.current != null) {
-        cancelAnimationFrame(rafProgressRef.current)
-        rafProgressRef.current = null
-      }
-    }
-  }, [isLoadingActive, showOverlay, targetProgress])
-
-  const progressLineStyle: CSSProperties = {
-    ["--world-loader-progress" as string]: `${displayProgress}%`,
-    ...(isMobile
-      ? {
-          bottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)"
-        }
-      : {})
-  }
-  const progressLabel = `${Math.round(displayProgress)}%`
-  const progressLabelStyle: CSSProperties | undefined = isMobile
-    ? { bottom: "calc(env(safe-area-inset-bottom, 0px) + 44px)" }
-    : undefined
-  const progressLineClassName = isMobile
-    ? "absolute left-6 right-6 world-loader-line-wrap"
-    : "absolute left-6 right-6 sm:left-[46%] sm:right-[90px] top-[62%] sm:top-[44%] -translate-y-1/2 world-loader-line-wrap"
-  const progressLabelClassName = isMobile
-    ? "absolute left-6 right-6 text-center"
-    : "absolute left-6 right-6 sm:left-[46%] sm:right-[90px] top-[54%] sm:top-[38%] -translate-y-1/2 text-center sm:text-right"
 
   return (
     <div className="fixed inset-0 w-full h-full">
-      <Canvas
-        shadows="soft"
-        camera={{
-          fov: 55,
-          near: 0.1,
-          far: 20000,
-          position: [0, 300, 350]
-        }}
-        gl={{
-          antialias: false,
-          alpha: false,
-          powerPreference: "high-performance",
-          stencil: false,
-          depth: true
-        }}
-        dpr={dpr}
-      >
+      <Canvas shadows="soft" camera={CAMERA} gl={GL_OPTIONS} dpr={dpr}>
         <PerformanceMonitor
-          onDecline={() => setDpr(1)}
+          onDecline={() => setDpr(FALLBACK_DPR)}
           onIncline={() => setDpr(sharpDpr)}
-          onFallback={() => setDpr(1)}
-          flipflops={3}
+          onFallback={() => setDpr(FALLBACK_DPR)}
+          flipflops={DPR_FLIPFLOPS}
         />
         <ModelErrorBoundary fallback={null}>
           <WorldContent section={section} />
@@ -355,43 +69,7 @@ export function WorldScene({
         </ModelErrorBoundary>
       </Canvas>
 
-      <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-700 world-loader-overlay z-[360] sm:z-0"
-        style={{ opacity: showOverlay ? 1 : 0 }}
-        aria-hidden="true"
-      >
-        <div
-          className="absolute inset-0 world-loader-backdrop"
-        />
-
-        <div className="absolute inset-0 world-loader-aurora" />
-        <div className="absolute inset-0 world-loader-glow-field" />
-
-        <img
-          className="absolute inset-0 w-full h-full object-cover"
-          src={withBase("/intro/island-loop-poster.svg")}
-          alt=""
-          style={{ filter: "brightness(1.1) saturate(1.1)" }}
-        />
-
-        <div
-          className={progressLineClassName}
-          data-mode="determinate"
-          style={progressLineStyle}
-        >
-          <div className="world-loader-line-track">
-            <div className="world-loader-line-fill" />
-          </div>
-        </div>
-
-        <div
-          className={progressLabelClassName}
-          style={progressLabelStyle}
-        >
-          <div className="world-loader-title">Initializing</div>
-          <div className="world-loader-subtitle">{progressLabel}</div>
-        </div>
-      </div>
+      <LoadingOverlay visible={showOverlay} progress={displayProgress} isMobile={isMobile} />
     </div>
   )
 }

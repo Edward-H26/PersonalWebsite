@@ -3,10 +3,7 @@ import { useEffect, useState } from "react"
 function getIsMobile(breakpointPx: number) {
   if (typeof window === "undefined") return false
 
-  return (
-    window.matchMedia(`(max-width: ${breakpointPx}px)`).matches ||
-    window.matchMedia("(pointer: coarse)").matches
-  )
+  return window.matchMedia(`(max-width: ${breakpointPx}px)`).matches || window.matchMedia("(pointer: coarse)").matches
 }
 
 export function useIsMobile(breakpointPx = 768) {

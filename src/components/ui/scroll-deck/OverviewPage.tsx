@@ -18,11 +18,18 @@ export function OverviewPage() {
         <div className="liquid-card-scroll max-h-[calc(100svh-6rem)] overflow-y-auto p-5 pt-6 md:max-h-none md:overflow-visible md:p-6 md:pt-7">
           <div className="flex flex-col gap-4 min-[520px]:flex-row min-[520px]:items-end min-[520px]:justify-start min-[520px]:gap-8">
             <div className="text-white text-3xl min-[390px]:text-4xl md:text-6xl font-orbitron font-bold tracking-[0.08em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.65)]">
-              <div className="animate-fade-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>{PROFILE_OVERVIEW.greeting}</div>
-              <div className="liquid-glass-text animate-fade-up" style={{ animationDelay: "0.2s", animationFillMode: "both" }}>{PROFILE_OVERVIEW.name}</div>
+              <div className="animate-fade-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
+                {PROFILE_OVERVIEW.greeting}
+              </div>
+              <div className="liquid-glass-text animate-fade-up" style={{ animationDelay: "0.2s", animationFillMode: "both" }}>
+                {PROFILE_OVERVIEW.name}
+              </div>
             </div>
 
-            <div className="flex items-center gap-3 animate-fade-up min-[520px]:pb-1" style={{ animationDelay: "0.3s", animationFillMode: "both" }}>
+            <div
+              className="flex items-center gap-3 animate-fade-up min-[520px]:pb-1"
+              style={{ animationDelay: "0.3s", animationFillMode: "both" }}
+            >
               {PROFILE_OVERVIEW.institutions.map((institution) => (
                 <div
                   key={institution.name}

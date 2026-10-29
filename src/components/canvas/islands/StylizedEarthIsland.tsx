@@ -225,14 +225,14 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
   }, [config.scale, outline, roads.samples, routeCurve, sampleGroundY, showProps])
 
   return (
-    <group name="Island-earth" position={[config.position[0], config.position[1], config.position[2]]} rotation={config.rotation} scale={config.scale}>
+    <group
+      name="Island-earth"
+      position={[config.position[0], config.position[1], config.position[2]]}
+      rotation={config.rotation}
+      scale={config.scale}
+    >
       <Suspense fallback={null}>
-        <TexturedIslandCore
-          topY={topY}
-          terrainGeometry={terrainGeometry}
-          cliffGeometry={cliffGeometry}
-          pathGeometries={roads.geometries}
-        />
+        <TexturedIslandCore topY={topY} terrainGeometry={terrainGeometry} cliffGeometry={cliffGeometry} pathGeometries={roads.geometries} />
 
         {layout
           ? [...layout.buildings, ...layout.props, ...layout.harbor].map((p) => (

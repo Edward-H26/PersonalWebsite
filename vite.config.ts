@@ -59,9 +59,9 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": path.resolve(__dirname, "./src")
       },
-      dedupe: ["react", "react-dom", "three", "@react-three/fiber"],
+      dedupe: ["react", "react-dom", "three", "@react-three/fiber"]
     },
     base: basePath,
     build: {
@@ -71,10 +71,10 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             three: ["three"],
-            r3f: ["@react-three/fiber", "@react-three/drei", "@react-three/postprocessing"],
-          },
-        },
-      },
-    },
+            r3f: ["@react-three/fiber", "@react-three/drei", "@react-three/postprocessing"]
+          }
+        }
+      }
+    }
   }
 })

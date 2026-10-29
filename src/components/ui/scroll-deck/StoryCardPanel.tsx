@@ -1,7 +1,7 @@
 import { memo } from "react"
 import type { CSSProperties } from "react"
 import type { DisplayCard } from "@/config/scrollDeckPages"
-import type { StoryBullet } from "@/config/storyContent"
+import type { StoryBullet } from "@/config/content"
 import { LinkedText } from "@/components/ui/LinkedText"
 import { LinkIcon } from "@/components/ui/LinkIcon"
 import { PublicationCardContent } from "./PublicationCardContent"
@@ -42,12 +42,7 @@ function Bullet({ bullet }: { bullet: StoryBullet }) {
   return (
     <li className="-ml-5 list-none md:-ml-6">
       {bullet.url ? (
-        <a
-          href={bullet.url}
-          target="_blank"
-          rel="noreferrer"
-          className="pointer-events-auto liquid-link-row"
-        >
+        <a href={bullet.url} target="_blank" rel="noreferrer" className="pointer-events-auto liquid-link-row">
           {row}
           <span aria-hidden="true" className="mt-0.5 shrink-0 text-white/70">
             ↗
@@ -107,13 +102,7 @@ const CardContent = memo(function CardContent({ card }: { card: DisplayCard }) {
       {card.links && card.links.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-2">
           {card.links.map((link) => (
-            <a
-              key={link.url}
-              href={link.url}
-              target="_blank"
-              rel="noreferrer"
-              className="pointer-events-auto liquid-link-chip"
-            >
+            <a key={link.url} href={link.url} target="_blank" rel="noreferrer" className="pointer-events-auto liquid-link-chip">
               <LinkIcon label={link.label} />
               {link.label}
             </a>

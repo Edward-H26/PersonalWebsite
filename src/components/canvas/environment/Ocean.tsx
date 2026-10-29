@@ -28,11 +28,7 @@ function createFallbackNormalTexture() {
   return tex
 }
 
-export function Ocean({
-  sunElevation = 2,
-  sunAzimuth = 180,
-  waterColor = 0x001e0f,
-}: OceanProps) {
+export function Ocean({ sunElevation = 2, sunAzimuth = 180, waterColor = 0x001e0f }: OceanProps) {
   const { scene } = useThree()
   const fallbackNormals = useMemo(() => createFallbackNormalTexture(), [])
 

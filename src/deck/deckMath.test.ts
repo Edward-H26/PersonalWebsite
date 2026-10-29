@@ -1,14 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { buildScrollDeckPages } from "@/config/scrollDeckPages"
 import { EARTH_SECTION_T_STOPS } from "@/config"
-import {
-  findIndexForSection,
-  findInnerScroller,
-  getPageHeight,
-  getRouteTAtPagePos,
-  getSectionRanges,
-  isNearSnap
-} from "./deckMath"
+import { findIndexForSection, findInnerScroller, getPageHeight, getRouteTAtPagePos, getSectionRanges, isNearSnap } from "./deckMath"
 
 function makeDeck(slideHeight: number, containerHeight = slideHeight) {
   const deck = document.createElement("div")

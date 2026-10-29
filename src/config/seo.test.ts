@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import indexHtml from "../../index.html?raw"
 import sitemapXml from "../../public/sitemap.xml?raw"
 import llmsTxt from "../../public/llms.txt?raw"
-import * as storyContent from "@/config/storyContent"
+import * as storyContent from "@/config/content"
 import * as profile from "@/config/profile"
 import * as scrollDeckPages from "@/config/scrollDeckPages"
 import {
@@ -76,7 +76,14 @@ describe("parseCitation", () => {
 
 describe("content helpers", () => {
   it("orders sections like the deck navigation", () => {
-    expect(getSections(content).map((section) => section.label)).toEqual(["Publications", "Research", "Projects", "Experience", "Service", "Info"])
+    expect(getSections(content).map((section) => section.label)).toEqual([
+      "Publications",
+      "Research",
+      "Projects",
+      "Experience",
+      "Service",
+      "Info"
+    ])
   })
 
   it("reads contact details from the Contact card", () => {
@@ -89,16 +96,21 @@ describe("content helpers", () => {
   it("returns empty contact details when the card is missing", () => {
     const contact = getContact({ ...content, STORY_STAGES: { earth_island: { cards: [] } } })
     expect(contact).toEqual({ email: "", phone: "", links: [] })
-    const person = buildJsonLd({ ...content, STORY_STAGES: { earth_island: { id: "earth_island", heading: "Research", cards: [] } }, STAGE_ORDER: [] })["@graph"].find(
-      (node) => node["@type"] === "Person"
-    )!
+    const person = buildJsonLd({
+      ...content,
+      STORY_STAGES: { earth_island: { id: "earth_island", heading: "Research", cards: [] } },
+      STAGE_ORDER: []
+    })["@graph"].find((node) => node["@type"] === "Person")!
     expect(person).not.toHaveProperty("sameAs")
     expect(person).not.toHaveProperty("email")
   })
 
   it("drops an et al. marker from author lists", () => {
     expect(parseCitation("[7] Qiran Hu et al. Short Paper. Workshop 2026.", "Short Paper").authors).toEqual(["Qiran Hu"])
-    expect(parseCitation("[8] Ann Lee, Qiran Hu, et al. Short Paper. Workshop 2026.", "Short Paper").authors).toEqual(["Ann Lee", "Qiran Hu"])
+    expect(parseCitation("[8] Ann Lee, Qiran Hu, et al. Short Paper. Workshop 2026.", "Short Paper").authors).toEqual([
+      "Ann Lee",
+      "Qiran Hu"
+    ])
     expect(parseCitation("[9] Ann Lee & Qiran Hu. Short Paper. Workshop 2026.", "Short Paper").authors).toEqual(["Ann Lee", "Qiran Hu"])
   })
 })

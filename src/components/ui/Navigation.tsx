@@ -29,11 +29,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
   `
 
   return (
-    <nav
-      className={navClass}
-      role="navigation"
-      aria-label="Main navigation"
-    >
+    <nav className={navClass} role="navigation" aria-label="Main navigation">
       <ul className="flex items-center gap-1 overflow-x-auto list-none m-0 p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:justify-center md:gap-8 md:overflow-visible lg:gap-10">
         {NAV_SECTIONS.map((item) => {
           const isActive = activeSection === item.section
@@ -51,9 +47,7 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
                 onClick={() => scrollToSection(item.section, { behavior: "smooth" })}
                 aria-current={isActive ? "page" : undefined}
               >
-                <span className="relative z-10 transition-colors duration-300">
-                  {item.label}
-                </span>
+                <span className="relative z-10 transition-colors duration-300">{item.label}</span>
 
                 <span
                   className={`

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
-import { STORY_STAGES } from "./storyContent"
-import { INSTITUTION_LOGOS, PROFILE_OVERVIEW } from "./profile"
-import { buildScrollDeckPages, NAV_SECTIONS, STAGE_ORDER } from "./scrollDeckPages"
+import { STORY_STAGES } from "./index"
+import { INSTITUTION_LOGOS, PROFILE_OVERVIEW } from "@/config/profile"
+import { buildScrollDeckPages, NAV_SECTIONS, STAGE_ORDER } from "@/config/scrollDeckPages"
 
 describe("story content", () => {
   it("shows a school logo on every education entry and links it to the school", () => {

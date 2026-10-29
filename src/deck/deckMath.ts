@@ -5,7 +5,9 @@ import { clamp01 } from "@/utils/math"
 export type DeckSection = 0 | 1 | 2 | 3 | 4 | 5 | 6
 export const LAST_SECTION: DeckSection = 6
 
-type SectionRange = { startIndex: number; endIndex: number }
+/** Slide index range of a section: its title slide up to (and excluding) the next title. */
+export type SectionRange = { startIndex: number; endIndex: number }
+export type SectionRanges = Map<DeckSection, SectionRange>
 
 // Slides are 100svh while the fixed container follows the dynamic viewport (mobile URL bar),
 // so page math has to use the slide height rather than the container height.
@@ -23,11 +25,7 @@ export function isNearSnap(scrollTop: number, index: number, pageHeight: number)
 
 // Maps a (possibly fractional) slide position onto the camera's route parameter, interpolating
 // linearly inside each section between the configured stops.
-export function getRouteTAtPagePos(
-  pagePos: number,
-  sectionRanges: Map<DeckSection, SectionRange>,
-  stops: ReadonlyArray<number> = EARTH_SECTION_T_STOPS
-) {
+export function getRouteTAtPagePos(pagePos: number, sectionRanges: SectionRanges, stops: ReadonlyArray<number> = EARTH_SECTION_T_STOPS) {
   const maxSegment = stops.length - 1
   const lastStop = stops[stops.length - 1]
 
@@ -49,8 +47,8 @@ export function getRouteTAtPagePos(
   return lastStop
 }
 
-export function getSectionRanges(pages: ScrollDeckPage[]) {
-  const ranges = new Map<DeckSection, SectionRange>()
+export function getSectionRanges(pages: readonly ScrollDeckPage[]): SectionRanges {
+  const ranges: SectionRanges = new Map()
 
   const titleIndexBySection = new Map<DeckSection, number>()
   for (let i = 0; i < pages.length; i += 1) {
@@ -66,7 +64,7 @@ export function getSectionRanges(pages: ScrollDeckPage[]) {
     if (startIndex == null) continue
 
     const endIndex =
-      section === LAST_SECTION ? sentinelBottomIndex : titleIndexBySection.get((section + 1) as DeckSection) ?? sentinelBottomIndex
+      section === LAST_SECTION ? sentinelBottomIndex : (titleIndexBySection.get((section + 1) as DeckSection) ?? sentinelBottomIndex)
 
     ranges.set(section as DeckSection, { startIndex, endIndex })
   }
@@ -74,7 +72,7 @@ export function getSectionRanges(pages: ScrollDeckPage[]) {
   return ranges
 }
 
-export function findIndexForSection(pages: ScrollDeckPage[], section: DeckSection) {
+export function findIndexForSection(pages: readonly ScrollDeckPage[], section: DeckSection) {
   if (section === 0) {
     return pages.findIndex((p) => p.kind === "overview")
   }

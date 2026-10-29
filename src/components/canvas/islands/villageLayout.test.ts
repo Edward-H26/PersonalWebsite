@@ -107,7 +107,13 @@ describe("buildVillageLayout", () => {
   })
 
   it("is deterministic across builds", () => {
-    const again = buildVillageLayout({ routeCurve, outline, roads, worldScale: scale, sampleGroundY: (x, z) => topY + surfaceHeight(x, z, scale) })
+    const again = buildVillageLayout({
+      routeCurve,
+      outline,
+      roads,
+      worldScale: scale,
+      sampleGroundY: (x, z) => topY + surfaceHeight(x, z, scale)
+    })
     expect(again.instanced.map((g) => g.instances.length)).toEqual(layout.instanced.map((g) => g.instances.length))
     expect(again.buildings).toEqual(layout.buildings)
   })

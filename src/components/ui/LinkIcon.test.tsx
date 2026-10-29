@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { renderToStaticMarkup } from "react-dom/server"
 import { LinkIcon } from "./LinkIcon"
-import { STORY_STAGES } from "@/config/storyContent"
+import { STORY_STAGES } from "@/config/content"
 
 function render(label: string) {
   return renderToStaticMarkup(<LinkIcon label={label} />)

@@ -3,17 +3,9 @@ import { useMemo } from "react"
 import * as THREE from "three"
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js"
 import { withBase } from "@/utils/assets"
-import {
-  configureColorTexture,
-  configureDataTexture,
-  supportsKtx2Textures,
-  toKtx2Url,
-} from "@/utils/textures"
+import { configureColorTexture, configureDataTexture, supportsKtx2Textures, toKtx2Url } from "@/utils/textures"
 
-export type PbrTextureSetId =
-  | "cliffSide"
-  | "cobblestonePavement"
-  | "sparseGrass"
+export type PbrTextureSetId = "cliffSide" | "cobblestonePavement" | "sparseGrass"
 
 export type PbrTextureSet = {
   map: THREE.Texture

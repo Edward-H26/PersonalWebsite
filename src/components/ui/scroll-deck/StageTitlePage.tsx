@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react"
-import { STORY_STAGES, type StoryStageId } from "@/config/storyContent"
+import { STORY_STAGES, type StoryStageId } from "@/config/content"
 
 export function StageTitlePage({ stageId }: { stageId: StoryStageId }) {
   const stage = STORY_STAGES[stageId]
@@ -16,10 +16,7 @@ export function StageTitlePage({ stageId }: { stageId: StoryStageId }) {
 
   return (
     <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top,0px)+4rem)] px-4 md:inset-x-auto md:left-8 md:top-24 md:px-0">
-      <div
-        className="liquid-glass-panel glass-card glass-card-hover-glow w-full md:w-[600px] md:max-w-[86vw]"
-        style={titleGlassStyle}
-      >
+      <div className="liquid-glass-panel glass-card glass-card-hover-glow w-full md:w-[600px] md:max-w-[86vw]" style={titleGlassStyle}>
         <div className="p-4 sm:p-5">
           <div className={headingClassName} style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
             {stage.heading}

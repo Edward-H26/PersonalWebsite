@@ -1,0 +1,61 @@
+/* Site chrome: glass cards, the skip link, and the navigation pill. */
+@layer components {
+  .glass-card {
+    position: relative;
+    border-radius: 1rem;
+    transition:
+      transform var(--duration-normal) var(--ease-smooth),
+      box-shadow var(--duration-normal) var(--ease-smooth);
+  }
+
+  .glass-card-hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-elevation-3), var(--shadow-glow);
+  }
+
+  .glass-card-hover-glow:hover {
+    box-shadow:
+      0 0 40px rgba(139, 92, 246, 0.4),
+      0 0 80px rgba(6, 182, 212, 0.2);
+  }
+
+  .glass-card-border-glow {
+    animation: borderGlow 3s ease-in-out infinite;
+  }
+
+  .skip-link {
+    @apply fixed -top-12 left-4 z-[1000] px-4 py-2 text-sm font-medium;
+    background: rgba(79, 70, 229, 0.95);
+    border-radius: 0.5rem;
+    color: white;
+    transition: top var(--duration-fast) var(--ease-smooth);
+  }
+
+  .skip-link:focus {
+    top: 1rem;
+    outline: 2px solid white;
+    outline-offset: 2px;
+  }
+
+  .nav-glass {
+    @apply backdrop-blur-md border border-white/10 rounded-full;
+    background: transparent;
+    box-shadow: none;
+    transition: all var(--duration-normal) var(--ease-smooth);
+  }
+
+  .nav-glass-shrink {
+    @apply py-2;
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-card-border-glow {
+    animation: none !important;
+  }
+
+  .glass-card-hover-lift:hover {
+    transform: none !important;
+  }
+}

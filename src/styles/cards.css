@@ -1,0 +1,33 @@
+/* The scrollable card body and its themed scrollbar. */
+@layer components {
+  .liquid-card-scroll {
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.08);
+  }
+
+  .liquid-card-scroll::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .liquid-card-scroll:hover::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  .liquid-card-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .liquid-card-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(6, 182, 212, 0.75), rgba(139, 92, 246, 0.75));
+    border-radius: 999px;
+    border: 2px solid rgba(10, 12, 18, 0.65);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  }
+
+  .liquid-card-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(34, 211, 238, 0.85), rgba(167, 139, 250, 0.85));
+  }
+}

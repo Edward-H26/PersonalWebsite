@@ -46,10 +46,10 @@ export function ParticleBackground({ className = "", opacity = 0.6 }: ParticleBa
           direction: "top",
           random: true,
           straight: false,
-          outModes: { default: "out" },
-        },
+          outModes: { default: "out" }
+        }
       },
-      detectRetina: true,
+      detectRetina: true
     }),
     [opacity]
   )

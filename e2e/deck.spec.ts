@@ -220,7 +220,10 @@ test.describe("scroll deck", () => {
   test("navigation buttons jump to each section", async ({ page }) => {
     await openDeck(page)
     for (const label of ["Publications", "Research", "Projects", "Experience", "Info"]) {
-      await page.getByRole("button", { name: new RegExp(`^${label}$`, "i") }).first().click()
+      await page
+        .getByRole("button", { name: new RegExp(`^${label}$`, "i") })
+        .first()
+        .click()
       await page.waitForTimeout(1200)
       expect(await activeNav(page)).toMatch(new RegExp(label, "i"))
     }

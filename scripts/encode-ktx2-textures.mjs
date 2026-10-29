@@ -24,7 +24,7 @@ async function ensureDir(dirPath) {
 async function downloadFile(url, outPath) {
   const res = await fetch(url, {
     headers: {
-      "accept": "application/octet-stream",
+      accept: "application/octet-stream",
       "user-agent": "PersonalWebsite-ktx2-textures"
     }
   })
@@ -40,7 +40,7 @@ async function downloadFile(url, outPath) {
 async function fetchLatestKtxSoftwareRelease() {
   const res = await fetch("https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest", {
     headers: {
-      "accept": "application/vnd.github+json",
+      accept: "application/vnd.github+json",
       "user-agent": "PersonalWebsite-ktx2-textures"
     }
   })
@@ -82,9 +82,7 @@ async function ensureToktx() {
   const version = tag.startsWith("v") ? tag.slice(1) : tag
 
   const assetName = getDarwinAssetName(version, process.arch)
-  const asset = Array.isArray(release.assets)
-    ? release.assets.find((a) => a?.name === assetName)
-    : null
+  const asset = Array.isArray(release.assets) ? release.assets.find((a) => a?.name === assetName) : null
 
   if (!asset?.browser_download_url) {
     throw new Error(`Could not find KTX-Software asset ${assetName} in release ${tag}`)
@@ -199,5 +197,3 @@ async function main() {
 }
 
 await main()
-
-
