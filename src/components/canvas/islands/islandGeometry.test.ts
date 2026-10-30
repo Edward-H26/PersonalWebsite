@@ -181,8 +181,14 @@ describe("side road network", () => {
     it(`never bends the ${road.name} tighter than half its width, so its ribbon cannot fold into a knot`, () => {
       const steps = 400
       for (let i = 1; i <= steps; i += 1) {
-        const a = road.curve.getTangentAt((i - 1) / steps).setY(0).normalize()
-        const b = road.curve.getTangentAt(i / steps).setY(0).normalize()
+        const a = road.curve
+          .getTangentAt((i - 1) / steps)
+          .setY(0)
+          .normalize()
+        const b = road.curve
+          .getTangentAt(i / steps)
+          .setY(0)
+          .normalize()
         const turn = Math.acos(Math.min(1, a.dot(b)))
         const step = road.curve.getPointAt(i / steps).distanceTo(road.curve.getPointAt((i - 1) / steps))
         expect(turn * (BRANCH_WIDTH / 2)).toBeLessThan(step)

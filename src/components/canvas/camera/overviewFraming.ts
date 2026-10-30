@@ -70,7 +70,12 @@ function sceneSpheres() {
  */
 function candidateLayouts(width: number, height: number): Layout[] {
   if (width < DESKTOP_MIN_WIDTH) {
-    const band = { left: PHONE_MARGIN, top: height * PHONE_CARD_BOTTOM_FRACTION, right: width - PHONE_MARGIN, bottom: height - PHONE_BOTTOM_INSET }
+    const band = {
+      left: PHONE_MARGIN,
+      top: height * PHONE_CARD_BOTTOM_FRACTION,
+      right: width - PHONE_MARGIN,
+      bottom: height - PHONE_BOTTOM_INSET
+    }
     return [{ island: band, harbor: band }]
   }
   const right = width - DESKTOP_RIGHT_INSET
@@ -99,7 +104,10 @@ function tangentRange(offset: number, depth: number, radius: number): [number, n
  */
 function fitLayout(layout: Layout, width: number, height: number, fovDeg: number) {
   const lookAt = new Vector3(...BIRD_EYE_CAMERA_CONFIG.lookAt)
-  const forward = lookAt.clone().sub(new Vector3(...BIRD_EYE_CAMERA_CONFIG.position)).normalize()
+  const forward = lookAt
+    .clone()
+    .sub(new Vector3(...BIRD_EYE_CAMERA_CONFIG.position))
+    .normalize()
   const right = forward.clone().cross(UP).normalize()
   const up = right.clone().cross(forward)
   const tanY = Math.tan(MathUtils.degToRad(fovDeg) / 2)
