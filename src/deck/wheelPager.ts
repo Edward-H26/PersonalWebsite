@@ -27,6 +27,7 @@ export function createWheelPager(options: Partial<WheelPagerOptions> = {}) {
   let lastStepAt = Number.NEGATIVE_INFINITY
   let lastSign: StepDirection = 0
   let lastMagnitude = 0
+  let wasRising = false
   let peakMagnitude = 0
 
   return {
@@ -45,12 +46,15 @@ export function createWheelPager(options: Partial<WheelPagerOptions> = {}) {
       lastSign = sign
 
       // Momentum deltas are rounded, so a decaying tail repeats values (3, 3, 2, 2, 2, 1, 1)
-      // rather than falling every event. Only a finger can push a delta back up, so a rise starts
-      // a fresh push and every other event keeps the running peak.
+      // rather than falling every event, and jitter can bump it up by a pixel (3, 4, 4). Only a
+      // finger raises the delta on two events in a row, so that starts a fresh push and every
+      // other event keeps the running peak.
       const isRising = magnitude > lastMagnitude
+      const isNewPush = isRising && wasRising
+      wasRising = isRising
       lastMagnitude = magnitude
       const previousPeak = peakMagnitude
-      peakMagnitude = isRising ? magnitude : Math.max(peakMagnitude, magnitude)
+      peakMagnitude = isNewPush ? magnitude : Math.max(peakMagnitude, magnitude)
       accumulated += magnitude
 
       if (now - lastStepAt < cooldownMs) return 0

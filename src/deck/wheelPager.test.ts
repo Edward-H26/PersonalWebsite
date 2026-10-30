@@ -118,4 +118,45 @@ describe("createWheelPager", () => {
     expect(pager.canStep(1600)).toBe(true)
     expect(pager.feed(100, 1600)).toBe(1)
   })
+
+  // A real macOS flick at 60 Hz: the finger ramps the delta up, then momentum decays for about
+  // 1.3 s. Frame timing and rounding make the late tail bob up by a pixel (3, 4, 4).
+  function jitteryFlick(startAt: number) {
+    const deltas = [4, 10, 20, 35, 50, 60, 55]
+    for (let velocity = 58; velocity >= 5.5; velocity *= 0.96) deltas.push(Math.round(velocity))
+    deltas.push(5, 4, 4, 3, 4, 4, 3, 3, 2, 2, 3, 2, 2, 1, 2, 1, 1, 1)
+    return deltas.map((delta, i) => ({ delta, at: startAt + i * 16.7 }))
+  }
+
+  function stepTimesOf(events: { delta: number; at: number }[]) {
+    const pager = createWheelPager()
+    return events.filter((event) => pager.feed(event.delta, event.at) !== 0).map((event) => event.at)
+  }
+
+  it("steps once for a flick whose momentum tail bobs up by a pixel", () => {
+    expect(stepTimesOf(jitteryFlick(1000))).toHaveLength(1)
+  })
+
+  it("steps twice for a flick and a second push 700 ms after the first step", () => {
+    const firstStepAt = 1000 + 4 * 16.7
+    const pushAt = firstStepAt + 700
+    // Touching the trackpad again cuts the first momentum short; the push continues the same gesture.
+    const events = [...jitteryFlick(1000).filter((event) => event.at < pushAt), ...jitteryFlick(pushAt)]
+    const stepTimes = stepTimesOf(events)
+    expect(stepTimes).toHaveLength(2)
+    expect(stepTimes[0]).toBeCloseTo(firstStepAt)
+    expect(stepTimes[1]).toBeGreaterThan(pushAt)
+  })
+
+  it("keeps stepping every cooldown through a steady 20 px per frame drag", () => {
+    const drag = Array.from({ length: 54 }, (_, i) => ({ delta: 20, at: 1000 + i * 16.7 }))
+    const stepTimes = stepTimesOf(drag)
+    expect(stepTimes).toHaveLength(2)
+    expect(stepTimes[1] - stepTimes[0]).toBeGreaterThanOrEqual(550)
+  })
+
+  it("steps once per cooldown for mouse notches 300 ms apart", () => {
+    const notches = Array.from({ length: 8 }, (_, i) => ({ delta: 100, at: 1000 + i * 300 }))
+    expect(stepTimesOf(notches)).toEqual([1000, 1600, 2200, 2800])
+  })
 })
