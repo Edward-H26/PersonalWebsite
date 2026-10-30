@@ -5,7 +5,7 @@ import { CatmullRomCurve3, Vector3 } from "three"
 import { easing } from "maath"
 import { useWorldStore } from "@/store/worldStore"
 import { EARTH_ROUTE_POINTS, EARTH_SECTION_T_STOPS, WORLD_CONFIG } from "@/config"
-import { BIRD_EYE_CAMERA_CONFIG } from "./birdEyeCameraConfig"
+import { getOverviewFraming } from "./overviewFraming"
 import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
 import { clamp01 } from "@/utils/math"
 
@@ -19,7 +19,6 @@ const LOOK_DISTANCE = 16
 const LOOK_DOWN_OFFSET = 3.6
 const TITLE_LIFT = 1.2
 const TITLE_BACK = 7.0
-const OVERVIEW_FILM_OFFSET = -9
 
 export function FirstPersonController() {
   const { camera, size } = useThree()
@@ -45,21 +44,10 @@ export function FirstPersonController() {
     return new CatmullRomCurve3(points, false, "catmullrom", 0.5)
   }, [])
 
-  const isNarrow = size.width <= 640
-  const birdEyePosition = useMemo(() => {
-    const base = new Vector3(...BIRD_EYE_CAMERA_CONFIG.position)
-    if (!isNarrow) return base
-    base.multiplyScalar(1.18)
-    base.y += 18
-    base.z -= 24
-    return base
-  }, [isNarrow])
-  const birdEyeLookAt = useMemo(() => {
-    const base = new Vector3(...BIRD_EYE_CAMERA_CONFIG.lookAt)
-    if (!isNarrow) return base
-    base.y -= 4
-    return base
-  }, [isNarrow])
+  const overview = useMemo(
+    () => getOverviewFraming(size.width, size.height, (camera as THREE.PerspectiveCamera).fov),
+    [camera, size.width, size.height]
+  )
 
   const point = useRef(new Vector3())
   const tangent = useRef(new Vector3())
@@ -206,8 +194,8 @@ export function FirstPersonController() {
       fpTargetLookAt.current.y += mousePosition.y * 3 * overviewMix
     }
 
-    targetPosition.current.copy(birdEyePosition).lerp(fpTargetPosition.current, overviewMix)
-    targetLookAt.current.copy(birdEyeLookAt).lerp(fpTargetLookAt.current, overviewMix)
+    targetPosition.current.copy(overview.position).lerp(fpTargetPosition.current, overviewMix)
+    targetLookAt.current.copy(overview.lookAt).lerp(fpTargetLookAt.current, overviewMix)
 
     const distToTarget = camera.position.distanceTo(targetPosition.current)
     const isFar = distToTarget > 240
@@ -240,11 +228,19 @@ export function FirstPersonController() {
       easing.damp3(currentLookAt.current, targetLookAt.current, lookDamp, delta)
     }
 
+    // The overview's lens shift moves the island beside the hero card; it eases out as the camera descends.
     const perspectiveCamera = camera as THREE.PerspectiveCamera
-    const desiredFilmOffset = OVERVIEW_FILM_OFFSET * (1 - overviewMix)
-    if (Math.abs(perspectiveCamera.filmOffset - desiredFilmOffset) > 1e-4) {
-      perspectiveCamera.filmOffset = desiredFilmOffset
-      perspectiveCamera.updateProjectionMatrix()
+    const offsetX = overview.viewOffset.x * (1 - overviewMix)
+    const offsetY = overview.viewOffset.y * (1 - overviewMix)
+    const view = perspectiveCamera.view
+    if (
+      !view ||
+      view.fullWidth !== size.width ||
+      view.fullHeight !== size.height ||
+      Math.abs(view.offsetX - offsetX) > 0.01 ||
+      Math.abs(view.offsetY - offsetY) > 0.01
+    ) {
+      perspectiveCamera.setViewOffset(size.width, size.height, offsetX, offsetY, size.width, size.height)
     }
 
     if (groundHeightAt && overviewMix > 0.999) {

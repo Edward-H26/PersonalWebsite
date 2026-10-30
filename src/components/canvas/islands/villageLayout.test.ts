@@ -5,13 +5,11 @@ import {
   BRANCH_WIDTH,
   PATH_WIDTH,
   buildIslandOutline,
+  buildSideRoadCurves,
   distanceInsideOutline,
   distanceToRoadEdge,
-  junctionPoints,
-  makeSideRoadCurve,
   sampleRoadNetwork,
-  surfaceHeight,
-  trackPointAt
+  surfaceHeight
 } from "./islandGeometry"
 import { GRASS_SCATTERS, INTERIOR_BUILDINGS, ROAD_BUILDINGS, buildVillageLayout } from "./villageLayout"
 
@@ -23,18 +21,10 @@ const routeCurve = new THREE.CatmullRomCurve3(
   0.5
 )
 const outline = buildIslandOutline(routeCurve, scale)
-const interior = [new THREE.Vector3(24, 0, 10), new THREE.Vector3(-6, 0, 6), new THREE.Vector3(-30, 0, 4)]
-const east = junctionPoints(routeCurve, 0.385, scale, interior[0])
-const west = junctionPoints(routeCurve, 0.735, scale, interior[2])
-const branch = makeSideRoadCurve([east.onRoad, east.approach, ...interior, west.approach, west.onRoad])
-const from = junctionPoints(routeCurve, 0.995, scale, trackPointAt(routeCurve, 0.006, scale))
-const to = junctionPoints(routeCurve, 0.006, scale, trackPointAt(routeCurve, 0.995, scale))
-const link = makeSideRoadCurve([from.onRoad, from.approach, to.approach, to.onRoad])
 const roads = sampleRoadNetwork(
   [
     { curve: routeCurve, halfWidth: PATH_WIDTH / 2, followCameraTrack: true },
-    { curve: branch, halfWidth: BRANCH_WIDTH / 2, followCameraTrack: false },
-    { curve: link, halfWidth: BRANCH_WIDTH / 2, followCameraTrack: false }
+    ...buildSideRoadCurves(routeCurve, scale).map((road) => ({ curve: road.curve, halfWidth: BRANCH_WIDTH / 2, followCameraTrack: false }))
   ],
   scale
 )

@@ -8,6 +8,7 @@ import {
   PATH_WIDTH,
   SIDE_ROAD_OVERRUN,
   buildIslandOutline,
+  buildSideRoadCurves,
   distanceInsideOutline,
   distanceToRoadEdge,
   getTrackFrameAt,
@@ -169,6 +170,36 @@ describe("roads", () => {
     const clear = point.clone().addScaledVector(perp, 12)
     expect(pushClearOfRoads(clear.x, clear.z, 3, samples)).toEqual({ x: clear.x, z: clear.z })
   })
+})
+
+describe("side road network", () => {
+  const mainTrack = Array.from({ length: 801 }, (_, i) => trackPointAt(routeCurve, i / 800, scale))
+  // Past this distance from either end a side road has left its junction and must clear the main road.
+  const JUNCTION_REACH = 12
+
+  for (const road of buildSideRoadCurves(routeCurve, scale)) {
+    it(`never bends the ${road.name} tighter than half its width, so its ribbon cannot fold into a knot`, () => {
+      const steps = 400
+      for (let i = 1; i <= steps; i += 1) {
+        const a = road.curve.getTangentAt((i - 1) / steps).setY(0).normalize()
+        const b = road.curve.getTangentAt(i / steps).setY(0).normalize()
+        const turn = Math.acos(Math.min(1, a.dot(b)))
+        const step = road.curve.getPointAt(i / steps).distanceTo(road.curve.getPointAt((i - 1) / steps))
+        expect(turn * (BRANCH_WIDTH / 2)).toBeLessThan(step)
+      }
+    })
+
+    it(`keeps the ${road.name} off the main road between its junctions`, () => {
+      const length = road.curve.getLength()
+      for (let i = 0; i <= 200; i += 1) {
+        const along = (i / 200) * length
+        if (along < JUNCTION_REACH || length - along < JUNCTION_REACH) continue
+        const p = road.curve.getPointAt(i / 200)
+        const gap = Math.min(...mainTrack.map((q) => Math.hypot(q.x - p.x, q.z - p.z)))
+        expect(gap).toBeGreaterThan((PATH_WIDTH + BRANCH_WIDTH) / 2)
+      }
+    })
+  }
 })
 
 describe("scatterOnIsland", () => {

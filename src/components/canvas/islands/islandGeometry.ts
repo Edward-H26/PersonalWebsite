@@ -11,6 +11,7 @@ export {
   PATH_Y_OFFSET,
   SIDE_ROAD_OVERRUN,
   SIDE_ROAD_Y_OFFSET,
+  buildSideRoadCurves,
   getTrackFrameAt,
   junctionPoints,
   makePathRibbonGeometry,

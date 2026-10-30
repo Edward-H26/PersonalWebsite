@@ -92,6 +92,41 @@ export function makeSideRoadCurve(points: THREE.Vector3[]) {
   return new THREE.CatmullRomCurve3(extended, false, "catmullrom", 0.5)
 }
 
+// The cross-island branch: where it leaves and rejoins the route, and the interior points it passes.
+const BRANCH_FROM_T = 0.385
+const BRANCH_TO_T = 0.735
+const BRANCH_INTERIOR = [new THREE.Vector3(24, 0, 10), new THREE.Vector3(-6, 0, 6), new THREE.Vector3(-30, 0, 4)]
+// The route ends beside its own start, both lanes heading the same way about 18 units apart, so the link
+// closing the loop runs straight across between two points facing each other. Square approaches from the
+// very ends left only a 3-unit middle span, and the spline through those uneven control points bent
+// tighter than the road is wide, folding the ribbon into a knot over the main road.
+const LOOP_LINK_FROM_T = 0.995
+const LOOP_LINK_TO_T = 0.04
+
+/** The side roads drawn on the island: the cross-island branch and the short link that closes the loop. */
+export function buildSideRoadCurves(routeCurve: THREE.CatmullRomCurve3, worldScale: number) {
+  const east = junctionPoints(routeCurve, BRANCH_FROM_T, worldScale, BRANCH_INTERIOR[0])
+  const west = junctionPoints(routeCurve, BRANCH_TO_T, worldScale, BRANCH_INTERIOR[BRANCH_INTERIOR.length - 1])
+  const linkFrom = trackPointAt(routeCurve, LOOP_LINK_FROM_T, worldScale)
+  const linkTo = trackPointAt(routeCurve, LOOP_LINK_TO_T, worldScale)
+  return [
+    {
+      name: "branch",
+      curve: makeSideRoadCurve([east.onRoad, east.approach, ...BRANCH_INTERIOR, west.approach, west.onRoad]),
+      junctionT: [BRANCH_FROM_T, BRANCH_TO_T],
+      segments: 96
+    },
+    {
+      name: "loopLink",
+      // The midpoint keeps the straight link a three-point spline: with only two points, CatmullRomCurve3
+      // extrapolates both phantom end points into one shared scratch vector and the curve loops back.
+      curve: makeSideRoadCurve([linkFrom, linkFrom.clone().lerp(linkTo, 0.5), linkTo]),
+      junctionT: [LOOP_LINK_FROM_T, LOOP_LINK_TO_T],
+      segments: 32
+    }
+  ]
+}
+
 /**
  * A flat ribbon of `width` draped on the terrain along `curve`. The main road follows the camera
  * track (`followCameraTrack`); side roads follow their curve directly. UVs tile the cobblestones

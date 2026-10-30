@@ -16,14 +16,12 @@ import {
   PATH_Y_OFFSET,
   SIDE_ROAD_Y_OFFSET,
   buildIslandOutline,
-  junctionPoints,
+  buildSideRoadCurves,
   makeCliffGeometry,
   makeIslandTopGeometry,
   makePathRibbonGeometry,
-  makeSideRoadCurve,
   sampleRoadNetwork,
-  surfaceHeight,
-  trackPointAt
+  surfaceHeight
 } from "./islandGeometry"
 import { buildVillageLayout } from "./villageLayout"
 
@@ -192,28 +190,16 @@ export function StylizedEarthIsland({ showProps = true }: { showProps?: boolean 
   // a cross-island branch between the east and west sides, and a short link closing the loop's ends.
   const roads = useMemo(() => {
     const s = config.scale
-    const interior = [new THREE.Vector3(24, 0, 10), new THREE.Vector3(-6, 0, 6), new THREE.Vector3(-30, 0, 4)]
-    const east = junctionPoints(routeCurve, 0.385, s, interior[0])
-    const west = junctionPoints(routeCurve, 0.735, s, interior[interior.length - 1])
-    const branchCurve = makeSideRoadCurve([east.onRoad, east.approach, ...interior, west.approach, west.onRoad])
-
-    const startLane = trackPointAt(routeCurve, 0.006, s)
-    const endLane = trackPointAt(routeCurve, 0.995, s)
-    const from = junctionPoints(routeCurve, 0.995, s, startLane)
-    const to = junctionPoints(routeCurve, 0.006, s, endLane)
-    const loopLinkCurve = makeSideRoadCurve([from.onRoad, from.approach, to.approach, to.onRoad])
-
+    const sideRoads = buildSideRoadCurves(routeCurve, s)
     const specs = [
       { curve: routeCurve, halfWidth: PATH_WIDTH / 2, followCameraTrack: true },
-      { curve: branchCurve, halfWidth: BRANCH_WIDTH / 2, followCameraTrack: false },
-      { curve: loopLinkCurve, halfWidth: BRANCH_WIDTH / 2, followCameraTrack: false }
+      ...sideRoads.map((road) => ({ curve: road.curve, halfWidth: BRANCH_WIDTH / 2, followCameraTrack: false }))
     ]
 
     return {
       geometries: [
         makePathRibbonGeometry(routeCurve, PATH_WIDTH, PATH_RIBBON_SEGMENTS, PATH_Y_OFFSET, s, true),
-        makePathRibbonGeometry(branchCurve, BRANCH_WIDTH, 96, SIDE_ROAD_Y_OFFSET, s, false),
-        makePathRibbonGeometry(loopLinkCurve, BRANCH_WIDTH, 32, SIDE_ROAD_Y_OFFSET, s, false)
+        ...sideRoads.map((road) => makePathRibbonGeometry(road.curve, BRANCH_WIDTH, road.segments, SIDE_ROAD_Y_OFFSET, s, false))
       ],
       samples: sampleRoadNetwork(specs, s)
     }
