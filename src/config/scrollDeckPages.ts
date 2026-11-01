@@ -23,8 +23,6 @@ export const NAV_SECTIONS: Array<{ label: string; section: DeckSection }> = [
   { label: "Info", section: 6 }
 ]
 
-export const SIDE_NAV_SECTIONS = NAV_SECTIONS.filter((item) => item.section !== 0)
-
 const MAX_BULLETS_PER_PAGE = 99
 
 export type DisplayCard = StoryCard & {

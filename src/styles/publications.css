@@ -58,10 +58,6 @@
 
   /* Paper buttons: plain outlined pills on the dark panel, as on an academic homepage. */
   .paper-link {
-    @apply inline-flex items-center gap-1.5 rounded-md border border-white/40 bg-white/10 px-3 py-1.5 text-[13px] font-medium text-white transition-colors duration-150;
-  }
-
-  .paper-link:hover {
-    @apply border-white/70 bg-white/20 no-underline;
+    @apply inline-flex items-center gap-1.5 rounded-md border border-white/40 bg-white/10 px-3 py-1.5 text-[13px] font-medium text-white;
   }
 }

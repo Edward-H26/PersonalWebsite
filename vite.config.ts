@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
           name: "Qiran Hu | Research Assistant",
           short_name: "Qiran Hu",
           description: SITE_DESCRIPTION,
-          theme_color: "#0a0a0f",
+          theme_color: "#0b1e3f",
           background_color: "#0a0a0f",
           icons: [{ src: "favicon.svg", sizes: "any", type: "image/svg+xml" }],
           scope: basePath,

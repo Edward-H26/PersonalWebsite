@@ -19,6 +19,11 @@ export function smoothstep01(t: number) {
   return x * x * (3 - 2 * x)
 }
 
+/** GLSL's smoothstep: 0 below `edge0`, 1 above `edge1`, a Hermite ease between. */
+export function smoothstep(edge0: number, edge1: number, x: number) {
+  return smoothstep01((x - edge0) / (edge1 - edge0))
+}
+
 function fract(value: number) {
   return value - Math.floor(value)
 }

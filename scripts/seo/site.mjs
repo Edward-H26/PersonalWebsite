@@ -4,7 +4,8 @@ export const SITE_URL = `https://edward-h26.github.io${BASE_PATH.slice(0, -1)}`
 export const PAGE_URL = `${SITE_URL}/`
 // The classic portfolio, which also serves robots.txt for the whole domain.
 export const SISTER_SITE_URL = "https://edward-h26.github.io/"
-export const OG_IMAGE_URL = `${SITE_URL}/images/og-card.png`
+// The share card is a still of the island scene, captured by scripts/capture-og-image.mjs.
+export const OG_IMAGE_URL = `${SITE_URL}/images/og-island.png`
 export const PHOTO_URL = `${SITE_URL}/images/profile-1024.jpg`
 export const JOB_TITLE = "Research Assistant"
 export const SITE_DESCRIPTION =

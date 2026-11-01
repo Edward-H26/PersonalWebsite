@@ -16,6 +16,7 @@
 
     --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-brand: cubic-bezier(0.2, 0.8, 0.2, 1);
     --duration-fast: 200ms;
     --duration-normal: 400ms;
     --duration-slow: 800ms;
@@ -25,6 +26,25 @@
     --color-experience: #10b981;
     --color-project: #f59e0b;
     --color-skill: #ec4899;
+
+    /* The island's one warm accent, the amber glass of its lanterns: only for lantern marks, progress fills
+       and focus rings, never for text on a light background. */
+    --lantern: #f0b35b;
+    --lantern-glow-20: rgba(240, 179, 91, 0.2);
+    --lantern-glow-35: rgba(240, 179, 91, 0.35);
+
+    /* The night sea of the loader and the 404 page. */
+    --sea-deep: #06101f;
+    --sea-night: #0b1e3f;
+
+    /* Where a phone page's content starts: under the menu bar, which sits 12 px below the safe area and is
+       49 px tall, plus a 12 px gap. */
+    --phone-content-top: calc(env(safe-area-inset-top, 0px) + 73px);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--lantern);
+    outline-offset: 2px;
   }
 
   * {

@@ -58,13 +58,6 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.6),
       inset 0 -1px 0 rgba(255, 255, 255, 0.15),
       0 10px 24px rgba(0, 0, 0, 0.22);
-    transform: translateZ(0);
-    transition:
-      transform 160ms ease,
-      background-color 160ms ease,
-      border-color 160ms ease,
-      box-shadow 160ms ease;
-    overflow: hidden;
   }
 
   /* A whole logo-and-text row that links out, borrowing the chip's glass hover without its pill shape. */
@@ -90,38 +83,58 @@
     transform: translateY(0);
   }
 
-  .liquid-link-chip::before {
-    content: "";
-    position: absolute;
-    inset: -40%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-    transform: translateX(-40%) rotate(12deg);
-    opacity: 0;
-    transition: opacity 160ms ease;
-    pointer-events: none;
-  }
-
   .liquid-link-chip::after {
     content: "↗";
     opacity: 0.85;
   }
 
-  .liquid-link-chip:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.85);
-    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.24) 45%, rgba(255, 255, 255, 0.14) 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.85),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.2),
-      0 16px 40px rgba(0, 0, 0, 0.28);
+  /* Interactive chips (these link chips and the paper buttons in publications.css) lift and glow with
+     lantern light on hover and keyboard focus. Only transform and opacity move. */
+  .liquid-link-chip,
+  .paper-link {
+    position: relative;
+    transition: transform 240ms var(--ease-brand);
   }
 
-  .liquid-link-chip:hover::before {
+  .liquid-link-chip::before,
+  .paper-link::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    box-shadow: 0 0 18px 2px var(--lantern-glow-20);
+    opacity: 0;
+    transition: opacity 240ms var(--ease-brand);
+    pointer-events: none;
+  }
+
+  .liquid-link-chip:focus-visible::before,
+  .paper-link:focus-visible::before {
     opacity: 1;
-    animation: chipShimmer 900ms ease forwards;
   }
 
-  .liquid-link-chip:active {
-    transform: translateY(0);
+  /* Only where the pointer can hover, so a tapped chip does not stay lifted. */
+  @media (hover: hover) {
+    .liquid-link-chip:hover,
+    .paper-link:hover {
+      transform: translateY(-2px);
+    }
+
+    .liquid-link-chip:hover::before,
+    .paper-link:hover::before {
+      opacity: 1;
+    }
+
+    .liquid-link-chip:active,
+    .paper-link:active {
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .liquid-link-chip:hover,
+    .paper-link:hover {
+      transform: none;
+    }
   }
 }

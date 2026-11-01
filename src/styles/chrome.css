@@ -33,7 +33,7 @@
 
   .skip-link:focus {
     top: 1rem;
-    outline: 2px solid white;
+    outline: 2px solid var(--lantern);
     outline-offset: 2px;
   }
 

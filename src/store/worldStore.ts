@@ -1,8 +1,18 @@
+import type { Vector3 } from "three"
 import { create } from "zustand"
+import type { OverviewScene } from "@/components/canvas/camera/overviewFraming"
 import { clamp01 } from "@/utils/math"
 
 // Ground height in world units at a world-space x/z, published by the island once it is built.
 type GroundHeightSampler = (x: number, z: number) => number
+
+/** The road the deck walks, by route t from 0 to 1, published by the island once its terrain has loaded. */
+export type WalkRoute = {
+  /** Length in world units. */
+  readonly length: number
+  getPointAt(t: number, target: Vector3): Vector3
+  getTangentAt(t: number, target: Vector3): Vector3
+}
 
 // Horizontal look-around limit in radians (about 70 degrees either side of the road).
 const LOOK_YAW_LIMIT = 1.2
@@ -13,6 +23,9 @@ interface WorldState {
   titleCardBlend: number
   lookYaw: number
   groundHeightAt: GroundHeightSampler | null
+  walkRoute: WalkRoute | null
+  /** What the overview camera fits into view, published with the island's layout. */
+  overviewScene: OverviewScene | null
   isEarthSceneReady: boolean
   isLoaderBypassed: boolean
   isLoadingOverlayVisible: boolean
@@ -26,6 +39,8 @@ interface WorldActions {
   setTitleCardBlend: (t: number) => void
   setLookYaw: (yaw: number) => void
   setGroundHeightSampler: (sampler: GroundHeightSampler | null) => void
+  setWalkRoute: (route: WalkRoute | null) => void
+  setOverviewScene: (scene: OverviewScene | null) => void
   setEarthSceneReady: (ready: boolean) => void
   setLoaderBypassed: (bypassed: boolean) => void
   setLoadingOverlayVisible: (visible: boolean) => void
@@ -41,6 +56,8 @@ export const useWorldStore = create<WorldStore>((set) => ({
   titleCardBlend: 0,
   lookYaw: 0,
   groundHeightAt: null,
+  walkRoute: null,
+  overviewScene: null,
   isEarthSceneReady: false,
   isLoaderBypassed: false,
   isLoadingOverlayVisible: true,
@@ -65,6 +82,14 @@ export const useWorldStore = create<WorldStore>((set) => ({
 
   setGroundHeightSampler: (sampler) => {
     set({ groundHeightAt: sampler })
+  },
+
+  setWalkRoute: (route) => {
+    set({ walkRoute: route })
+  },
+
+  setOverviewScene: (scene) => {
+    set({ overviewScene: scene })
   },
 
   setEarthSceneReady: (ready) => {

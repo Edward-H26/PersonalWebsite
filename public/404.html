@@ -1,14 +1,270 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=/PersonalWebsite/" />
-    <title>Redirecting</title>
-    <script>
-      window.location.replace("/PersonalWebsite/")
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1e3f" />
+    <meta name="robots" content="noindex" />
+    <title>Page not found | Qiran Hu</title>
+    <link rel="icon" type="image/svg+xml" href="/PersonalWebsite/favicon.svg" />
+    <link rel="apple-touch-icon" href="/PersonalWebsite/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Rajdhani:wght@600&display=swap" rel="stylesheet" />
+    <!-- The sea marker (traced from public/models/island/sea_marker.glb) bobs on the loader's hop. The colours
+         and the hop keyframes repeat src/styles/base.css and keyframes.css, because this page is served as a
+         static file without the app; voyage.test.ts fails if the keyframes drift apart. -->
+    <style>
+      :root {
+        --lantern: #f0b35b;
+        --lantern-glow-20: rgba(240, 179, 91, 0.2);
+        --lantern-glow-35: rgba(240, 179, 91, 0.35);
+        --sea-deep: #06101f;
+        --sea-night: #0b1e3f;
+        --ease-brand: cubic-bezier(0.2, 0.8, 0.2, 1);
+        --horizon: 58%;
+        --buoy-width: 64px;
+        color-scheme: dark;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        overflow: hidden;
+        background: linear-gradient(180deg, var(--sea-deep), var(--sea-night));
+        color: #ffffff;
+        font-family: "Rajdhani", sans-serif;
+      }
+
+      main {
+        position: relative;
+        height: 100%;
+      }
+
+      .buoy {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% - var(--horizon) - var(--buoy-width) * 0.3);
+        width: var(--buoy-width);
+        transform: translateX(-50%);
+      }
+
+      .buoy-hop {
+        animation: hopLift 668ms infinite;
+      }
+
+      .buoy-squash {
+        position: relative;
+        transform-origin: 50% 100%;
+        animation: hopSquash 668ms infinite;
+      }
+
+      .buoy svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        fill: rgba(226, 236, 255, 0.92);
+      }
+
+      .buoy-lantern {
+        position: absolute;
+        left: 49.9%;
+        top: 7.4%;
+        width: 6px;
+        height: 6px;
+        margin: -3px 0 0 -3px;
+        border-radius: 50%;
+        background: var(--lantern);
+      }
+
+      .buoy-lantern::after {
+        content: "";
+        position: absolute;
+        inset: -9px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--lantern-glow-35), rgba(240, 179, 91, 0) 70%);
+        animation: hopGlow 668ms infinite;
+      }
+
+      .depths {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: var(--horizon);
+        bottom: 0;
+        background: linear-gradient(180deg, rgba(6, 16, 31, 0.5), rgba(6, 16, 31, 0.9));
+      }
+
+      .wave {
+        position: absolute;
+        left: 0;
+        top: calc(var(--horizon) - 6px);
+        width: 100%;
+        height: 12px;
+        fill: none;
+        stroke: rgba(220, 232, 255, 0.4);
+        stroke-width: 2px;
+      }
+
+      .message {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(var(--horizon) + 56px);
+        padding: 0 24px;
+        text-align: center;
+      }
+
+      h1 {
+        font-family: "Orbitron", monospace;
+        font-size: clamp(17px, 2.4vw, 24px);
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        color: rgba(255, 255, 255, 0.92);
+      }
+
+      .harbor-link {
+        position: relative;
+        display: inline-block;
+        margin-top: 28px;
+        padding: 10px 22px;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        border-radius: 999px;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: transform 240ms var(--ease-brand);
+      }
+
+      .harbor-link::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        border-radius: inherit;
+        box-shadow: 0 0 18px 2px var(--lantern-glow-20);
+        opacity: 0;
+        transition: opacity 240ms var(--ease-brand);
+        pointer-events: none;
+      }
+
+      .harbor-link:hover {
+        transform: translateY(-2px);
+      }
+
+      .harbor-link:hover::before,
+      .harbor-link:focus-visible::before {
+        opacity: 1;
+      }
+
+      .harbor-link:focus-visible {
+        outline: 2px solid var(--lantern);
+        outline-offset: 2px;
+      }
+
+      @media (min-width: 768px) {
+        :root {
+          --buoy-width: 80px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .buoy-hop,
+        .buoy-squash,
+        .buoy-lantern::after {
+          animation: none;
+        }
+
+        .harbor-link:hover {
+          transform: none;
+        }
+      }
+
+      @keyframes hopLift {
+        0% {
+          transform: translateY(0);
+          animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+        }
+        35.928% {
+          transform: translateY(-62%);
+          animation-timing-function: linear;
+        }
+        59.132% {
+          transform: translateY(-62%);
+          animation-timing-function: cubic-bezier(0.2, 0.118, 0.6, 0.471);
+        }
+        79.566% {
+          transform: translateY(-40.92%);
+          animation-timing-function: cubic-bezier(0.4, 0.318, 0.7, 0.576);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes hopSquash {
+        0% {
+          transform: scaleY(0.73);
+          animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+        }
+        10.479% {
+          transform: scaleY(1.27);
+          animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+        }
+        23.952% {
+          transform: scaleY(1);
+          animation-timing-function: linear;
+        }
+        92.515% {
+          transform: scaleY(1);
+          animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0);
+        }
+        100% {
+          transform: scaleY(0.73);
+        }
+      }
+
+      @keyframes hopGlow {
+        0%,
+        100% {
+          opacity: 0.45;
+        }
+        35.928%,
+        59.132% {
+          opacity: 1;
+        }
+      }
+    </style>
   </head>
   <body>
-    <p>Redirecting to <a href="/PersonalWebsite/">the portfolio</a>.</p>
+    <main>
+      <div class="buoy" aria-hidden="true">
+        <div class="buoy-hop">
+          <div class="buoy-squash">
+            <svg viewBox="0 0 320 678" focusable="false"><path d="M45 662 c-19 -13 -24 -17 -24 -19 -1 -1 -3 -10 -5 -19 -2 -9 -4 -20 -5 -25 -1 -6 -2 -13 -2 -24 0 -13 0 -16 -1 -16 -1 0 -3 -1 -5 -3 l-3 -3 2 -3 c2 -2 4 -3 5 -3 2 0 2 -1 2 -7 l0 -8 7 -9 7 -8 21 -6 c11 -3 23 -5 25 -5 l5 0 1 -9 c7 -38 8 -43 7 -45 -1 -1 -1 -2 1 -3 1 -1 2 -5 4 -17 2 -8 5 -23 6 -33 2 -10 5 -26 7 -35 l3 -16 -2 -2 -1 -2 2 -1 c1 0 2 0 2 0 0 0 1 -7 3 -14 1 -7 4 -22 5 -32 2 -10 5 -24 6 -30 4 -23 8 -38 10 -38 2 -1 2 -1 2 -2 -1 -1 -2 -13 -3 -26 l-1 -24 -2 -2 -2 -1 2 -2 1 -2 -1 -27 c-2 -26 -5 -62 -5 -63 0 0 -1 0 -3 0 -3 0 -3 0 -3 -2 l0 -3 17 0 c14 0 17 0 17 -1 0 -1 -1 -2 -2 -2 -3 0 -4 -2 -2 -4 1 0 1 -6 1 -18 l0 -18 7 -7 7 -7 0 -8 c0 -6 1 -7 2 -7 1 0 2 1 2 7 l0 8 7 7 7 7 0 20 1 20 -2 0 c-1 0 -2 1 -2 2 0 1 3 1 17 1 l17 0 0 3 c0 2 0 2 -3 2 -2 0 -3 0 -3 0 0 1 -3 38 -5 63 l-1 27 1 2 2 2 -2 1 -2 2 -1 23 c-1 13 -2 25 -3 26 0 2 0 2 2 3 2 0 6 15 10 38 1 6 4 20 6 30 1 10 4 25 5 32 2 7 3 14 3 14 0 0 1 0 2 0 l2 1 -1 2 -2 2 3 16 c2 9 5 25 6 35 2 9 5 24 7 33 2 12 3 16 4 17 2 1 2 2 1 3 -1 2 -1 5 2 19 2 10 4 21 5 26 l1 9 5 0 c2 0 14 2 25 5 l21 6 7 8 7 9 0 8 c0 6 0 7 2 7 1 0 3 1 5 3 l3 3 -4 3 c-2 2 -4 3 -5 3 -1 0 -1 3 -1 16 0 11 -1 18 -2 24 -1 5 -3 16 -5 25 -2 9 -4 18 -5 19 0 2 -6 6 -24 19 l-24 16 -91 0 -91 0 -24 -16z m97 -457 c-1 -22 -2 -31 -3 -31 -1 0 -2 11 -3 34 l0 19 3 0 3 0 0 -22z m27 21 c1 0 -8 -27 -9 -27 -1 0 -10 27 -9 27 0 1 4 1 9 1 5 0 9 0 9 -1z m15 -18 c-1 -23 -2 -34 -3 -34 -1 0 -2 9 -3 31 l0 22 3 0 3 0 0 -19z m-30 -5 l4 -12 -3 -9 c-3 -6 -4 -8 -5 -8 -2 0 -2 1 -2 5 0 7 1 36 2 36 0 0 2 -6 4 -12z m18 -20 l0 -9 -2 0 c-1 0 -2 2 -5 8 l-3 9 4 12 5 12 0 -11 c0 -6 1 -16 1 -21z m-10 -4 c1 -5 1 -5 -2 -5 -2 0 -3 0 -3 1 0 1 2 8 3 8 0 0 1 -2 2 -4z m-28 -3 c0 -1 0 -2 -1 -1 -1 0 -1 1 -1 2 0 1 0 2 1 2 1 0 1 -1 1 -3z m54 1 c0 -1 0 -2 -1 -2 -1 -1 -1 0 -1 1 0 2 0 3 1 3 1 0 1 -1 1 -2z m-53 -24 c2 -22 1 -24 -3 -37 -2 -6 -4 -11 -4 -11 -1 0 -1 0 -1 1 1 0 2 12 2 27 3 41 4 45 6 20z m5 6 c0 -5 0 -9 0 -9 -1 1 -2 18 -1 18 1 0 1 -3 1 -9z m9 7 c-1 -4 -2 -6 -2 -4 0 3 1 6 2 6 1 0 1 -1 0 -2z m21 -10 l4 -12 0 -24 c1 -13 1 -28 2 -33 l0 -9 -16 0 -16 0 0 11 c1 19 2 44 2 49 0 4 1 9 4 18 l4 12 6 0 6 0 4 -12z m2 10 c1 -4 1 -6 0 -4 -1 3 -2 6 -1 6 0 0 1 -1 1 -2z m9 -7 c0 -11 -1 -11 -1 0 0 6 0 9 1 9 1 0 1 -3 0 -9z m7 4 c1 -3 2 -17 3 -31 0 -14 1 -26 2 -26 0 -1 0 -1 -1 -1 0 0 -2 5 -4 11 -4 13 -5 16 -3 38 1 15 2 18 3 9z m-51 -75 l0 -10 -6 0 -5 0 0 3 c0 3 7 26 10 32 1 3 2 -14 1 -25z m53 10 c2 -8 4 -15 4 -17 l0 -3 -5 0 -6 0 0 9 c-1 10 0 28 1 26 1 -1 3 -8 6 -15z m-29 -92 c0 -1 0 -2 -1 -2 -1 0 -1 1 -1 2 0 0 0 1 1 1 1 0 1 -1 1 -1z" /></svg>
+            <span class="buoy-lantern"></span>
+          </div>
+        </div>
+      </div>
+      <div class="depths" aria-hidden="true"></div>
+      <svg class="wave" viewBox="0 0 1000 12" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path d="M0 6 Q25 2 50 6 T100 6 T150 6 T200 6 T250 6 T300 6 T350 6 T400 6 T450 6 T500 6 T550 6 T600 6 T650 6 T700 6 T750 6 T800 6 T850 6 T900 6 T950 6 T1000 6" vector-effect="non-scaling-stroke" />
+      </svg>
+      <div class="message">
+        <h1>You have drifted off the chart.</h1>
+        <a class="harbor-link" href="/PersonalWebsite/">Back to the harbor</a>
+      </div>
+    </main>
   </body>
 </html>

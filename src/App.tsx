@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { WorldScene } from "@/components/canvas"
-import { Navigation, ScrollDeck, SectionNav, ParticleBackground, NoiseOverlay, SkipLink } from "@/components/ui"
+import { Navigation, ScrollDeck, ParticleBackground, NoiseOverlay, SkipLink } from "@/components/ui"
 import { useWorldStore } from "@/store/worldStore"
 import { useScrollSnapNavigation } from "@/hooks/useScrollSnapNavigation"
 import { useIsMobile } from "@/hooks/useIsMobile"
@@ -36,7 +36,6 @@ function App() {
 
       <ScrollDeck ref={containerRef} pages={pages} scrollLocked={scrollLocked}>
         <Navigation scrollToSection={scrollToSection} activeSection={section} />
-        <SectionNav section={section} scrollToSection={scrollToSection} />
       </ScrollDeck>
     </div>
   )

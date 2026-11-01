@@ -21,9 +21,9 @@ export function Navigation({ scrollToSection, activeSection = 0 }: NavigationPro
   }, [])
 
   const navClass = `
-    fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+12px)] translate-x-0 z-[320] pointer-events-auto
+    fixed left-3 right-3 top-[calc(env(safe-area-inset-top,0px)+12px)] translate-x-0 z-[320] pointer-events-auto
     nav-glass max-w-none rounded-2xl px-2 py-2 overflow-hidden
-    md:top-6 md:bottom-auto md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[72vw] md:max-w-[72vw] md:rounded-full md:px-6
+    md:top-6 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[72vw] md:max-w-[72vw] md:rounded-full md:px-6
     lg:w-[68vw] lg:max-w-[68vw]
     ${isScrolled && !prefersReducedMotion ? "nav-glass-shrink" : ""}
   `

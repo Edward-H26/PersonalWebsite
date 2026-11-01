@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
-import { CatmullRomCurve3, Vector3 } from "three"
+import { Vector3 } from "three"
 import { easing } from "maath"
 import { useWorldStore } from "@/store/worldStore"
-import { EARTH_ROUTE_POINTS, EARTH_SECTION_T_STOPS, WORLD_CONFIG } from "@/config"
+import { EARTH_SECTION_T_STOPS, WORLD_CONFIG } from "@/config"
 import { getOverviewFraming } from "./overviewFraming"
 import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
 import { clamp01 } from "@/utils/math"
@@ -37,20 +37,16 @@ export function FirstPersonController() {
   const prevTravelDir = useRef<1 | -1>(1)
   const lastMotionDir = useRef<1 | -1>(1)
   const motionLockUntilMs = useRef(0)
-  const lastGroundY = useRef(0)
 
-  const pathCurve = useMemo(() => {
-    const points = EARTH_ROUTE_POINTS.map((p) => new Vector3(p[0], p[1], p[2]))
-    return new CatmullRomCurve3(points, false, "catmullrom", 0.5)
-  }, [])
-
+  const overviewScene = useWorldStore((state) => state.overviewScene)
   const overview = useMemo(
-    () => getOverviewFraming(size.width, size.height, (camera as THREE.PerspectiveCamera).fov),
-    [camera, size.width, size.height]
+    () => (overviewScene ? getOverviewFraming(overviewScene, size.width, size.height, (camera as THREE.PerspectiveCamera).fov) : null),
+    [overviewScene, camera, size.width, size.height]
   )
 
   const point = useRef(new Vector3())
   const tangent = useRef(new Vector3())
+  const cameraGround = useRef(new Vector3())
   const pathForwardFlat = useRef(new Vector3())
   const look = useRef(new Vector3())
   const lookDir = useRef(new Vector3())
@@ -71,6 +67,9 @@ export function FirstPersonController() {
     const travelDir = worldState.travelDir
     const mousePosition = worldState.mousePosition
     const groundHeightAt = worldState.groundHeightAt
+    const route = worldState.walkRoute
+    // Until the island has loaded there is no road to walk; the loading screen covers the canvas meanwhile.
+    if (!route || !overview) return
 
     const routeTarget = clamp01(routeT)
     const overviewTarget = clamp01(overviewBlend)
@@ -143,8 +142,8 @@ export function FirstPersonController() {
       }
     }
 
-    pathCurve.getPointAt(pathT, point.current)
-    pathCurve.getTangentAt(pathT, tangent.current)
+    route.getPointAt(pathT, point.current)
+    route.getTangentAt(pathT, tangent.current)
 
     pathForwardFlat.current.copy(tangent.current)
     pathForwardFlat.current.y = 0
@@ -162,8 +161,9 @@ export function FirstPersonController() {
       desiredZ += pathForwardFlat.current.z * (-TITLE_BACK * titleMix)
     }
 
-    if (groundHeightAt) lastGroundY.current = groundHeightAt(desiredX, desiredZ)
-    const surfaceY = lastGroundY.current
+    // The camera stands on the road behind the walk's point, so it takes the road's own height there, which
+    // carries it over the stone bridge's hump rather than down to the stream under it.
+    const surfaceY = route.getPointAt(pathT - CAMERA_BACK_OFFSET / route.length, cameraGround.current).y
     const desiredY = surfaceY + WORLD_CONFIG.cameraHeight + EARTH_EYE_HEIGHT_BONUS + TITLE_LIFT * titleMix
 
     fpTargetPosition.current.set(desiredX, desiredY, desiredZ)
