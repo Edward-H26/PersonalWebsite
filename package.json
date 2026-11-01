@@ -17,8 +17,7 @@
     "test:e2e": "playwright test",
     "preview": "vite preview",
     "ktx2:textures": "node scripts/encode-ktx2-textures.mjs",
-    "models:fetch": "node scripts/fetch-polyhaven-hq-models.mjs",
-    "models:bake": "node scripts/bake-web-models.mjs"
+    "og:image": "node scripts/capture-og-image.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.97.0",

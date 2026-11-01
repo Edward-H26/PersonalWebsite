@@ -1,0 +1,4768 @@
+{
+  "house_01": {
+    "tris": 13586,
+    "size": [
+      10.905,
+      6.856,
+      6.821
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 14000,
+    "glb": "public/models/island/house_01.glb",
+    "glb_bytes": 142616,
+    "glb_size": [
+      10.905,
+      6.856,
+      6.821
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 13586,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.993,
+    "greens": {
+      "hue": [
+        87.0,
+        117.5
+      ],
+      "share": 0.039,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      1.94,
+      2.12,
+      1.07
+    ],
+    "ratio_change": [
+      -0.118,
+      -0.493
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/house_01.png",
+    "preview_day": "blender/previews/day/house_01.png",
+    "silhouette": "blender/previews/silhouettes/house_01.png"
+  },
+  "house_01_b": {
+    "tris": 13620,
+    "size": [
+      10.906,
+      6.857,
+      6.858
+    ],
+    "materials": 3,
+    "seed": 108,
+    "budget": 14000,
+    "glb": "public/models/island/house_01_b.glb",
+    "glb_bytes": 142896,
+    "glb_size": [
+      10.906,
+      6.857,
+      6.858
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 13620,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.992,
+    "greens": {
+      "hue": [
+        87.0,
+        117.5
+      ],
+      "share": 0.057,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      1.94,
+      2.12,
+      1.07
+    ],
+    "ratio_change": [
+      -0.123,
+      -0.495
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/house_01_b.png",
+    "preview_day": "blender/previews/day/house_01_b.png",
+    "silhouette": "blender/previews/silhouettes/house_01_b.png"
+  },
+  "house_01_c": {
+    "tris": 13616,
+    "size": [
+      10.904,
+      6.856,
+      6.852
+    ],
+    "materials": 3,
+    "seed": 209,
+    "budget": 14000,
+    "glb": "public/models/island/house_01_c.glb",
+    "glb_bytes": 143156,
+    "glb_size": [
+      10.904,
+      6.856,
+      6.852
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 13616,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.992,
+    "greens": {
+      "hue": [
+        87.0,
+        117.5
+      ],
+      "share": 0.055,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      1.94,
+      2.12,
+      1.07
+    ],
+    "ratio_change": [
+      -0.122,
+      -0.495
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/house_01_c.png",
+    "preview_day": "blender/previews/day/house_01_c.png",
+    "silhouette": "blender/previews/silhouettes/house_01_c.png"
+  },
+  "house_02": {
+    "tris": 13474,
+    "size": [
+      7.876,
+      9.385,
+      11.153
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 14000,
+    "glb": "public/models/island/house_02.glb",
+    "glb_bytes": 137076,
+    "glb_size": [
+      7.876,
+      9.385,
+      11.153
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 13474,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.979,
+    "greens": {
+      "hue": [
+        87.1,
+        89.4
+      ],
+      "share": 0.016,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.14,
+      2.66,
+      3.39
+    ],
+    "ratio_change": [
+      0.119,
+      0.072
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/house_02.png",
+    "preview_day": "blender/previews/day/house_02.png",
+    "silhouette": "blender/previews/silhouettes/house_02.png"
+  },
+  "house_02_b": {
+    "tris": 13398,
+    "size": [
+      7.876,
+      9.388,
+      11.168
+    ],
+    "materials": 3,
+    "seed": 108,
+    "budget": 14000,
+    "glb": "public/models/island/house_02_b.glb",
+    "glb_bytes": 136836,
+    "glb_size": [
+      7.876,
+      9.388,
+      11.168
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 13398,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.983,
+    "greens": {
+      "hue": [
+        87.1,
+        89.4
+      ],
+      "share": 0.026,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.14,
+      2.66,
+      3.39
+    ],
+    "ratio_change": [
+      0.117,
+      0.071
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/house_02_b.png",
+    "preview_day": "blender/previews/day/house_02_b.png",
+    "silhouette": "blender/previews/silhouettes/house_02_b.png"
+  },
+  "house_02_c": {
+    "tris": 13488,
+    "size": [
+      7.88,
+      9.39,
+      11.172
+    ],
+    "materials": 3,
+    "seed": 209,
+    "budget": 14000,
+    "glb": "public/models/island/house_02_c.glb",
+    "glb_bytes": 137440,
+    "glb_size": [
+      7.88,
+      9.389,
+      11.172
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 13488,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.983,
+    "greens": {
+      "hue": [
+        86.7,
+        89.4
+      ],
+      "share": 0.026,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.14,
+      2.66,
+      3.39
+    ],
+    "ratio_change": [
+      0.117,
+      0.071
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/house_02_c.png",
+    "preview_day": "blender/previews/day/house_02_c.png",
+    "silhouette": "blender/previews/silhouettes/house_02_c.png"
+  },
+  "house_03": {
+    "tris": 13458,
+    "size": [
+      8.78,
+      11.946,
+      11.694
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 14000,
+    "glb": "public/models/island/house_03.glb",
+    "glb_bytes": 130704,
+    "glb_size": [
+      8.78,
+      11.946,
+      11.694
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 13458,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.999,
+    "greens": {
+      "hue": [
+        87.0,
+        89.4
+      ],
+      "share": 0.008,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.22,
+      3.42,
+      3.25
+    ],
+    "ratio_change": [
+      0.099,
+      -0.029
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/house_03.png",
+    "preview_day": "blender/previews/day/house_03.png",
+    "silhouette": "blender/previews/silhouettes/house_03.png"
+  },
+  "house_03_b": {
+    "tris": 13558,
+    "size": [
+      8.78,
+      11.947,
+      11.666
+    ],
+    "materials": 3,
+    "seed": 108,
+    "budget": 14000,
+    "glb": "public/models/island/house_03_b.glb",
+    "glb_bytes": 130676,
+    "glb_size": [
+      8.78,
+      11.947,
+      11.666
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 13558,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.999,
+    "greens": {
+      "hue": [
+        87.0,
+        89.8
+      ],
+      "share": 0.017,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.22,
+      3.42,
+      3.25
+    ],
+    "ratio_change": [
+      0.102,
+      -0.027
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/house_03_b.png",
+    "preview_day": "blender/previews/day/house_03_b.png",
+    "silhouette": "blender/previews/silhouettes/house_03_b.png"
+  },
+  "house_03_c": {
+    "tris": 13440,
+    "size": [
+      8.78,
+      11.942,
+      11.707
+    ],
+    "materials": 3,
+    "seed": 209,
+    "budget": 14000,
+    "glb": "public/models/island/house_03_c.glb",
+    "glb_bytes": 130040,
+    "glb_size": [
+      8.78,
+      11.942,
+      11.707
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 13440,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        87.0,
+        89.8
+      ],
+      "share": 0.016,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.22,
+      3.42,
+      3.25
+    ],
+    "ratio_change": [
+      0.098,
+      -0.031
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/house_03_c.png",
+    "preview_day": "blender/previews/day/house_03_c.png",
+    "silhouette": "blender/previews/silhouettes/house_03_c.png"
+  },
+  "pier": {
+    "tris": 5756,
+    "size": [
+      3.337,
+      19.137,
+      7.418
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 6000,
+    "glb": "public/models/island/pier.glb",
+    "glb_bytes": 64752,
+    "glb_size": [
+      3.337,
+      19.137,
+      7.417
+    ],
+    "glb_min_z": -0.988,
+    "glb_tris": 5756,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      3.1,
+      19.03,
+      7.51
+    ],
+    "ratio_change": [
+      0.09,
+      0.018
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/pier.png",
+    "preview_day": "blender/previews/day/pier.png",
+    "silhouette": "blender/previews/silhouettes/pier.png"
+  },
+  "ship": {
+    "tris": 13502,
+    "size": [
+      10.033,
+      37.291,
+      32.674
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 30000,
+    "glb": "public/models/island/ship.glb",
+    "glb_bytes": 139488,
+    "glb_size": [
+      10.034,
+      37.291,
+      32.673
+    ],
+    "glb_min_z": -2.414,
+    "glb_tris": 13502,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      9.53,
+      37.43,
+      32.55
+    ],
+    "ratio_change": [
+      0.049,
+      -0.007
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/ship.png",
+    "preview_day": "blender/previews/day/ship.png",
+    "silhouette": "blender/previews/silhouettes/ship.png"
+  },
+  "barrels": {
+    "tris": 1500,
+    "size": [
+      4.318,
+      3.13,
+      0.913
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/barrels.glb",
+    "glb_bytes": 20860,
+    "glb_size": [
+      4.318,
+      3.13,
+      0.913
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1500,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      4.44,
+      3.34,
+      0.93
+    ],
+    "ratio_change": [
+      -0.009,
+      -0.045
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/barrels.png",
+    "preview_day": "blender/previews/day/barrels.png",
+    "silhouette": "blender/previews/silhouettes/barrels.png"
+  },
+  "crate": {
+    "tris": 970,
+    "size": [
+      0.948,
+      0.41,
+      0.373
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/crate.glb",
+    "glb_bytes": 12676,
+    "glb_size": [
+      0.948,
+      0.41,
+      0.373
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 970,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.82,
+      0.41,
+      0.35
+    ],
+    "ratio_change": [
+      0.085,
+      -0.062
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/crate.png",
+    "preview_day": "blender/previews/day/crate.png",
+    "silhouette": "blender/previews/silhouettes/crate.png"
+  },
+  "lantern": {
+    "tris": 416,
+    "size": [
+      0.22,
+      0.22,
+      0.567
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/lantern.glb",
+    "glb_bytes": 4896,
+    "glb_size": [
+      0.22,
+      0.22,
+      0.567
+    ],
+    "glb_min_z": -0.0,
+    "glb_tris": 416,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_iron",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": false,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.22,
+      0.23,
+      0.53
+    ],
+    "ratio_change": [
+      -0.065,
+      -0.106
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/lantern.png",
+    "preview_day": "blender/previews/day/lantern.png",
+    "silhouette": "blender/previews/silhouettes/lantern.png"
+  },
+  "sea_marker": {
+    "tris": 1410,
+    "size": [
+      3.18,
+      3.18,
+      6.716
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/sea_marker.glb",
+    "glb_bytes": 19632,
+    "glb_size": [
+      3.18,
+      3.18,
+      6.716
+    ],
+    "glb_min_z": -1.12,
+    "glb_tris": 1410,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      3.0,
+      3.0,
+      6.68
+    ],
+    "ratio_change": [
+      0.054,
+      0.054
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/sea_marker.png",
+    "preview_day": "blender/previews/day/sea_marker.png",
+    "silhouette": "blender/previews/silhouettes/sea_marker.png"
+  },
+  "inn": {
+    "tris": 19934,
+    "size": [
+      13.04,
+      13.82,
+      11.268
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 20000,
+    "glb": "public/models/island/inn.glb",
+    "glb_bytes": 181920,
+    "glb_size": [
+      13.04,
+      13.82,
+      11.268
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 19934,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.958,
+    "greens": {
+      "hue": [
+        87.4,
+        89.4
+      ],
+      "share": 0.009,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      4.03,
+      4.02,
+      3.49
+    ],
+    "ratio_change": [
+      0.002,
+      0.065
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/inn.png",
+    "preview_day": "blender/previews/day/inn.png",
+    "silhouette": "blender/previews/silhouettes/inn.png"
+  },
+  "bell_tower": {
+    "tris": 15440,
+    "size": [
+      5.904,
+      7.096,
+      15.407
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 20000,
+    "glb": "public/models/island/bell_tower.glb",
+    "glb_bytes": 154956,
+    "glb_size": [
+      5.905,
+      7.096,
+      15.407
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 15440,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.994,
+    "greens": {
+      "hue": [
+        88.2,
+        89.8
+      ],
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      1.94,
+      2.23,
+      4.76
+    ],
+    "ratio_change": [
+      -0.06,
+      -0.017
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/bell_tower.png",
+    "preview_day": "blender/previews/day/bell_tower.png",
+    "silhouette": "blender/previews/silhouettes/bell_tower.png"
+  },
+  "mill": {
+    "tris": 8432,
+    "size": [
+      11.723,
+      9.659,
+      15.211
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 20000,
+    "glb": "public/models/island/mill.glb",
+    "glb_bytes": 88224,
+    "glb_size": [
+      11.723,
+      9.659,
+      15.211
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 8432,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.96,
+    "greens": {
+      "hue": [
+        86.7,
+        89.8
+      ],
+      "share": 0.005,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      3.4,
+      2.73,
+      4.8
+    ],
+    "ratio_change": [
+      0.088,
+      0.116
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/mill.png",
+    "preview_day": "blender/previews/day/mill.png",
+    "silhouette": "blender/previews/silhouettes/mill.png"
+  },
+  "blacksmith": {
+    "tris": 8486,
+    "size": [
+      8.986,
+      8.212,
+      7.526
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 16000,
+    "glb": "public/models/island/blacksmith.glb",
+    "glb_bytes": 92520,
+    "glb_size": [
+      8.986,
+      8.212,
+      7.526
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 8486,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_hearth_glow",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.965,
+    "greens": {
+      "hue": [
+        87.1,
+        89.4
+      ],
+      "share": 0.017,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      3.89,
+      3.28,
+      3.0
+    ],
+    "ratio_change": [
+      -0.079,
+      -0.002
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/blacksmith.png",
+    "preview_day": "blender/previews/day/blacksmith.png",
+    "silhouette": "blender/previews/silhouettes/blacksmith.png"
+  },
+  "barracks": {
+    "tris": 10392,
+    "size": [
+      9.537,
+      11.492,
+      10.575
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 16000,
+    "glb": "public/models/island/barracks.glb",
+    "glb_bytes": 106512,
+    "glb_size": [
+      9.537,
+      11.492,
+      10.575
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 10392,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_window_glass",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        87.6,
+        89.2
+      ],
+      "share": 0.001,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      1.94,
+      2.12,
+      2.09
+    ],
+    "ratio_change": [
+      -0.028,
+      0.071
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/barracks.png",
+    "preview_day": "blender/previews/day/barracks.png",
+    "silhouette": "blender/previews/silhouettes/barracks.png"
+  },
+  "sawmill": {
+    "tris": 7746,
+    "size": [
+      9.71,
+      8.409,
+      7.26
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 16000,
+    "glb": "public/models/island/sawmill.glb",
+    "glb_bytes": 85204,
+    "glb_size": [
+      9.71,
+      8.409,
+      7.26
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 7746,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.987,
+    "greens": {
+      "hue": [
+        87.0,
+        89.4
+      ],
+      "share": 0.018,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      4.4,
+      3.28,
+      2.86
+    ],
+    "ratio_change": [
+      -0.131,
+      0.01
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/sawmill.png",
+    "preview_day": "blender/previews/day/sawmill.png",
+    "silhouette": "blender/previews/silhouettes/sawmill.png"
+  },
+  "stable": {
+    "tris": 8788,
+    "size": [
+      12.201,
+      8.46,
+      6.802
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 16000,
+    "glb": "public/models/island/stable.glb",
+    "glb_bytes": 98288,
+    "glb_size": [
+      12.201,
+      8.46,
+      6.802
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 8788,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.988,
+    "greens": {
+      "hue": [
+        86.9,
+        89.5
+      ],
+      "share": 0.02,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      4.7,
+      3.33,
+      2.49
+    ],
+    "ratio_change": [
+      -0.05,
+      -0.07
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/stable.png",
+    "preview_day": "blender/previews/day/stable.png",
+    "silhouette": "blender/previews/silhouettes/stable.png"
+  },
+  "market_stand_01": {
+    "tris": 1540,
+    "size": [
+      1.27,
+      2.82,
+      2.444
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/market_stand_01.glb",
+    "glb_bytes": 22520,
+    "glb_size": [
+      1.27,
+      2.82,
+      2.444
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1540,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.989,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.52,
+      1.15,
+      1.04
+    ],
+    "ratio_change": [
+      0.039,
+      0.043
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/market_stand_01.png",
+    "preview_day": "blender/previews/day/market_stand_01.png",
+    "silhouette": "blender/previews/silhouettes/market_stand_01.png"
+  },
+  "market_stand_02": {
+    "tris": 1854,
+    "size": [
+      2.4,
+      3.25,
+      2.623
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/market_stand_02.glb",
+    "glb_bytes": 25312,
+    "glb_size": [
+      2.4,
+      3.25,
+      2.623
+    ],
+    "glb_min_z": -0.0,
+    "glb_tris": 1854,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.982,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.95,
+      1.19,
+      1.05
+    ],
+    "ratio_change": [
+      0.011,
+      0.093
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/market_stand_02.png",
+    "preview_day": "blender/previews/day/market_stand_02.png",
+    "silhouette": "blender/previews/silhouettes/market_stand_02.png"
+  },
+  "market_stand_02_b": {
+    "tris": 1854,
+    "size": [
+      2.4,
+      3.25,
+      2.62
+    ],
+    "materials": 2,
+    "seed": 108,
+    "budget": 2000,
+    "glb": "public/models/island/market_stand_02_b.glb",
+    "glb_bytes": 25356,
+    "glb_size": [
+      2.4,
+      3.25,
+      2.62
+    ],
+    "glb_min_z": -0.0,
+    "glb_tris": 1854,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.98,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.95,
+      1.19,
+      1.05
+    ],
+    "ratio_change": [
+      0.012,
+      0.095
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/market_stand_02_b.png",
+    "preview_day": "blender/previews/day/market_stand_02_b.png",
+    "silhouette": "blender/previews/silhouettes/market_stand_02_b.png"
+  },
+  "well": {
+    "tris": 1468,
+    "size": [
+      1.944,
+      2.57,
+      3.571
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/well.glb",
+    "glb_bytes": 19616,
+    "glb_size": [
+      1.944,
+      2.57,
+      3.571
+    ],
+    "glb_min_z": -0.0,
+    "glb_tris": 1468,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.918,
+    "greens": {
+      "hue": [
+        87.1,
+        89.2
+      ],
+      "share": 0.016,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.67,
+      1.0,
+      1.25
+    ],
+    "ratio_change": [
+      0.016,
+      -0.1
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/well.png",
+    "preview_day": "blender/previews/day/well.png",
+    "silhouette": "blender/previews/silhouettes/well.png"
+  },
+  "cart": {
+    "tris": 1226,
+    "size": [
+      1.2,
+      2.232,
+      1.911
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/cart.glb",
+    "glb_bytes": 19544,
+    "glb_size": [
+      1.2,
+      2.232,
+      1.91
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1226,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.955,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.46,
+      0.93,
+      0.8
+    ],
+    "ratio_change": [
+      0.092,
+      0.005
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/cart.png",
+    "preview_day": "blender/previews/day/cart.png",
+    "silhouette": "blender/previews/silhouettes/cart.png"
+  },
+  "fence": {
+    "tris": 98,
+    "size": [
+      2.3,
+      0.091,
+      0.971
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 200,
+    "glb": "public/models/island/fence.glb",
+    "glb_bytes": 2820,
+    "glb_size": [
+      2.3,
+      0.091,
+      0.971
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 98,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.79,
+      0.03,
+      0.33
+    ],
+    "ratio_change": [
+      -0.011,
+      0.031
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/fence.png",
+    "preview_day": "blender/previews/day/fence.png",
+    "silhouette": "blender/previews/silhouettes/fence.png"
+  },
+  "fence_b": {
+    "tris": 198,
+    "size": [
+      2.3,
+      0.336,
+      0.971
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 200,
+    "glb": "public/models/island/fence_b.glb",
+    "glb_bytes": 4368,
+    "glb_size": [
+      2.3,
+      0.336,
+      0.971
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 198,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "preview": "blender/previews/fence_b.png",
+    "preview_day": "blender/previews/day/fence_b.png",
+    "silhouette": "blender/previews/silhouettes/fence_b.png"
+  },
+  "fire_pit": {
+    "tris": 1280,
+    "size": [
+      1.511,
+      1.532,
+      0.442
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/fire_pit.glb",
+    "glb_bytes": 28956,
+    "glb_size": [
+      1.511,
+      1.532,
+      0.442
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1280,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_hearth_glow"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      1.44,
+      1.43,
+      0.38
+    ],
+    "ratio_change": [
+      -0.098,
+      -0.079
+    ],
+    "fit_height_factor": 1.0,
+    "preview": "blender/previews/fire_pit.png",
+    "preview_day": "blender/previews/day/fire_pit.png",
+    "silhouette": "blender/previews/silhouettes/fire_pit.png"
+  },
+  "cypress": {
+    "tris": 4700,
+    "size": [
+      2.032,
+      1.892,
+      13.0
+    ],
+    "materials": 1,
+    "exposure": 0.2,
+    "upright_size": [
+      2.032,
+      1.781,
+      13.0
+    ],
+    "seed": 7,
+    "budget": 8000,
+    "glb": "public/models/island/cypress.glb",
+    "glb_bytes": 36712,
+    "glb_size": [
+      2.031,
+      1.892,
+      13.0
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 4700,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.977,
+    "greens": {
+      "hue": [
+        78.0,
+        111.9
+      ],
+      "share": 0.99,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.03,
+      1.78,
+      12.99
+    ],
+    "ratio_change": [
+      0.0,
+      -0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/cypress.png",
+    "preview_day": "blender/previews/day/cypress.png",
+    "silhouette": "blender/previews/silhouettes/cypress.png"
+  },
+  "cypress_b": {
+    "tris": 4700,
+    "size": [
+      2.032,
+      3.256,
+      13.0
+    ],
+    "materials": 1,
+    "exposure": 0.8,
+    "upright_size": [
+      2.032,
+      1.781,
+      13.0
+    ],
+    "seed": 108,
+    "budget": 8000,
+    "glb": "public/models/island/cypress_b.glb",
+    "glb_bytes": 36364,
+    "glb_size": [
+      2.031,
+      3.257,
+      13.0
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 4700,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.99,
+    "greens": {
+      "hue": [
+        100.5,
+        149.6
+      ],
+      "share": 0.988,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.03,
+      1.78,
+      12.99
+    ],
+    "ratio_change": [
+      0.0,
+      -0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/cypress_b.png",
+    "preview_day": "blender/previews/day/cypress_b.png",
+    "silhouette": "blender/previews/silhouettes/cypress_b.png"
+  },
+  "island_tree_01": {
+    "tris": 6908,
+    "size": [
+      9.506,
+      9.737,
+      10.025
+    ],
+    "materials": 1,
+    "exposure": 0.2,
+    "upright_size": [
+      9.506,
+      9.626,
+      10.025
+    ],
+    "seed": 7,
+    "budget": 8000,
+    "glb": "public/models/island/island_tree_01.glb",
+    "glb_bytes": 80676,
+    "glb_size": [
+      9.506,
+      9.736,
+      10.025
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 6908,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.813,
+    "greens": {
+      "hue": [
+        84.3,
+        107.7
+      ],
+      "share": 0.079,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      4.76,
+      4.82,
+      5.02
+    ],
+    "ratio_change": [
+      0.0,
+      0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/island_tree_01.png",
+    "preview_day": "blender/previews/day/island_tree_01.png",
+    "silhouette": "blender/previews/silhouettes/island_tree_01.png"
+  },
+  "island_tree_01_b": {
+    "tris": 6962,
+    "size": [
+      7.625,
+      8.044,
+      8.041
+    ],
+    "materials": 1,
+    "exposure": 0.8,
+    "upright_size": [
+      7.625,
+      7.721,
+      8.041
+    ],
+    "seed": 108,
+    "budget": 8000,
+    "glb": "public/models/island/island_tree_01_b.glb",
+    "glb_bytes": 80880,
+    "glb_size": [
+      7.625,
+      8.044,
+      8.041
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 6962,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.78,
+    "greens": {
+      "hue": [
+        104.3,
+        142.9
+      ],
+      "share": 0.074,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      4.76,
+      4.82,
+      5.02
+    ],
+    "ratio_change": [
+      0.0,
+      0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/island_tree_01_b.png",
+    "preview_day": "blender/previews/day/island_tree_01_b.png",
+    "silhouette": "blender/previews/silhouettes/island_tree_01_b.png"
+  },
+  "island_tree_02": {
+    "tris": 6164,
+    "size": [
+      9.525,
+      9.261,
+      7.715
+    ],
+    "materials": 1,
+    "exposure": 0.2,
+    "upright_size": [
+      9.525,
+      9.208,
+      7.715
+    ],
+    "seed": 7,
+    "budget": 8000,
+    "glb": "public/models/island/island_tree_02.glb",
+    "glb_bytes": 73480,
+    "glb_size": [
+      9.525,
+      9.261,
+      7.715
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 6164,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.765,
+    "greens": {
+      "hue": [
+        79.3,
+        111.9
+      ],
+      "share": 0.083,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      4.21,
+      4.07,
+      3.41
+    ],
+    "ratio_change": [
+      0.0,
+      -0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/island_tree_02.png",
+    "preview_day": "blender/previews/day/island_tree_02.png",
+    "silhouette": "blender/previews/silhouettes/island_tree_02.png"
+  },
+  "island_tree_02_b": {
+    "tris": 5508,
+    "size": [
+      7.638,
+      7.83,
+      6.187
+    ],
+    "materials": 1,
+    "exposure": 0.8,
+    "upright_size": [
+      7.638,
+      7.384,
+      6.187
+    ],
+    "seed": 108,
+    "budget": 8000,
+    "glb": "public/models/island/island_tree_02_b.glb",
+    "glb_bytes": 66496,
+    "glb_size": [
+      7.638,
+      7.83,
+      6.187
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 5508,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.8,
+    "greens": {
+      "hue": [
+        103.5,
+        146.2
+      ],
+      "share": 0.091,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      4.21,
+      4.07,
+      3.41
+    ],
+    "ratio_change": [
+      -0.0,
+      -0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/island_tree_02_b.png",
+    "preview_day": "blender/previews/day/island_tree_02_b.png",
+    "silhouette": "blender/previews/silhouettes/island_tree_02_b.png"
+  },
+  "tree_small": {
+    "tris": 5454,
+    "size": [
+      3.399,
+      4.919,
+      5.314
+    ],
+    "materials": 1,
+    "exposure": 0.2,
+    "upright_size": [
+      3.399,
+      4.929,
+      5.314
+    ],
+    "seed": 7,
+    "budget": 8000,
+    "glb": "public/models/island/tree_small.glb",
+    "glb_bytes": 60188,
+    "glb_size": [
+      3.399,
+      4.919,
+      5.314
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 5454,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.903,
+    "greens": {
+      "hue": [
+        83.7,
+        108.3
+      ],
+      "share": 0.083,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.91,
+      4.22,
+      4.55
+    ],
+    "ratio_change": [
+      0.0,
+      0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/tree_small.png",
+    "preview_day": "blender/previews/day/tree_small.png",
+    "silhouette": "blender/previews/silhouettes/tree_small.png"
+  },
+  "tree_small_b": {
+    "tris": 4596,
+    "size": [
+      2.726,
+      4.279,
+      4.262
+    ],
+    "materials": 1,
+    "exposure": 0.8,
+    "upright_size": [
+      2.726,
+      3.953,
+      4.262
+    ],
+    "seed": 108,
+    "budget": 8000,
+    "glb": "public/models/island/tree_small_b.glb",
+    "glb_bytes": 52256,
+    "glb_size": [
+      2.725,
+      4.279,
+      4.262
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 4596,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.788,
+    "greens": {
+      "hue": [
+        105.9,
+        144.1
+      ],
+      "share": 0.094,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.91,
+      4.22,
+      4.55
+    ],
+    "ratio_change": [
+      0.0,
+      0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/tree_small_b.png",
+    "preview_day": "blender/previews/day/tree_small_b.png",
+    "silhouette": "blender/previews/silhouettes/tree_small_b.png"
+  },
+  "birch": {
+    "tris": 6162,
+    "size": [
+      5.968,
+      7.425,
+      10.513
+    ],
+    "materials": 1,
+    "exposure": 0.2,
+    "upright_size": [
+      5.968,
+      7.135,
+      10.513
+    ],
+    "seed": 7,
+    "budget": 8000,
+    "glb": "public/models/island/birch.glb",
+    "glb_bytes": 71384,
+    "glb_size": [
+      5.968,
+      7.425,
+      10.513
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 6162,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.615,
+    "greens": {
+      "hue": [
+        83.1,
+        112.3
+      ],
+      "share": 0.062,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/birch.png",
+    "preview_day": "blender/previews/day/birch.png",
+    "silhouette": "blender/previews/silhouettes/birch.png"
+  },
+  "birch_b": {
+    "tris": 6190,
+    "size": [
+      5.919,
+      6.631,
+      8.432
+    ],
+    "materials": 1,
+    "exposure": 0.8,
+    "upright_size": [
+      5.919,
+      6.407,
+      8.432
+    ],
+    "seed": 108,
+    "budget": 8000,
+    "glb": "public/models/island/birch_b.glb",
+    "glb_bytes": 72348,
+    "glb_size": [
+      5.919,
+      6.631,
+      8.432
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 6190,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.548,
+    "greens": {
+      "hue": [
+        106.1,
+        147.5
+      ],
+      "share": 0.062,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/birch_b.png",
+    "preview_day": "blender/previews/day/birch_b.png",
+    "silhouette": "blender/previews/silhouettes/birch_b.png"
+  },
+  "spruce": {
+    "tris": 7518,
+    "size": [
+      6.319,
+      6.404,
+      13.307
+    ],
+    "materials": 1,
+    "exposure": 0.2,
+    "upright_size": [
+      6.319,
+      6.404,
+      13.307
+    ],
+    "seed": 7,
+    "budget": 8000,
+    "glb": "public/models/island/spruce.glb",
+    "glb_bytes": 87300,
+    "glb_size": [
+      6.318,
+      6.404,
+      13.307
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 7518,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.995,
+    "greens": {
+      "hue": [
+        77.9,
+        108.3
+      ],
+      "share": 0.07,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/spruce.png",
+    "preview_day": "blender/previews/day/spruce.png",
+    "silhouette": "blender/previews/silhouettes/spruce.png"
+  },
+  "spruce_b": {
+    "tris": 7526,
+    "size": [
+      5.368,
+      5.173,
+      10.689
+    ],
+    "materials": 1,
+    "exposure": 0.8,
+    "upright_size": [
+      5.368,
+      5.173,
+      10.689
+    ],
+    "seed": 108,
+    "budget": 8000,
+    "glb": "public/models/island/spruce_b.glb",
+    "glb_bytes": 87872,
+    "glb_size": [
+      5.368,
+      5.173,
+      10.689
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 7526,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.993,
+    "greens": {
+      "hue": [
+        101.2,
+        142.7
+      ],
+      "share": 0.065,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/spruce_b.png",
+    "preview_day": "blender/previews/day/spruce_b.png",
+    "silhouette": "blender/previews/silhouettes/spruce_b.png"
+  },
+  "hawthorn": {
+    "tris": 1110,
+    "size": [
+      4.155,
+      4.37,
+      3.005
+    ],
+    "materials": 1,
+    "exposure": 0.2,
+    "upright_size": [
+      4.155,
+      4.324,
+      3.005
+    ],
+    "seed": 7,
+    "budget": 1500,
+    "glb": "public/models/island/hawthorn.glb",
+    "glb_bytes": 21408,
+    "glb_size": [
+      4.155,
+      4.37,
+      3.005
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1110,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.745,
+    "greens": {
+      "hue": [
+        79.2,
+        108.1
+      ],
+      "share": 0.244,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/hawthorn.png",
+    "preview_day": "blender/previews/day/hawthorn.png",
+    "silhouette": "blender/previews/silhouettes/hawthorn.png"
+  },
+  "hedge_box": {
+    "tris": 642,
+    "size": [
+      0.751,
+      0.759,
+      0.682
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 1500,
+    "glb": "public/models/island/hedge_box.glb",
+    "glb_bytes": 9808,
+    "glb_size": [
+      0.751,
+      0.759,
+      0.682
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 642,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.956,
+    "greens": {
+      "hue": [
+        83.8,
+        110.9
+      ],
+      "share": 1.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/hedge_box.png",
+    "preview_day": "blender/previews/day/hedge_box.png",
+    "silhouette": "blender/previews/silhouettes/hedge_box.png"
+  },
+  "hedge_box_b": {
+    "tris": 642,
+    "size": [
+      0.745,
+      0.739,
+      0.606
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 1500,
+    "glb": "public/models/island/hedge_box_b.glb",
+    "glb_bytes": 8756,
+    "glb_size": [
+      0.745,
+      0.739,
+      0.606
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 642,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        83.8,
+        110.9
+      ],
+      "share": 1.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/hedge_box_b.png",
+    "preview_day": "blender/previews/day/hedge_box_b.png",
+    "silhouette": "blender/previews/silhouettes/hedge_box_b.png"
+  },
+  "fern": {
+    "tris": 160,
+    "size": [
+      1.566,
+      1.414,
+      0.677
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 600,
+    "glb": "public/models/island/fern.glb",
+    "glb_bytes": 5196,
+    "glb_size": [
+      1.566,
+      1.414,
+      0.677
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 160,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_grass"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        93.5,
+        124.6
+      ],
+      "share": 1.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.99,
+      0.894,
+      0.428
+    ],
+    "ratio_change": [
+      0.0,
+      -0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "grass.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/fern.png",
+    "preview_day": "blender/previews/day/fern.png",
+    "silhouette": "blender/previews/silhouettes/fern.png"
+  },
+  "boulder_01": {
+    "tris": 1280,
+    "size": [
+      1.265,
+      1.823,
+      0.996
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/boulder_01.glb",
+    "glb_bytes": 16120,
+    "glb_size": [
+      1.265,
+      1.823,
+      0.996
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1280,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_rock"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        89.8,
+        92.4
+      ],
+      "share": 0.051,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      1.27,
+      1.83,
+      1.0
+    ],
+    "ratio_change": [
+      0.0,
+      0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "rock.png",
+    "glb_alpha": [
+      "OPAQUE"
+    ],
+    "glb_double_sided": false,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/boulder_01.png",
+    "preview_day": "blender/previews/day/boulder_01.png",
+    "silhouette": "blender/previews/silhouettes/boulder_01.png"
+  },
+  "boulder_02": {
+    "tris": 1280,
+    "size": [
+      2.434,
+      1.184,
+      0.847
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/boulder_02.glb",
+    "glb_bytes": 16072,
+    "glb_size": [
+      2.434,
+      1.184,
+      0.847
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1280,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_rock"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        89.8,
+        93.7
+      ],
+      "share": 0.023,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.53,
+      1.23,
+      0.88
+    ],
+    "ratio_change": [
+      -0.0,
+      0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "rock.png",
+    "glb_alpha": [
+      "OPAQUE"
+    ],
+    "glb_double_sided": false,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/boulder_02.png",
+    "preview_day": "blender/previews/day/boulder_02.png",
+    "silhouette": "blender/previews/silhouettes/boulder_02.png"
+  },
+  "moss_rocks": {
+    "tris": 1920,
+    "size": [
+      2.021,
+      1.995,
+      1.05
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/moss_rocks.glb",
+    "glb_bytes": 24840,
+    "glb_size": [
+      2.021,
+      1.994,
+      1.05
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1920,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_rock"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        89.5,
+        93.7
+      ],
+      "share": 0.241,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.108,
+      2.08,
+      1.095
+    ],
+    "ratio_change": [
+      -0.0,
+      0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "rock.png",
+    "glb_alpha": [
+      "OPAQUE"
+    ],
+    "glb_double_sided": false,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/moss_rocks.png",
+    "preview_day": "blender/previews/day/moss_rocks.png",
+    "silhouette": "blender/previews/silhouettes/moss_rocks.png"
+  },
+  "moss_rocks_b": {
+    "tris": 1920,
+    "size": [
+      2.111,
+      2.733,
+      1.25
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 2000,
+    "glb": "public/models/island/moss_rocks_b.glb",
+    "glb_bytes": 24072,
+    "glb_size": [
+      2.111,
+      2.733,
+      1.25
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1920,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_rock"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        89.6,
+        93.7
+      ],
+      "share": 0.245,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      2.126,
+      2.753,
+      1.259
+    ],
+    "ratio_change": [
+      0.0,
+      -0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "rock.png",
+    "glb_alpha": [
+      "OPAQUE"
+    ],
+    "glb_double_sided": false,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/moss_rocks_b.png",
+    "preview_day": "blender/previews/day/moss_rocks_b.png",
+    "silhouette": "blender/previews/silhouettes/moss_rocks_b.png"
+  },
+  "tree_stump": {
+    "tris": 502,
+    "size": [
+      1.812,
+      2.015,
+      0.722
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/tree_stump.glb",
+    "glb_bytes": 8124,
+    "glb_size": [
+      1.812,
+      2.015,
+      0.722
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 502,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        91.3,
+        108.7
+      ],
+      "share": 0.221,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      1.43,
+      1.59,
+      0.57
+    ],
+    "ratio_change": [
+      0.0,
+      0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/tree_stump.png",
+    "preview_day": "blender/previews/day/tree_stump.png",
+    "silhouette": "blender/previews/silhouettes/tree_stump.png"
+  },
+  "grass_medium_01": {
+    "tris": 108,
+    "size": [
+      0.509,
+      0.521,
+      0.514
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 300,
+    "glb": "public/models/island/grass_medium_01.glb",
+    "glb_bytes": 3384,
+    "glb_size": [
+      0.509,
+      0.521,
+      0.514
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 108,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_grass"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.422,
+    "greens": {
+      "hue": [
+        77.5,
+        110.7
+      ],
+      "share": 0.944,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.216,
+      0.221,
+      0.218
+    ],
+    "ratio_change": [
+      -0.001,
+      -0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "grass.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/grass_medium_01.png",
+    "preview_day": "blender/previews/day/grass_medium_01.png",
+    "silhouette": "blender/previews/silhouettes/grass_medium_01.png"
+  },
+  "grass_medium_02": {
+    "tris": 132,
+    "size": [
+      0.783,
+      0.748,
+      0.694
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 300,
+    "glb": "public/models/island/grass_medium_02.glb",
+    "glb_bytes": 3900,
+    "glb_size": [
+      0.783,
+      0.748,
+      0.694
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 132,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_grass"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.353,
+    "greens": {
+      "hue": [
+        73.3,
+        110.7
+      ],
+      "share": 0.939,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.262,
+      0.25,
+      0.232
+    ],
+    "ratio_change": [
+      -0.001,
+      0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "grass.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/grass_medium_02.png",
+    "preview_day": "blender/previews/day/grass_medium_02.png",
+    "silhouette": "blender/previews/silhouettes/grass_medium_02.png"
+  },
+  "grass_medium_02_b": {
+    "tris": 84,
+    "size": [
+      0.433,
+      0.437,
+      0.572
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 300,
+    "glb": "public/models/island/grass_medium_02_b.glb",
+    "glb_bytes": 3028,
+    "glb_size": [
+      0.434,
+      0.437,
+      0.572
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 84,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_grass"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.612,
+    "greens": {
+      "hue": [
+        72.1,
+        110.7
+      ],
+      "share": 0.976,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.119,
+      0.12,
+      0.157
+    ],
+    "ratio_change": [
+      -0.001,
+      -0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "grass.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/grass_medium_02_b.png",
+    "preview_day": "blender/previews/day/grass_medium_02_b.png",
+    "silhouette": "blender/previews/silhouettes/grass_medium_02_b.png"
+  },
+  "grass_bermuda": {
+    "tris": 72,
+    "size": [
+      0.144,
+      0.097,
+      0.319
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 300,
+    "glb": "public/models/island/grass_bermuda.glb",
+    "glb_bytes": 2772,
+    "glb_size": [
+      0.144,
+      0.097,
+      0.319
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 72,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_grass"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.321,
+    "greens": {
+      "hue": [
+        77.5,
+        110.7
+      ],
+      "share": 0.917,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.068,
+      0.046,
+      0.151
+    ],
+    "ratio_change": [
+      0.002,
+      -0.002
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "grass.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/grass_bermuda.png",
+    "preview_day": "blender/previews/day/grass_bermuda.png",
+    "silhouette": "blender/previews/silhouettes/grass_bermuda.png"
+  },
+  "dandelion": {
+    "tris": 152,
+    "size": [
+      0.461,
+      0.453,
+      0.274
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 400,
+    "glb": "public/models/island/dandelion.glb",
+    "glb_bytes": 5556,
+    "glb_size": [
+      0.461,
+      0.453,
+      0.274
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 152,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_flowers"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.999,
+    "greens": {
+      "hue": [
+        96.8,
+        126.3
+      ],
+      "share": 0.632,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.17,
+      0.167,
+      0.101
+    ],
+    "ratio_change": [
+      -0.0,
+      -0.0
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "flowers.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/dandelion.png",
+    "preview_day": "blender/previews/day/dandelion.png",
+    "silhouette": "blender/previews/silhouettes/dandelion.png"
+  },
+  "dandelion_b": {
+    "tris": 152,
+    "size": [
+      0.259,
+      0.248,
+      0.057
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 400,
+    "glb": "public/models/island/dandelion_b.glb",
+    "glb_bytes": 5740,
+    "glb_size": [
+      0.259,
+      0.248,
+      0.057
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 152,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_flowers"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        96.7,
+        126.3
+      ],
+      "share": 0.842,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.214,
+      0.205,
+      0.047
+    ],
+    "ratio_change": [
+      -0.002,
+      -0.002
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "flowers.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/dandelion_b.png",
+    "preview_day": "blender/previews/day/dandelion_b.png",
+    "silhouette": "blender/previews/silhouettes/dandelion_b.png"
+  },
+  "gazania": {
+    "tris": 208,
+    "size": [
+      0.449,
+      0.346,
+      0.129
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 400,
+    "glb": "public/models/island/gazania.glb",
+    "glb_bytes": 6568,
+    "glb_size": [
+      0.449,
+      0.346,
+      0.129
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 208,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_flowers"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.928,
+    "greens": {
+      "hue": [
+        96.8,
+        126.3
+      ],
+      "share": 0.423,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.241,
+      0.186,
+      0.069
+    ],
+    "ratio_change": [
+      -0.003,
+      -0.005
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "flowers.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/gazania.png",
+    "preview_day": "blender/previews/day/gazania.png",
+    "silhouette": "blender/previews/silhouettes/gazania.png"
+  },
+  "gazania_b": {
+    "tris": 176,
+    "size": [
+      0.362,
+      0.392,
+      0.147
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 400,
+    "glb": "public/models/island/gazania_b.glb",
+    "glb_bytes": 5860,
+    "glb_size": [
+      0.362,
+      0.392,
+      0.147
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 176,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_flowers"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.717,
+    "greens": {
+      "hue": [
+        96.7,
+        126.3
+      ],
+      "share": 0.455,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.246,
+      0.266,
+      0.1
+    ],
+    "ratio_change": [
+      0.001,
+      0.003
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "flowers.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/gazania_b.png",
+    "preview_day": "blender/previews/day/gazania_b.png",
+    "silhouette": "blender/previews/silhouettes/gazania_b.png"
+  },
+  "sorrel": {
+    "tris": 80,
+    "size": [
+      0.096,
+      0.077,
+      0.085
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 400,
+    "glb": "public/models/island/sorrel.glb",
+    "glb_bytes": 3692,
+    "glb_size": [
+      0.096,
+      0.077,
+      0.085
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 80,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_flowers"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        93.4,
+        101.6
+      ],
+      "share": 0.8,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": [
+      0.061,
+      0.049,
+      0.054
+    ],
+    "ratio_change": [
+      -0.0,
+      -0.002
+    ],
+    "fit_height_factor": 1.0,
+    "atlas": "flowers.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/sorrel.png",
+    "preview_day": "blender/previews/day/sorrel.png",
+    "silhouette": "blender/previews/silhouettes/sorrel.png"
+  },
+  "cornflower": {
+    "tris": 160,
+    "size": [
+      0.66,
+      0.429,
+      0.563
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 400,
+    "glb": "public/models/island/cornflower.glb",
+    "glb_bytes": 5348,
+    "glb_size": [
+      0.66,
+      0.429,
+      0.563
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 160,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_flowers"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.983,
+    "greens": {
+      "hue": [
+        96.8,
+        126.3
+      ],
+      "share": 0.3,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "flowers.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/cornflower.png",
+    "preview_day": "blender/previews/day/cornflower.png",
+    "silhouette": "blender/previews/silhouettes/cornflower.png"
+  },
+  "daisy": {
+    "tris": 132,
+    "size": [
+      0.619,
+      0.394,
+      0.497
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 400,
+    "glb": "public/models/island/daisy.glb",
+    "glb_bytes": 4804,
+    "glb_size": [
+      0.619,
+      0.394,
+      0.497
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 132,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_flowers"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.993,
+    "greens": {
+      "hue": [
+        96.8,
+        126.3
+      ],
+      "share": 0.364,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "flowers.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/daisy.png",
+    "preview_day": "blender/previews/day/daisy.png",
+    "silhouette": "blender/previews/silhouettes/daisy.png"
+  },
+  "poppy": {
+    "tris": 152,
+    "size": [
+      0.69,
+      0.723,
+      0.591
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 400,
+    "glb": "public/models/island/poppy.glb",
+    "glb_bytes": 5300,
+    "glb_size": [
+      0.69,
+      0.723,
+      0.591
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 152,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_flowers"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.993,
+    "greens": {
+      "hue": [
+        96.8,
+        126.3
+      ],
+      "share": 0.421,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "flowers.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ],
+    "preview": "blender/previews/poppy.png",
+    "preview_day": "blender/previews/day/poppy.png",
+    "silhouette": "blender/previews/silhouettes/poppy.png"
+  },
+  "planter_hydrangea": {
+    "tris": 564,
+    "size": [
+      0.688,
+      0.733,
+      0.859
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 600,
+    "glb": "public/models/island/planter_hydrangea.glb",
+    "glb_bytes": 12236,
+    "glb_size": [
+      0.688,
+      0.733,
+      0.859
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 564,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        86.4,
+        126.6
+      ],
+      "share": 0.142,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "preview": "blender/previews/planter_hydrangea.png",
+    "preview_day": "blender/previews/day/planter_hydrangea.png",
+    "silhouette": "blender/previews/silhouettes/planter_hydrangea.png"
+  },
+  "bunting": {
+    "tris": 328,
+    "size": [
+      8.012,
+      0.082,
+      1.037
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 400,
+    "glb": "public/models/island/bunting.glb",
+    "glb_bytes": 5800,
+    "glb_size": [
+      8.012,
+      0.082,
+      1.037
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 328,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.857,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "preview": "blender/previews/bunting.png",
+    "preview_day": "blender/previews/day/bunting.png",
+    "silhouette": "blender/previews/silhouettes/bunting.png"
+  },
+  "raised_bed": {
+    "tris": 1128,
+    "size": [
+      2.48,
+      1.28,
+      0.541
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 1200,
+    "glb": "public/models/island/raised_bed.glb",
+    "glb_bytes": 20616,
+    "glb_size": [
+      2.48,
+      1.28,
+      0.541
+    ],
+    "glb_min_z": -0.0,
+    "glb_tris": 1128,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        72.4,
+        126.6
+      ],
+      "share": 0.233,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "preview": "blender/previews/raised_bed.png",
+    "preview_day": "blender/previews/day/raised_bed.png",
+    "silhouette": "blender/previews/silhouettes/raised_bed.png"
+  },
+  "espalier": {
+    "tris": 688,
+    "size": [
+      2.47,
+      0.192,
+      2.4
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 1200,
+    "glb": "public/models/island/espalier.glb",
+    "glb_bytes": 11160,
+    "glb_size": [
+      2.47,
+      0.192,
+      2.4
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 688,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        91.9,
+        105.3
+      ],
+      "share": 0.326,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "preview": "blender/previews/espalier.png",
+    "preview_day": "blender/previews/day/espalier.png",
+    "silhouette": "blender/previews/silhouettes/espalier.png"
+  },
+  "arbour": {
+    "tris": 964,
+    "size": [
+      1.594,
+      0.969,
+      2.584
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 1200,
+    "glb": "public/models/island/arbour.glb",
+    "glb_bytes": 18296,
+    "glb_size": [
+      1.594,
+      0.969,
+      2.584
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 964,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.998,
+    "greens": {
+      "hue": [
+        72.1,
+        125.3
+      ],
+      "share": 0.31,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "preview": "blender/previews/arbour.png",
+    "preview_day": "blender/previews/day/arbour.png",
+    "silhouette": "blender/previews/silhouettes/arbour.png"
+  },
+  "hedgerow": {
+    "tris": 1200,
+    "size": [
+      4.604,
+      1.505,
+      2.013
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 1500,
+    "glb": "public/models/island/hedgerow.glb",
+    "glb_bytes": 26564,
+    "glb_size": [
+      4.604,
+      1.505,
+      2.013
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1200,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        97.4,
+        111.2
+      ],
+      "share": 0.8,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ]
+  },
+  "hedgerow_b": {
+    "tris": 1200,
+    "size": [
+      4.659,
+      1.514,
+      1.946
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 1500,
+    "glb": "public/models/island/hedgerow_b.glb",
+    "glb_bytes": 26572,
+    "glb_size": [
+      4.659,
+      1.514,
+      1.946
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1200,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_foliage"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        97.4,
+        110.8
+      ],
+      "share": 0.8,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "foliage.png",
+    "glb_alpha": [
+      "MASK"
+    ],
+    "glb_double_sided": true,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ]
+  },
+  "dry_stone_wall": {
+    "tris": 1156,
+    "size": [
+      3.009,
+      0.657,
+      1.403
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 1200,
+    "glb": "public/models/island/dry_stone_wall.glb",
+    "glb_bytes": 21156,
+    "glb_size": [
+      3.009,
+      0.657,
+      1.403
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1156,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_rock"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        80.1,
+        83.3
+      ],
+      "share": 0.138,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "rock.png",
+    "glb_alpha": [
+      "OPAQUE"
+    ],
+    "glb_double_sided": false,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ]
+  },
+  "dry_stone_wall_b": {
+    "tris": 156,
+    "size": [
+      3.12,
+      0.74,
+      1.57
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 1200,
+    "glb": "public/models/island/dry_stone_wall_b.glb",
+    "glb_bytes": 3680,
+    "glb_size": [
+      3.12,
+      0.74,
+      1.57
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 156,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_rock"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "rock.png",
+    "glb_alpha": [
+      "OPAQUE"
+    ],
+    "glb_double_sided": false,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ]
+  },
+  "haystack": {
+    "tris": 684,
+    "size": [
+      3.939,
+      3.57,
+      4.293
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 1200,
+    "glb": "public/models/island/haystack.glb",
+    "glb_bytes": 14304,
+    "glb_size": [
+      3.939,
+      3.57,
+      4.293
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 684,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "haystack_b": {
+    "tris": 684,
+    "size": [
+      3.856,
+      3.418,
+      4.632
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 1200,
+    "glb": "public/models/island/haystack_b.glb",
+    "glb_bytes": 14272,
+    "glb_size": [
+      3.856,
+      3.418,
+      4.632
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 684,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "standing_stones": {
+    "tris": 2021,
+    "size": [
+      9.775,
+      12.088,
+      2.947
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2500,
+    "glb": "public/models/island/standing_stones.glb",
+    "glb_bytes": 24368,
+    "glb_size": [
+      9.775,
+      12.088,
+      2.947
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 2021,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_rock"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": [
+        90.0,
+        92.4
+      ],
+      "share": 0.017,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "atlas": "rock.png",
+    "glb_alpha": [
+      "OPAQUE"
+    ],
+    "glb_double_sided": false,
+    "glb_streams": [
+      "COLOR_0",
+      "COLOR_1",
+      "NORMAL",
+      "POSITION",
+      "TEXCOORD_0"
+    ]
+  },
+  "castle_keep": {
+    "tris": 22134,
+    "size": [
+      30.915,
+      26.344,
+      34.827
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 24000,
+    "glb": "public/models/island/castle_keep.glb",
+    "glb_bytes": 197480,
+    "glb_size": [
+      30.916,
+      26.343,
+      34.827
+    ],
+    "glb_min_z": -8.0,
+    "glb_tris": 22134,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass",
+      "isl_window_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.998,
+    "greens": {
+      "hue": [
+        87.6,
+        90.0
+      ],
+      "share": 0.001,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "watermill": {
+    "tris": 10358,
+    "size": [
+      37.207,
+      27.647,
+      12.128
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 16000,
+    "glb": "public/models/island/watermill.glb",
+    "glb_bytes": 106308,
+    "glb_size": [
+      37.207,
+      27.646,
+      12.128
+    ],
+    "glb_min_z": -2.0,
+    "glb_tris": 10358,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass",
+      "isl_window_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.998,
+    "greens": {
+      "hue": [
+        87.0,
+        89.4
+      ],
+      "share": 0.014,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "watermill_wheel": {
+    "tris": 772,
+    "size": [
+      2.5,
+      2.7,
+      2.7
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/watermill_wheel.glb",
+    "glb_bytes": 10484,
+    "glb_size": [
+      2.5,
+      2.7,
+      2.7
+    ],
+    "glb_min_z": -1.35,
+    "glb_tris": 772,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "stone_bridge": {
+    "tris": 3566,
+    "size": [
+      12.953,
+      10.013,
+      3.405
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 4000,
+    "glb": "public/models/island/stone_bridge.glb",
+    "glb_bytes": 34036,
+    "glb_size": [
+      12.953,
+      10.013,
+      3.405
+    ],
+    "glb_min_z": -0.6,
+    "glb_tris": 3566,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "breakwater": {
+    "tris": 5270,
+    "size": [
+      60.247,
+      34.894,
+      19.138
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 9000,
+    "glb": "public/models/island/breakwater.glb",
+    "glb_bytes": 75220,
+    "glb_size": [
+      60.247,
+      34.895,
+      19.137
+    ],
+    "glb_min_z": -11.982,
+    "glb_tris": 5270,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "quay_wall": {
+    "tris": 1930,
+    "size": [
+      36.866,
+      11.384,
+      8.046
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 6000,
+    "glb": "public/models/island/quay_wall.glb",
+    "glb_bytes": 25172,
+    "glb_size": [
+      36.866,
+      11.384,
+      8.047
+    ],
+    "glb_min_z": -3.2,
+    "glb_tris": 1930,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "lighthouse": {
+    "tris": 8228,
+    "size": [
+      11.58,
+      6.363,
+      16.84
+    ],
+    "materials": 3,
+    "seed": 7,
+    "budget": 16000,
+    "glb": "public/models/island/lighthouse.glb",
+    "glb_bytes": 84172,
+    "glb_size": [
+      11.58,
+      6.363,
+      16.84
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 8228,
+    "glb_meshes": 1,
+    "glb_materials": 3,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass",
+      "isl_window_glass"
+    ],
+    "glb_primitives": 3,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.987,
+    "greens": {
+      "hue": [
+        86.7,
+        89.8
+      ],
+      "share": 0.022,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "signpost": {
+    "tris": 714,
+    "size": [
+      1.839,
+      1.011,
+      2.747
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/signpost.glb",
+    "glb_bytes": 11084,
+    "glb_size": [
+      1.839,
+      1.011,
+      2.747
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 714,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.841,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "shrine": {
+    "tris": 1134,
+    "size": [
+      0.921,
+      0.92,
+      2.519
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/shrine.glb",
+    "glb_bytes": 14972,
+    "glb_size": [
+      0.921,
+      0.92,
+      2.519
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1134,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.943,
+    "greens": {
+      "hue": [
+        116.7,
+        117.5
+      ],
+      "share": 0.035,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "rowing_boat": {
+    "tris": 1484,
+    "size": [
+      1.529,
+      6.315,
+      0.907
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/rowing_boat.glb",
+    "glb_bytes": 24052,
+    "glb_size": [
+      1.529,
+      6.315,
+      0.907
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1484,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "rowing_boat_b": {
+    "tris": 1484,
+    "size": [
+      1.529,
+      6.315,
+      0.907
+    ],
+    "materials": 1,
+    "seed": 108,
+    "budget": 2000,
+    "glb": "public/models/island/rowing_boat_b.glb",
+    "glb_bytes": 24488,
+    "glb_size": [
+      1.529,
+      6.315,
+      0.907
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1484,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "net_rack": {
+    "tris": 1350,
+    "size": [
+      3.9,
+      1.146,
+      2.355
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/net_rack.glb",
+    "glb_bytes": 20784,
+    "glb_size": [
+      3.9,
+      1.146,
+      2.355
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1350,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.994,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  },
+  "lobster_pots": {
+    "tris": 1828,
+    "size": [
+      2.214,
+      1.223,
+      1.666
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 2000,
+    "glb": "public/models/island/lobster_pots.glb",
+    "glb_bytes": 30492,
+    "glb_size": [
+      2.214,
+      1.223,
+      1.666
+    ],
+    "glb_min_z": 0.0,
+    "glb_tris": 1828,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null
+  }
+}

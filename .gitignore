@@ -15,3 +15,11 @@ dist
 test-results
 playwright-report
 .cache/
+
+# Blender review renders and generated caches; the GLBs in public/models/island are the artifacts
+blender/previews/
+blender/island/__pycache__/
+blender/island/**/__pycache__/
+*.blend
+*.blend1
+blender/references/

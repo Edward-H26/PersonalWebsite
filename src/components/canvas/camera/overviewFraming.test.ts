@@ -1,37 +1,31 @@
-import { describe, expect, it } from "vitest"
+// @vitest-environment node
+import { beforeAll, describe, expect, it } from "vitest"
 import * as THREE from "three"
-import { EARTH_ISLAND, EARTH_ROUTE_POINTS } from "@/config"
-import { buildIslandOutline, surfaceHeight } from "@/components/canvas/islands/islandGeometry"
-import { harborBounds } from "@/components/canvas/islands/village/harbor"
-import { getOverviewFraming } from "./overviewFraming"
+import { buildHarbor } from "@/components/canvas/islands/layout/harbor"
+import { islandOverviewScene } from "@/components/canvas/islands/layout/overview"
+import { loadIslandTerrain } from "@/components/canvas/islands/terrain/terrainFixture"
+import { TerrainSite } from "@/components/canvas/islands/terrain/terrainSite"
+import { type OverviewScene, getOverviewFraming } from "./overviewFraming"
 
 const FOV = 55
 const MARGIN = 12
 const HERO_CARD_RIGHT = 592
-const scale = EARTH_ISLAND.scale
-const routeCurve = new THREE.CatmullRomCurve3(
-  EARTH_ROUTE_POINTS.map((p) => new THREE.Vector3(p[0] / scale, p[1] / scale, p[2] / scale)),
-  false,
-  "catmullrom",
-  0.5
-)
-const outline = buildIslandOutline(routeCurve, scale)
 
-// The coastline at the cliff top and at the waterline, in world units.
-const coast = outline.radii.flatMap((r, i) => {
-  const theta = (i / outline.radii.length) * Math.PI * 2
-  const x = outline.centerX + Math.cos(theta) * r
-  const z = outline.centerZ + Math.sin(theta) * r
-  return [new THREE.Vector3(x * scale, (14 + surfaceHeight(x, z, scale)) * scale, z * scale), new THREE.Vector3(x * scale, 0, z * scale)]
-})
-const harbor = harborBounds(outline)
-const harborRing = Array.from({ length: 24 }, (_, i) => {
-  const theta = (i / 24) * Math.PI * 2
-  return new THREE.Vector3((harbor.x + Math.cos(theta) * harbor.radius) * scale, 0, (harbor.z + Math.sin(theta) * harbor.radius) * scale)
+let scene: OverviewScene
+/** The coastline at sea level, in world units. */
+let coast: THREE.Vector3[]
+
+beforeAll(async () => {
+  const site = new TerrainSite(await loadIslandTerrain())
+  scene = islandOverviewScene(site, buildHarbor(site))
+  coast = site.terrain.data.coast.outline.map((point) => {
+    const [x, z] = site.scene(point)
+    return new THREE.Vector3(x, 0, z)
+  })
 })
 
-function project(width: number, height: number, points: THREE.Vector3[]) {
-  const framing = getOverviewFraming(width, height, FOV)
+function project(width: number, height: number, points: readonly THREE.Vector3[]) {
+  const framing = getOverviewFraming(scene, width, height, FOV)
   const camera = new THREE.PerspectiveCamera(FOV, width / height, 0.1, 20000)
   camera.position.copy(framing.position)
   camera.setViewOffset(width, height, framing.viewOffset.x, framing.viewOffset.y, width, height)
@@ -54,8 +48,8 @@ const VIEWPORTS: [number, number][] = [
 ]
 
 describe("getOverviewFraming", () => {
-  it.each(VIEWPORTS)("keeps the whole island and the harbor on a %ix%i screen with a margin", (width, height) => {
-    for (const p of project(width, height, [...coast, ...harborRing])) {
+  it.each(VIEWPORTS)("keeps the whole island, up to its skyline, and the harbor on a %ix%i screen with a margin", (width, height) => {
+    for (const p of project(width, height, scene.phonePoints)) {
       expect(p.x).toBeGreaterThan(MARGIN)
       expect(p.x).toBeLessThan(width - MARGIN)
       expect(p.y).toBeGreaterThan(MARGIN)
@@ -68,10 +62,12 @@ describe("getOverviewFraming", () => {
   })
 
   it("keeps the camera direction and look-at target of the bird's-eye view", () => {
-    const wide = getOverviewFraming(1440, 900, FOV)
-    const narrow = getOverviewFraming(412, 839, FOV)
+    const wide = getOverviewFraming(scene, 1440, 900, FOV)
+    const narrow = getOverviewFraming(scene, 412, 839, FOV)
     expect(narrow.lookAt.toArray()).toEqual(wide.lookAt.toArray())
     const direction = (f: typeof wide) => f.lookAt.clone().sub(f.position).normalize()
-    expect(direction(narrow).angleTo(direction(wide))).toBeLessThan(1e-9)
+    // The cross product's length is the sine of the angle between them, exact down to rounding, where
+    // angleTo's acos cannot resolve anything finer than 1.5e-8.
+    expect(direction(narrow).cross(direction(wide)).length()).toBeLessThan(1e-9)
   })
 })

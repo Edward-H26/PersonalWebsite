@@ -36,8 +36,6 @@ npm run dev    # http://localhost:5173
 | `npm run format`        | Prettier, rewrites files                                                               |
 | `npm run format:check`  | Prettier, reports only (what CI runs)                                                  |
 | `npm run ktx2:textures` | Re-encodes the PBR textures in `public/textures/hq` to KTX2                            |
-| `npm run models:fetch`  | Downloads Poly Haven originals into the gitignored cache                               |
-| `npm run models:bake`   | Bakes cached originals into `public/models/hq/*_web.glb`                               |
 
 ## Directory map
 
@@ -46,19 +44,20 @@ index.html                       entry page; the blocks between the seo:head and
 e2e/deck.spec.ts                 Playwright walkthrough
 scripts/seo.mjs                  command line entry of the SEO generator; re-exports the module functions for the tests
 scripts/seo/                     one generator module per concern (site, content, citation, sections, head, body, llms, sitemap, markers)
-scripts/*.mjs                    model and texture tooling
+scripts/*.mjs                    texture tooling
+blender/island/                  the Blender generator of every model on the island (spec in blender/DESIGN.md)
 src/main.tsx                     mounts the app and registers the service worker
 src/App.tsx                      page shell: deck, navigation, overlays, and the world scene behind them
 src/config/content/              everything the cards say, one module per stop of the walk
 src/config/profile.ts            name, bio, photo, institutions, and the overview page text
 src/config/scrollDeckPages.ts    turns the content into the ordered list of slides and the navigation sections
-src/config/world.ts              the road through the island and where each section stops on it
+src/config/world.ts              where each section stops on the island's ring road
 src/config/modelPaths.ts         every model file the scene loads
 src/deck/                        pure deck logic: paging, layout, blends, wrapping, input classification, snap drift
-src/hooks/                       the navigation hook and its input hook, world loading, viewport, motion, texture, and material hooks
+src/hooks/                       the navigation hook and its input hook, world loading, viewport, motion, and material hooks
 src/components/ui/               deck shell, slide contents, navigation, overlays
 src/components/canvas/           WorldScene and its scene/ pieces, camera, environment, islands, model loaders, post-processing
-src/components/canvas/islands/   islandGeometry (geometry/) and villageLayout (village/) behind the StylizedEarthIsland component
+src/components/canvas/islands/   terrain/ (terrain.json, heightmap, roads, ground) and layout/ (everything placed on it) behind StylizedEarthIsland
 src/store/worldStore.ts          Zustand store shared by the deck and the scene
 src/styles/                      globals.css imports the other stylesheets in cascade order
 public/                          models, textures, decoders, images, generated crawler files
@@ -79,14 +78,25 @@ lives in `src/store/worldStore.ts`.
 
 **World.** `src/components/canvas/WorldScene.tsx` mounts the canvas and the loading overlay. The
 pieces live next to it under `scene/`: `WorldLighting` and `lighting.ts` (the sun, fills, and the
-per-section dimming), `SkyClouds`, `RendererConfig` (tone mapping and exposure), and
-`LoadingOverlay`; `src/hooks/useWorldLoading.ts` decides when the overlay lifts. The island is
-generated, not modelled: `islandGeometry.ts` re-exports `geometry/` (terrain height, roads,
-coastline, terrain and cliff meshes, placement rules) and `villageLayout.ts` re-exports `village/`
-(buildings, props, vegetation, harbor), which place everything with road and coastline clearance.
-The order in `buildVillageLayout` matters, because every placement records a footprint that later
-placements avoid. Both entry points are pure and covered by unit tests. Model paths live in
-`src/config/modelPaths.ts` and load through `src/components/canvas/models/`.
+per-section dimming), `RendererConfig` (tone mapping and exposure), and `LoadingOverlay`;
+`src/hooks/useWorldLoading.ts` decides when the overlay lifts. The sea and sky live under
+`environment/`: `Sea` (one mesh round the island that reads the distance from the shore, with the
+swell, foam, and horizon haze in its shader), `SkyDome` (the dusk gradient, set by the hour in `skyPalette.ts`), and
+`ManuscriptClouds` (one instanced cloud shape); the sea, clouds, and plants share the wind in
+`wind.ts`. The island's ground comes from `blender/island`: `terrain.glb` (the mesh, its painted
+colours and the weights of its four ground textures), `terrain_height.png` (the heightmap) and
+`terrain.json` (the map: roads, stream, coast, landmarks, fields and orchard). `islands/terrain/`
+loads them, decodes the heightmap for every height the scene asks, walks the ring road for the
+camera, and draws the ground with one splat material. `islands/layout/` places everything on it
+from the map: the harbour, the landmarks at their anchors, the village on its terraces facing the
+street, the lanterns along the ring, the fields, and the vegetation, whose grass and flowers grow
+only near the roads and the village and whose trees keep off rock and cliff tops. The order in
+`buildIslandLayout` matters, because every placement records a footprint that later placements
+avoid; trees then turn their seaward side to the nearest coast, taking the wind-bent shore build
+near it, and repeated houses take their character variants by placement order. The layout is pure
+and covered by unit tests. Model paths live in
+`src/config/modelPaths.ts` and load through `src/components/canvas/models/`. `RoadLanterns` lights
+the lanterns along the road one by one as the deck carries the walk towards them (`lanternGlow.ts`).
 
 **Content.** Card text lives in `src/config/content/`, one module per stop of the walk
 (`research`, `publications`, `experience`, `service`, `projects`, `info`), assembled into
@@ -114,7 +124,7 @@ esbuild, so it reads exactly what the deck renders.
 | Projects                                   | `src/config/content/projects.ts`                                     |
 | Skills, certifications, education, contact | `src/config/content/info.ts`                                         |
 | Slide order, navigation labels             | `src/config/scrollDeckPages.ts`                                      |
-| The road and the section stops             | `src/config/world.ts`                                                |
+| Where each section stops on the road       | `src/config/world.ts`                                                |
 | Which model file a building or prop uses   | `src/config/modelPaths.ts`                                           |
 
 The content model is in `src/config/content/types.ts`. A stage is a heading plus a list of cards;
@@ -123,23 +133,23 @@ reads the Contact card for the email, phone, and profile links, so keep their la
 
 ## Assets
 
-- `public/models/hq/*_web.glb`: Poly Haven scans baked for the web by `scripts/bake-web-models.mjs`
-  (large scans are simplified, textures resized to 1k, geometry draco-compressed). Fetch originals
-  into the gitignored `.cache/polyhaven-originals/` with
-  `npm run models:fetch -- <asset ids>`, bake with `npm run models:bake -- [asset ids]`, then
-  reference the new file in `src/config/modelPaths.ts`.
-- `public/models/medieval_village_pack` and `fantasy_village`: low-poly building and tree kits.
-  Licenses and sources for every model and texture are in `public/models/ATTRIBUTION.md`.
-- `public/textures/hq`: PBR sets from Poly Haven as KTX2 (with JPEG fallbacks) loaded by
-  `src/hooks/usePbrTextureSet.ts`; `public/examples/jsm/libs/basis` and `public/draco` hold the
-  transcoder and decoder that three.js loads at runtime.
+- `public/models/island/*.glb`: every model on the island, original work generated by
+  `blender/island` in this repository and exported as draco GLBs; `blender/DESIGN.md` is the design
+  spec and `blender/island/build/stats.json` records each file's size and triangle count. Repeated
+  houses come in character variants (`_b`, `_c`) and trees in a wind-bent shore build (`_b`), both
+  listed in `src/config/modelPaths.ts`. `terrain.glb`, `terrain_height.png` and `terrain.json` are the
+  island's ground, heightmap and map, and the `ground*.png` textures its tiles, also generated by
+  `blender/island`.
+  Licenses and sources for the third-party textures are in `public/models/ATTRIBUTION.md`.
+- `public/draco` holds the decoder that three.js loads at runtime.
 
 ## Testing
 
 - `npm test` covers the deck helpers (wheel pager, deck math, layout, blends, wrapping, input
-  classification, scroll direction, snap drift), the island geometry invariants (solid coastline,
-  road connectivity, clearance), the village layout, the SEO generator, the content, the link
-  icons, and the navigation hook in jsdom. Tests sit next to the module they cover.
+  classification, scroll direction, snap drift), the terrain (heightmap decoding, roads, distance
+  fields, the ground material), the island layout (building clearance, landmarks, vegetation rules,
+  harbour, fields), the sea, the overview framing, the road lanterns' glow across the deck, the
+  SEO generator, the content, the link icons, and the navigation hook in jsdom. Tests sit next to the module they cover.
 - `npm run test:e2e` starts a dev server and drives the deck in Chromium: every slide is visited,
   one wheel notch moves one slide, holding the wheel keeps paging, card scrolling never pages,
   horizontal input looks sideways, and the deck wraps at both ends. Full Chromium runs headless, on

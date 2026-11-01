@@ -1,2 +1,3 @@
-export { Ocean } from "./Ocean"
-export { ProceduralSky } from "./Sky"
+export { ManuscriptClouds } from "./ManuscriptClouds"
+export { Sea } from "./Sea"
+export { SkyDome } from "./SkyDome"

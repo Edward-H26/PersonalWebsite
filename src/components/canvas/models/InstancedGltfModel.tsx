@@ -1,7 +1,7 @@
 import { useGLTF } from "@react-three/drei"
 import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
-import { GltfModel } from "./GltfModel"
+import { GltfModel, type MaterialOverrides } from "./GltfModel"
 import { useRealtimeMaterials } from "@/hooks/useRealtimeMaterials"
 import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
 
@@ -20,62 +20,63 @@ type InstancedGltfModelProps = {
   pivot?: Pivot
   castShadow?: boolean
   receiveShadow?: boolean
-  // Scans with several variants in one file (grass clumps, ferns) instance a single named mesh.
-  meshName?: string
   excludeFromReflection?: boolean
+  /** Shared materials drawn in place of the model's own, by material name. */
+  materialOverrides?: MaterialOverrides
+  /** Shadow depth materials by the same names, for cut-out or animated materials. */
+  depthMaterialOverrides?: MaterialOverrides
+}
+
+/** One mesh of the model, its geometry baked into model space, drawn as one instanced mesh. */
+type InstancingPart = {
+  geometry: THREE.BufferGeometry
+  material: THREE.Material
 }
 
 type InstancingSource = {
-  geometry: THREE.BufferGeometry
-  material: THREE.Material
+  parts: InstancingPart[]
   sizeY: number
 }
 
-function tryBuildInstancingSource(scene: THREE.Object3D, pivot: Pivot, meshName?: string): InstancingSource | null {
+// A model exported with several materials loads as one mesh per material, so each mesh becomes its
+// own instanced mesh and all of them share the instance transforms. A material with an override is
+// never drawn once the instanced meshes replace the model, so it is disposed.
+function tryBuildInstancingSource(scene: THREE.Object3D, pivot: Pivot, materialOverrides?: MaterialOverrides): InstancingSource | null {
   const meshes: THREE.Mesh[] = []
+  let canInstance = true
 
   scene.traverse((obj) => {
     if (!(obj instanceof THREE.Mesh)) return
-    if (obj instanceof THREE.SkinnedMesh) return
-    if (meshName && obj.name !== meshName) return
+    if (obj instanceof THREE.SkinnedMesh || Array.isArray(obj.material)) canInstance = false
     meshes.push(obj)
   })
 
-  if (meshes.length !== 1) return null
-
-  const mesh = meshes[0]
-  if (!mesh.geometry) return null
-  if (Array.isArray(mesh.material)) return null
+  if (!canInstance || meshes.length === 0) return null
 
   scene.updateMatrixWorld(true)
-  mesh.updateWorldMatrix(true, false)
 
-  const geometry = mesh.geometry.clone()
-  geometry.applyMatrix4(mesh.matrixWorld)
-  geometry.computeBoundingBox()
+  const bounds = new THREE.Box3()
+  const parts = meshes.map((mesh) => {
+    const geometry = mesh.geometry.clone()
+    geometry.applyMatrix4(mesh.matrixWorld)
+    geometry.computeBoundingBox()
+    if (geometry.boundingBox) bounds.union(geometry.boundingBox)
+    const own = mesh.material as THREE.Material
+    const override = materialOverrides?.[own.name]
+    if (override && override !== own) own.dispose()
+    return { geometry, material: override ?? own }
+  })
 
-  const box = geometry.boundingBox
-  if (!box) return null
+  const center = bounds.getCenter(new THREE.Vector3())
+  const pivotY = pivot === "center" ? center.y : bounds.min.y
 
-  const sizeY = box.max.y - box.min.y
-  const centerX = (box.min.x + box.max.x) / 2
-  const centerY = (box.min.y + box.max.y) / 2
-  const centerZ = (box.min.z + box.max.z) / 2
-  const minY = box.min.y
-
-  if (pivot !== "origin") {
-    const pivotY = pivot === "center" ? centerY : minY
-    geometry.translate(-centerX, -pivotY, -centerZ)
+  for (const { geometry } of parts) {
+    if (pivot !== "origin") geometry.translate(-center.x, -pivotY, -center.z)
+    geometry.computeBoundingBox()
+    geometry.computeBoundingSphere()
   }
 
-  geometry.computeBoundingBox()
-  geometry.computeBoundingSphere()
-
-  return {
-    geometry,
-    material: mesh.material as THREE.Material,
-    sizeY
-  }
+  return { parts, sizeY: bounds.max.y - bounds.min.y }
 }
 
 export function InstancedGltfModel({
@@ -85,16 +86,17 @@ export function InstancedGltfModel({
   pivot = "center-bottom",
   castShadow = true,
   receiveShadow = true,
-  meshName,
-  excludeFromReflection = false
+  excludeFromReflection = false,
+  materialOverrides,
+  depthMaterialOverrides
 }: InstancedGltfModelProps) {
   const { scene } = useGLTF(path)
-  const meshRef = useRef<THREE.InstancedMesh>(null)
+  const groupRef = useRef<THREE.Group>(null)
   useRealtimeMaterials(scene)
 
   const source = useMemo(() => {
-    return tryBuildInstancingSource(scene, pivot, meshName)
-  }, [meshName, scene, pivot])
+    return tryBuildInstancingSource(scene, pivot, materialOverrides)
+  }, [scene, pivot, materialOverrides])
 
   const baseScale = useMemo(() => {
     if (!source) return 1
@@ -104,11 +106,10 @@ export function InstancedGltfModel({
   }, [fitHeight, source])
 
   useEffect(() => {
-    if (!meshRef.current) return
+    if (!groupRef.current) return
 
     const dummy = new THREE.Object3D()
-    for (let i = 0; i < instances.length; i += 1) {
-      const instance = instances[i]
+    const matrices = instances.map((instance) => {
       const pos = instance.position ?? [0, 0, 0]
       const rot = instance.rotation ?? [0, 0, 0]
       const scale = baseScale * (instance.scale ?? 1)
@@ -117,12 +118,18 @@ export function InstancedGltfModel({
       dummy.rotation.set(rot[0], rot[1], rot[2])
       dummy.scale.set(scale, scale, scale)
       dummy.updateMatrix()
-      meshRef.current.setMatrixAt(i, dummy.matrix)
-    }
+      return dummy.matrix.clone()
+    })
 
-    meshRef.current.instanceMatrix.needsUpdate = true
-    meshRef.current.layers.set(excludeFromReflection ? REFLECTION_EXCLUDED_LAYER : 0)
-  }, [baseScale, excludeFromReflection, instances])
+    for (const child of groupRef.current.children) {
+      if (!(child instanceof THREE.InstancedMesh)) continue
+      matrices.forEach((matrix, i) => child.setMatrixAt(i, matrix))
+      child.instanceMatrix.needsUpdate = true
+      // Bounds round every copy, so the mesh is culled only once all of its copies are out of view.
+      child.computeBoundingSphere()
+      child.layers.set(excludeFromReflection ? REFLECTION_EXCLUDED_LAYER : 0)
+    }
+  }, [baseScale, excludeFromReflection, instances, source])
 
   if (!source) {
     return (
@@ -139,6 +146,7 @@ export function InstancedGltfModel({
             receiveShadow={receiveShadow}
             scale={instance.scale}
             excludeFromReflection={excludeFromReflection}
+            materialOverrides={materialOverrides}
           />
         ))}
       </>
@@ -146,12 +154,16 @@ export function InstancedGltfModel({
   }
 
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[source.geometry, source.material, instances.length]}
-      castShadow={castShadow}
-      receiveShadow={receiveShadow}
-      frustumCulled={false}
-    />
+    <group ref={groupRef}>
+      {source.parts.map((part, index) => (
+        <instancedMesh
+          key={index}
+          args={[part.geometry, part.material, instances.length]}
+          castShadow={castShadow}
+          receiveShadow={receiveShadow}
+          customDepthMaterial={depthMaterialOverrides?.[part.material.name]}
+        />
+      ))}
+    </group>
   )
 }

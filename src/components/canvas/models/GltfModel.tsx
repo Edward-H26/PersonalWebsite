@@ -1,13 +1,16 @@
 import { useGLTF } from "@react-three/drei"
 import { GroupProps } from "@react-three/fiber"
 import { useMemo } from "react"
-import { Box3, Mesh, Object3D, SkinnedMesh, Vector3 } from "three"
+import { Box3, type Material, Mesh, Object3D, SkinnedMesh, Vector3 } from "three"
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js"
 import { withBase } from "@/utils/assets"
 import { useRealtimeMaterials } from "@/hooks/useRealtimeMaterials"
 import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
 
 type Pivot = "origin" | "center" | "center-bottom"
+
+/** Materials to draw in place of a model's own, by the name the model gives its material. */
+export type MaterialOverrides = Readonly<Record<string, Material>>
 
 useGLTF.setDecoderPath(withBase("/draco/"))
 
@@ -19,6 +22,8 @@ interface GltfModelProps extends Omit<GroupProps, "scale"> {
   receiveShadow?: boolean
   scale?: number
   excludeFromReflection?: boolean
+  /** Materials swapped in by name on this copy only, such as a clone the caller animates per instance. */
+  materialOverrides?: MaterialOverrides
 }
 
 type SceneBounds = {
@@ -75,6 +80,7 @@ export function GltfModel({
   receiveShadow = true,
   scale = 1,
   excludeFromReflection = false,
+  materialOverrides,
   ...props
 }: GltfModelProps) {
   const { scene } = useGLTF(path)
@@ -90,6 +96,8 @@ export function GltfModel({
       if (obj instanceof Mesh) {
         obj.castShadow = castShadow
         obj.receiveShadow = receiveShadow
+        const override = Array.isArray(obj.material) ? undefined : materialOverrides?.[obj.material.name]
+        if (override) obj.material = override
       }
     })
 
@@ -109,7 +117,7 @@ export function GltfModel({
     }
 
     return cloned
-  }, [scene, castShadow, receiveShadow, excludeFromReflection, fitHeight, pivot, scale, path])
+  }, [scene, castShadow, receiveShadow, excludeFromReflection, fitHeight, pivot, scale, path, materialOverrides])
 
   return <primitive object={object} {...props} />
 }

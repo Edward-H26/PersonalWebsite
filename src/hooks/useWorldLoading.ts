@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from "react"
-import { useLoader } from "@react-three/fiber"
 import { useProgress } from "@react-three/drei"
-import * as THREE from "three"
 import { useWorldStore } from "@/store/worldStore"
-import { withBase } from "@/utils/assets"
 import { clamp } from "@/utils/math"
 
-/** Textures the first frame needs; preloaded so the water and clouds do not pop in after the island. */
-const FIRST_FRAME_TEXTURES = [withBase("/textures/waternormals.jpg"), withBase("/textures/cloud.png")]
 /** A download that sits at 99% or more for this long counts as finished. */
 const STALL_AFTER_MS = 4000
 const STALL_POLL_MS = 500
@@ -47,12 +42,6 @@ export function useWorldLoading({ isMobile }: { isMobile: boolean }) {
   const loadCompleteTimerRef = useRef<number | null>(null)
   const overlayStartRef = useRef<number | null>(null)
   const minOverlayMs = isMobile ? MIN_OVERLAY_MS_MOBILE : MIN_OVERLAY_MS_DESKTOP
-
-  useEffect(() => {
-    for (const tex of FIRST_FRAME_TEXTURES) {
-      useLoader.preload(THREE.TextureLoader, tex)
-    }
-  }, [])
 
   useEffect(() => {
     if (!isLoadingActive) {

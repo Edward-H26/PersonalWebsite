@@ -1,6 +1,3 @@
-import type * as THREE from "three"
-import type { Footprint, IslandOutline, RoadSample } from "../islandGeometry"
-
 export type Vec3Tuple = [number, number, number]
 
 /** One model placed on the island, in island-local coordinates. */
@@ -20,27 +17,24 @@ export type InstanceTransform = { position: Vec3Tuple; rotation: Vec3Tuple; scal
 export type InstancedGroup = {
   key: string
   path: string
-  meshName?: string
-  fitHeight: number
+  /** Omitted for models drawn at their modelled size times each instance's scale. */
+  fitHeight?: number
   instances: InstanceTransform[]
   castShadow: boolean
   excludeFromReflection: boolean
 }
 
-/** Everything the placement rules need to know about the island being decorated. */
-export type LayoutContext = {
-  routeCurve: THREE.CatmullRomCurve3
-  outline: IslandOutline
-  roads: ReadonlyArray<RoadSample>
-  worldScale: number
-  /** Height of the rendered terrain at a local x/z. */
-  sampleGroundY: (x: number, z: number) => number
+/** The lanterns along the main road, ordered by `routeT`, the route position at which each stands. */
+export type RoadLanternGroup = {
+  path: string
+  fitHeight: number
+  instances: Array<InstanceTransform & { routeT: number }>
 }
 
 export type VillageLayout = {
   buildings: Placement[]
   props: Placement[]
   harbor: Placement[]
+  lanterns: RoadLanternGroup
   instanced: InstancedGroup[]
-  footprints: Footprint[]
 }
