@@ -7,7 +7,6 @@ export const PROJECTS_STAGE: StoryStage = {
   cards: [
     {
       title: "Long-Form Video-Language and Audio-Visual Social Understanding",
-      subtitle: "Undergraduate Research Assistant, University of Illinois Urbana-Champaign",
       location: "Champaign, IL",
       date: "2025.12 - 2026.05",
       bullets: [
@@ -18,7 +17,6 @@ export const PROJECTS_STAGE: StoryStage = {
     },
     {
       title: "Multi-agent Research Synthesis Engine",
-      subtitle: "Undergraduate Research Assistant",
       location: "Champaign, IL",
       date: "2025.11 - 2026.05",
       bullets: [
@@ -30,22 +28,23 @@ export const PROJECTS_STAGE: StoryStage = {
     },
     {
       title: "Realistic Neural Style Transfer Architecture",
-      subtitle: "Undergraduate Research Assistant",
       location: "Champaign, IL",
       date: "2025.01 - 2025.08",
       bullets: [
         "Proposed style transfer frameworks to maintain photorealistic results under highly abstract styles with VGG perceptual losses and edge-preserving constraints, improving SSIM by 77.0% and MS-SSIM by 49.0% compared to TensorFlow's NST.",
-        "Optimized multi-layer Gram matrix losses with adaptive layer weighting to suppress texture and chromatic artifacts, boosting SSIM by 4.4x and MS-SSIM by 6.4x compared to ChatGPT-4o."
+        "Optimized multi-layer Gram matrix losses with adaptive layer weighting to suppress texture and chromatic artifacts, boosting SSIM by 4.4x and MS-SSIM by 6.4x compared to ChatGPT-4o.",
+        "Formulated Sobel edge and total variation losses to keep contours sharp and suppress high-frequency noise, decreasing LPIPS by 23.0% and DISTS by 17.0% compared to TensorFlow's NST."
       ],
       links: [{ label: "GitHub", url: "https://github.com/Edward-H26/Realistic-Neural-Style-Transfer-Architecture" }]
     },
     {
       title: "Anime Statistics and Analysis Platform, ASAP",
-      subtitle: "Undergraduate Research Assistant",
       location: "Champaign, IL",
       date: "2025.02 - 2025.06",
       bullets: [
-        "Deployed interactive R Shiny analytics platforms to surface anime popularity trends and market opportunities with live Jikan REST API data and predictive analysis on shinyapps.io."
+        "Deployed interactive R Shiny analytics platforms to surface anime popularity trends and market opportunities with live Jikan REST API data on 18,000 titles and predictive analysis on shinyapps.io.",
+        "Developed R data pipelines to fetch, clean, and store 18,000 anime titles from the Jikan REST API in SQLite, adding genre, studio, and producer fields for five interactive analysis and recommendation modules.",
+        "Trained random forest models to predict anime scores from engagement features, decreasing test RMSE by 90.1% and raising R² by 3.7% compared to linear regression."
       ],
       links: [{ label: "GitHub", url: "https://github.com/Edward-H26/Anime-Statistics-and-Analysis-Platform-ASAP" }]
     }
