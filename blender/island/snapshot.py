@@ -24,7 +24,8 @@ from mathutils import Euler, Vector  # noqa: E402
 from island import atlas, build, mesh  # noqa: E402
 
 PHASE_NAMES = {1: "Phase 1: houses, harbour and lantern", 2: "Phase 2: village buildings and props",
-               3: "Phase 3: vegetation, rocks and gardens", 4: "Phase 4: Island v2 landmarks and harbour props"}
+               3: "Phase 3: vegetation, rocks and gardens", 4: "Phase 4: Island v2 landmarks and harbour props",
+               5: "Phase 5: vegetation 3d, trees, shrubs, grass and flowers"}
 GAP = 3.0
 ROW_GAP = 12.0
 STUDIO_LIGHT = "studio.exr"
@@ -36,7 +37,7 @@ OPENING_ROTATION = Euler((math.radians(62.0), 0.0, math.radians(32.0)))
 def build_rows(models, seed):
     """Build every asset and its variants with the palette kept, the plants on the atlases in `models`; returns
     {phase: [(label, object)]} in build order."""
-    atlas.load_materials({family: os.path.join(models, spec[1]) for family, spec in atlas.FAMILIES.items()})
+    atlas.load_materials(atlas.files(models))
     rows = {}
     with mesh.palette_kept():
         for name in build.ASSETS:
@@ -98,8 +99,8 @@ def save(path):
     file, pack nothing, save compressed."""
     for coll in [c for c in bpy.data.collections if not c.all_objects]:
         bpy.data.collections.remove(coll)
-    for family in atlas.FAMILIES:
-        image = bpy.data.images[atlas.MATERIALS[family]]
+    for image_path in atlas.files("").values():
+        image = bpy.data.images[os.path.basename(image_path)]
         image.filepath = bpy.path.relpath(bpy.path.abspath(image.filepath), start=os.path.dirname(path))
     bpy.data.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
     bpy.ops.wm.save_mainfile(filepath=path, compress=True, relative_remap=False)

@@ -13,8 +13,8 @@ but the lantern keeps only the vertex colours and the lit glass and embers, so i
 places more than once are also built as character variants from other seeds (DESIGN.md section 9), so no two
 instances match; the trees' _b copies stand on the shore, at a sea-wind exposure of flora.SHORE. The Island v2
 landmarks of phase 4 that the terrain places (DESIGN.md section 17) keep their build's origin instead of the bottom
-centre: their map anchor, or the terrain's own origin for the breakwater and the quay wall, as the landmarks of
-terrain.json record.
+centre: their map anchor, or the terrain's own origin for the breakwater, the quay wall and the pier, as the landmarks
+of terrain.json record.
 
 Headless, from the repository root:
     /Applications/Blender.app/Contents/MacOS/Blender --background --python blender/island/build.py -- \\
@@ -35,20 +35,27 @@ if BLENDER_DIR not in sys.path:
 
 import bpy  # noqa: E402
 
-from island import atlas, flora, lawn, mesh, rig, style  # noqa: E402
+from island import atlas, flora, impostors, lawn, mesh, rig, style  # noqa: E402
 
+# Vegetation 3d (DESIGN.md section 18.3): the tree species, each in four seeds at two ages plus a wind-shaped coastal
+# form; the shrubs and bracken in three seeds; the grass clumps green and dry with clover; the flowers in their colours.
+TREE_SPECIES = ("oak", "ash", "birch", "spruce", "pine", "apple", "rowan", "willow")
+SHRUB_SPECIES = ("hawthorn", "box", "gorse", "bramble", "bracken")
+GROUND_COVER = ("grass_short", "grass_mid", "grass_tall", "clover")
+FLOWER_SPECIES = ("poppy", "cornflower", "daisy", "marigold", "dandelion", "buttercup", "foxglove", "bluebell")
 PHASES = {
-    1: ("house_01", "house_02", "house_03", "pier", "ship", "barrels", "crate", "lantern", "sea_marker"),
+    1: ("house_01", "house_02", "house_03", "ship", "barrels", "crate", "lantern", "sea_marker"),
     2: ("inn", "bell_tower", "mill", "mill_sails", "blacksmith", "barracks", "sawmill", "stable", "market_stand_01",
         "market_stand_02", "well", "cart", "fence", "fire_pit"),
-    3: ("cypress", "island_tree_01", "island_tree_02", "tree_small", "birch", "spruce", "hawthorn", "hedge_box", "fern",
-        "boulder_01", "boulder_02", "moss_rocks", "tree_stump", "grass_medium_01", "grass_medium_02", "grass_bermuda",
-        "dandelion", "gazania", "sorrel", "cornflower", "daisy", "poppy", "planter_hydrangea", "bunting", "raised_bed",
-        "espalier", "arbour", "hedgerow", "dry_stone_wall", "haystack", "standing_stones"),
+    3: ("cypress", "island_tree_01", "island_tree_02", "tree_small", "hedge_box", "fern", "boulder_01", "boulder_02",
+        "moss_rocks", "tree_stump", "grass_medium_01", "grass_medium_02", "grass_bermuda", "gazania", "sorrel",
+        "planter_hydrangea", "bunting", "raised_bed", "espalier", "arbour", "hedgerow", "dry_stone_wall", "haystack",
+        "standing_stones"),
     4: ("castle_keep", "castle_stair", "watermill", "watermill_wheel", "stone_bridge", "breakwater", "quay_wall",
-        "lighthouse", "signpost", "shrine", "rowing_boat", "net_rack", "lobster_pots"),
+        "pier", "lighthouse", "signpost", "shrine", "rowing_boat", "net_rack", "lobster_pots"),
+    5: (*TREE_SPECIES, *SHRUB_SPECIES, *GROUND_COVER, *FLOWER_SPECIES),
 }
-VEGETATION_PHASE = 3
+VEGETATION_PHASES = (3, 5)
 # The props that carry the owner's marks (DESIGN.md section 13), gathered on a sheet of their own.
 PROPS = ("barrels", "crate", "fence", "cart", "fire_pit", "well", "market_stand_01", "market_stand_02")
 ASSETS = tuple(name for names in PHASES.values() for name in names)
@@ -57,7 +64,6 @@ ORIGINAL_SIZE = {
     "house_01": (1.94, 2.12, 1.07),
     "house_02": (2.14, 2.66, 3.39),
     "house_03": (2.22, 3.42, 3.25),
-    "pier": (3.10, 19.03, 7.51),
     "ship": (9.53, 37.43, 32.55),
     "barrels": (4.44, 3.34, 0.93),
     "crate": (0.82, 0.41, 0.35),
@@ -102,30 +108,52 @@ ORIGINAL_SIZE = {
 }
 # Triangle budgets from DESIGN.md sections 3 and 10; anything not listed is a prop.
 BUDGET = {"inn": 20000, "bell_tower": 20000, "mill": 20000, "house_01": 14000, "house_02": 14000, "house_03": 14000,
-          "blacksmith": 16000, "barracks": 16000, "sawmill": 16000, "stable": 16000, "pier": 6000, "ship": 30000,
+          "blacksmith": 16000, "barracks": 16000, "sawmill": 16000, "stable": 16000, "pier": 8000, "ship": 30000,
           "fence": 200, "island_tree_01": 8000, "island_tree_02": 8000, "tree_small": 8000, "birch": 8000, "spruce": 8000,
           "cypress": 8000, "hawthorn": 1500, "hedge_box": 1500, "fern": 600, "grass_medium_01": 300, "grass_medium_02": 300,
           "grass_bermuda": 300, "dandelion": 400, "gazania": 400, "sorrel": 400, "cornflower": 400, "daisy": 400,
           "poppy": 400, "planter_hydrangea": 600, "bunting": 400, "raised_bed": 1200, "espalier": 1200, "arbour": 1200,
           "hedgerow": 1500, "dry_stone_wall": 1200, "haystack": 1200, "standing_stones": 2500, "lighthouse": 16000,
           "castle_keep": 24000, "watermill": 16000, "stone_bridge": 4000, "breakwater": 9000, "quay_wall": 6000,
-          "mill_sails": 4000, "castle_stair": 6000}
+          "mill_sails": 4000, "castle_stair": 6000,
+          **{name: 8000 for name in TREE_SPECIES}, **{name: 1500 for name in SHRUB_SPECIES}, "bracken": 600,
+          **{name: 300 for name in GROUND_COVER}, "clover": 400, **{name: 400 for name in FLOWER_SPECIES}}
 PROP_BUDGET = 2000
 # Every copy of a type the site places more than once, as the keyword arguments of its build(): each extra copy is
 # exported as <name>_b, <name>_c with its own character seed, a "form" makes it match a second scanned mesh or shape,
 # an exposure puts a tree on the shore and the fence's hook marks the pieces the road lanterns hang from.
 SHORE = {"exposure": flora.SHORE}
+
+
+def _tree_forms():
+    """Four seeds at each age and the wind-shaped coastal form of a tree species, labelled <species>_young_1 to _4,
+    <species>_mature_1 to _4 and <species>_coastal."""
+    return (*({"suffix": "%s_%d" % (age, k), "age": age} for age in ("young", "mature") for k in range(1, 5)),
+            {"suffix": "coastal", "coastal": True, **SHORE})
+
+
 VARIANTS = {"house_01": ({}, {}, {}), "house_02": ({}, {}, {}), "house_03": ({}, {}, {}), "market_stand_02": ({}, {}),
             "fence": ({}, {"hook": True}), "cypress": ({}, SHORE), "island_tree_01": ({}, SHORE),
-            "island_tree_02": ({}, SHORE), "tree_small": ({}, SHORE), "birch": ({}, SHORE), "spruce": ({}, SHORE),
-            "moss_rocks": ({}, {"form": "long"}),
-            "grass_medium_02": ({}, {"form": "sprig"}), "dandelion": ({}, {"form": "rosette"}),
-            "gazania": ({}, {"form": "tall"}), "hedge_box": ({}, {"form": "cube"}), "hedgerow": ({}, {}),
-            "dry_stone_wall": ({}, {"form": "gateway"}), "haystack": ({}, {}), "rowing_boat": ({}, {"band": "paint_red"})}
+            "island_tree_02": ({}, SHORE), "tree_small": ({}, SHORE), "moss_rocks": ({}, {"form": "long"}),
+            "grass_medium_02": ({}, {"form": "sprig"}), "gazania": ({}, {"form": "tall"}),
+            "hedge_box": ({}, {"form": "cube"}), "hedgerow": ({}, {}), "dry_stone_wall": ({}, {"form": "gateway"}),
+            "haystack": ({}, {}), "rowing_boat": ({}, {"band": "paint_red"}),
+            # Vegetation 3d (DESIGN.md section 18.3). birch and spruce keep the inland and shore copies the site
+            # places today under their old labels until it moves to the new ones.
+            **{name: _tree_forms() for name in TREE_SPECIES if name not in ("birch", "spruce")},
+            "birch": ({}, SHORE, *_tree_forms()), "spruce": ({}, SHORE, *_tree_forms()),
+            **{name: ({}, {}, {}) for name in SHRUB_SPECIES}, "gorse": (SHORE, SHORE, SHORE),
+            **{name: ({}, {"suffix": "dry", "dry": True}) for name in GROUND_COVER if name.startswith("grass_")},
+            "poppy": ({}, {"variant": "poppy_orange"}, {"variant": "poppy_pink"}),
+            "cornflower": ({}, {"variant": "cornflower_violet"}, {"variant": "cornflower_pink"}),
+            "daisy": ({}, {"variant": "daisy_pink"}), "marigold": ({}, {"variant": "marigold_yellow"}),
+            "dandelion": ({}, {"form": "rosette"}, {"form": "clocks"}), "buttercup": ({}, {"variant": "buttercup_lemon"}),
+            "foxglove": ({}, {"variant": "foxglove_pink"}, {"variant": "foxglove_white"}),
+            "bluebell": ({}, {"variant": "bluebell_white"}, {"variant": "bluebell_pink"})}
 VARIANT_SEED_STEP = 101
 # Assets the site instances: one mesh, one material and vertex colours, checked on re-import. The material is one of
 # the textured families or, for the garden pieces, planter, bunting and fence, the vertex-coloured one.
-INSTANCED = (*PHASES[VEGETATION_PHASE], "fence")
+INSTANCED = (*PHASES[3], *PHASES[5], "fence")
 TEXTURED = frozenset(atlas.MATERIALS.values())
 INSTANCED_MATERIALS = TEXTURED | {style.VERTEX_MATERIAL}
 # What a textured plant's GLB must carry: UVs for its atlas, the corner colour and the wind channel.
@@ -137,6 +165,13 @@ UNBAKED = ("lantern",)
 RATIO_TOLERANCE = 0.15
 DEFAULT_SEED = 7
 STATS_PATH = os.path.join(BLENDER_DIR, "island", "build", "stats.json")
+# The vegetation 3d sheets: one per tree species, one of the shrubs and bracken, one of the grass and clover and one of
+# the flowers, drawn with smaller tiles.
+SHEETS_3D = {**{name: "veg3d_" + name for name in TREE_SPECIES}, **{name: "veg3d_shrubs" for name in SHRUB_SPECIES},
+             **{name: "veg3d_ground" for name in GROUND_COVER}, **{name: "veg3d_flowers" for name in FLOWER_SPECIES}}
+SHEET_3D_TILE = (480, 360)
+# These types get impostors for the far woods (DESIGN.md sections 18.1 and 18.3), shared per set (impostor_sets).
+IMPOSTOR_TYPES = (*TREE_SPECIES, *(name for name in SHRUB_SPECIES if name != "bracken"))
 LINEUP_SPACING = 20.0
 PHASE_SPACING = 45.0
 
@@ -147,7 +182,7 @@ def build_asset(name, seed=DEFAULT_SEED, label=None, **kwargs):
     module = importlib.import_module("island.assets." + name)
     mesh.use_collection("asset_" + label, clear=True)
     original = ORIGINAL_SIZE.get(label, ORIGINAL_SIZE.get(name))
-    if phase_of(name) == VEGETATION_PHASE and original:
+    if phase_of(name) in VEGETATION_PHASES and original:
         # The site fits instanced vegetation by height alone, so the builder stretches its plan to the scan's
         # footprint ratio, before any wind lean.
         kwargs["plan"] = original
@@ -157,9 +192,30 @@ def build_asset(name, seed=DEFAULT_SEED, label=None, **kwargs):
 
 
 def instances(name, seed=DEFAULT_SEED):
-    """(label, seed, build keyword arguments) for every copy of a type: the type itself and its variants."""
-    return [(name + ("_" + "abcdefgh"[i] if i else ""), seed + i * VARIANT_SEED_STEP, kwargs)
-            for i, kwargs in enumerate(VARIANTS.get(name, ({},)))]
+    """(label, seed, build keyword arguments) for every copy of a type: the type itself and its variants, labelled
+    <name>_b, <name>_c in order, or <name>_<suffix> when a variant names its own suffix."""
+    out = []
+    for i, kwargs in enumerate(VARIANTS.get(name, ({},))):
+        kwargs = dict(kwargs)
+        suffix = kwargs.pop("suffix", "abcdefghijklmnop"[i] if i else None)
+        out.append((name + ("_" + suffix if suffix else ""), seed + i * VARIANT_SEED_STEP, kwargs))
+    return out
+
+
+def impostor_sets(names, seed=DEFAULT_SEED):
+    """{set: [labels]} of the impostor types among `names`: the four seeds of a tree species at one age share a set,
+    the coastal form is a set of its own and the copies of a shrub share one; the old birch and spruce copies get
+    none. The first label of a set is the one photographed."""
+    sets = {}
+    for name in names:
+        if name not in IMPOSTOR_TYPES:
+            continue
+        for label, _, kwargs in instances(name, seed):
+            if name not in TREE_SPECIES:
+                sets.setdefault(name, []).append(label)
+            elif kwargs.get("coastal") or kwargs.get("age"):
+                sets.setdefault(name + "_" + ("coastal" if kwargs.get("coastal") else kwargs["age"]), []).append(label)
+    return sets
 
 
 def ratio_change(size, original):
@@ -249,19 +305,22 @@ def _textured_check(label, glb, names):
     alpha = ["OPAQUE"] if family == "rock" else ["MASK"]
     if surface["alpha"] != alpha or not TEXTURED_STREAMS <= set(surface["streams"]):
         raise RuntimeError("%s must draw %s with %s, got %s" % (label, alpha, sorted(TEXTURED_STREAMS), surface))
-    return {"atlas": atlas.FAMILIES[family][1], "glb_alpha": surface["alpha"], "glb_double_sided": surface["double_sided"],
+    return {"atlas": atlas.ATLASES[atlas.FAMILIES[family][1]][0], "glb_alpha": surface["alpha"], "glb_double_sided": surface["double_sided"],
             "glb_streams": surface["streams"]}
 
 
-def sheet_groups(name, label):
-    """The contact sheets a copy of an asset appears on: its phase, or the variants sheet for the character copies of
-    buildings and props; the props sheet for the owner's marked props; and for every base asset the one combined
-    silhouette sheet."""
+def sheet_groups(name, label, first):
+    """The contact sheets a copy of an asset appears on: its phase, the variants sheet for the character copies of
+    buildings and props, or its vegetation 3d sheet; the props sheet for the owner's marked props; and for the first
+    copy of every type the one combined silhouette sheet."""
     phase = phase_of(name)
-    groups = ["phase%d" % phase if label == name or phase == VEGETATION_PHASE else "variants"]
+    if name in SHEETS_3D:
+        groups = [SHEETS_3D[name]]
+    else:
+        groups = ["phase%d" % phase if label == name or phase in VEGETATION_PHASES else "variants"]
     if name in PROPS:
         groups.append("props")
-    if label == name:
+    if first:
         groups.append("silhouettes")
     return groups
 
@@ -270,17 +329,17 @@ def run(names, out_dir, preview_dir=None, sheet_dir=None, stats_path=STATS_PATH,
     """Build, export and check each asset and its character variants, render previews, silhouettes and the contact
     sheets, merge the stats, and render the walk-height lawn from the plants built when `lawn_path` is given."""
     rig.setup()
-    if any(phase_of(name) == VEGETATION_PHASE for name in names):
+    if any(phase_of(name) in VEGETATION_PHASES for name in names):
         with tempfile.TemporaryDirectory() as scratch:
             atlas.load_materials(atlas.build(out_dir, scratch, seed))
     stats = _load_stats(stats_path)
     sheets = {}
     for name in names:
-        for label, variant_seed, kwargs in instances(name, seed):
+        for i, (label, variant_seed, kwargs) in enumerate(instances(name, seed)):
             stats[label] = build_one(name, label, variant_seed, kwargs, out_dir, preview_dir)
             if not preview_dir:
                 continue
-            for group in sheet_groups(name, label):
+            for group in sheet_groups(name, label, first=i == 0):
                 if group == "silhouettes":
                     sheets.setdefault(group, []).append((label, os.path.join(preview_dir, "silhouettes", label + ".png")))
                     continue
@@ -292,10 +351,18 @@ def run(names, out_dir, preview_dir=None, sheet_dir=None, stats_path=STATS_PATH,
         json.dump({label: stats[label] for label in order if label in stats}, f, indent=2)
     if sheet_dir:
         for group, entries in sheets.items():
-            tile = rig.SILHOUETTE_SIZE if group == "silhouettes" else rig.RESOLUTION
+            tile = (rig.SILHOUETTE_SIZE if group == "silhouettes" else SHEET_3D_TILE if group.startswith("veg3d")
+                    else rig.RESOLUTION)
             rig.contact_sheet(entries, os.path.join(sheet_dir, "contact_sheet_%s.png" % group), tile=tile)
+    sets = impostor_sets(names, seed)
+    if sets:
+        plants = {key: (labels[0], bpy.data.objects["isl_" + labels[0]]) for key, labels in sets.items()}
+        members = {key: {label: stats[label]["size"] for label in labels} for key, labels in sets.items()}
+        with tempfile.TemporaryDirectory() as scratch:
+            entry = impostors.build(plants, members, out_dir, scratch)
+        atlas.merge_manifest(os.path.join(out_dir, atlas.MANIFEST), {"impostors": entry})
     if lawn_path:
-        built = {label: bpy.data.objects["isl_" + label] for name in names if phase_of(name) == VEGETATION_PHASE
+        built = {label: bpy.data.objects["isl_" + label] for name in names if phase_of(name) in VEGETATION_PHASES
                  for label, _, _ in instances(name, seed)}
         lawn.render(built, os.path.join(out_dir, atlas.GROUND), os.path.abspath(lawn_path), seed)
     return stats

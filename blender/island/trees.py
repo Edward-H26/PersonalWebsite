@@ -1,11 +1,14 @@
-"""Trees and bushes of DESIGN.md section 13b grown from a branching skeleton. A species is a recipe: a trunk that flares
-into roots at its foot, three or four orders of tapering, slightly twisting branches set round their parent at the
-golden angle and bent by the species' habit (oak limbs reaching out, ash and apple arching up, birch twigs and spruce
-boughs hanging), and leaf-cluster cards at the twig ends. Each first-order limb carries one of the crown's three to
-six cluster centres; a card faces out from its cluster, is painted dark toward the middle of the crown, light at its
-rim and warm toward the key light over the sea (+Y), and sways in the wind more the higher it hangs. Bark, leaves and
-end grain all come from the foliage atlas, so a tree is one mesh with one material."""
+"""Trees and bushes of DESIGN.md sections 13b and 18.3 grown from a branching skeleton. A species is a recipe: a
+trunk that flares into roots at its foot, three or four orders of tapering, slightly twisting branches set round their
+parent at the golden angle and bent by the species' habit (oak limbs reaching out, ash, rowan and apple arching up,
+pine limbs level and turning up at their ends, birch and willow twigs and spruce boughs hanging), and leaf-cluster
+cards at the twig ends. form() derives a species' young trees and its wind-shaped coastal form from the mature
+recipe. Each first-order limb carries one of the crown's three to six cluster centres; a card faces out from its
+cluster, is painted dark toward the middle of the crown, light at its rim and warm toward the key light over the sea
+(+Y), and sways in the wind more the higher it hangs. The leaves come from the foliage atlas and the wood from the bark
+atlas, which the foliage material picks by the card flag, so a tree is one mesh with one material."""
 
+import copy
 import math
 
 from mathutils import Matrix, Vector
@@ -66,7 +69,8 @@ def _child_direction(tangent, angle, azimuth, spread):
 
 def grow(rng, spec):
     """The skeleton of one tree: a list of Branch, the trunk first, each branch knowing its order and the index of
-    the first-order limb it grows from."""
+    the first-order limb it grows from. A recipe with "wind" (the coastal form) grows its limbs shorter into the sea
+    wind and bends them landward."""
     t = spec["trunk"]
     lean = Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), 0.0)) * math.tan(math.radians(t.get("lean", 2.0)))
     trunk_points = _path(rng, Vector((0.0, 0.0, 0.0)), UP + lean, t["height"], t["steps"], 0.0, 0.0, t.get("wobble", 0.04))
@@ -74,6 +78,7 @@ def grow(rng, spec):
                                   for i in range(t["steps"] + 1)], 0, -1)
     branches, parents = [trunk], [trunk]
     spread = spec.get("spread", (1.0, 1.0))
+    wind = spec.get("wind", 0.0)
     for order, rule in enumerate(spec["orders"], start=1):
         children = []
         for parent in parents:
@@ -96,10 +101,15 @@ def grow(rng, spec):
                 direction = _child_direction(tangent, angle, azimuth, spread)
                 scale = parent.length if order > 1 else spec["height"]
                 length = scale * rng.uniform(*rule["length"]) * (1.0 - rule.get("taper", 0.0) * along)
+                rise, droop = rule.get("rise", 0.0), rule.get("droop", 0.0)
+                if wind:
+                    # The sea wind stunts what grows into it and combs the rest of the crown landward and down.
+                    length *= 1.0 - 0.55 * wind * max(0.0, direction.dot(SEAWARD))
+                    direction = (direction - SEAWARD * (0.5 * wind * (1.0 - abs(direction.z)))).normalized()
+                    rise, droop = rise * (1.0 - 0.5 * wind), droop + 0.15 * wind
                 if length < 0.08:
                     continue
-                points = _path(rng, point, direction, length, rule["steps"], rule.get("rise", 0.0), rule.get("droop", 0.0),
-                               rule.get("wobble", 0.05))
+                points = _path(rng, point, direction, length, rule["steps"], rise, droop, rule.get("wobble", 0.05))
                 r0 = max(rule.get("min_radius", 0.006), radius * rule["radius"])
                 r1 = max(rule.get("min_radius", 0.006) * 0.6, r0 * rule.get("tip", 0.35))
                 radii = [r0 + (r1 - r0) * (i / rule["steps"]) ** 0.8 for i in range(rule["steps"] + 1)]
@@ -125,21 +135,33 @@ def _flare(spec):
     return shape
 
 
+def _ramp(stops, f):
+    """The colour at fraction f along `stops` [(fraction, rgb)], held at the ends."""
+    if f <= stops[0][0]:
+        return stops[0][1]
+    for (f0, c0), (f1, c1) in zip(stops, stops[1:]):
+        if f <= f1:
+            return flora.mix(c0, c1, (f - f0) / (f1 - f0))
+    return stops[-1][1]
+
+
 def _bark(spec, greens, exposure):
-    """Corner colours on the wood: the bark cell's own colour darkened toward the ground and under the limbs, moss
-    creeping up the seaward foot of the trunk."""
+    """Corner colours on the wood: the bark cell's own colour, warmed up the trunk by the recipe's bark_ramp when it
+    has one, darkened toward the ground and under the limbs, moss creeping up the seaward foot of the trunk."""
     moss = flora.moss(exposure)
     base = spec.get("bark_tint", (0.95, 0.95, 0.95))
-
+    stops = spec.get("bark_ramp")
+    tall = spec.get("height", 1.0)
     dark_base = spec.get("base_dark", 0.0)
 
     def shade(point, outward):
+        tint = base if not stops else _ramp(stops, point.z / tall)
         ao = 0.72 + 0.28 * min(1.0, point.z / 1.2)
         ao *= 1.0 + 0.18 * min(0.0, outward.z)
         if dark_base:
             # A birch's foot is black and fissured below its white bark.
             ao *= 0.3 + 0.7 * min(1.0, max(0.0, point.z / dark_base)) ** 1.5
-        colour = [c * ao for c in base]
+        colour = [c * ao for c in tint]
         if spec.get("moss", True):
             m = max(0.0, outward.y) * max(0.0, 1.0 - point.z / 2.2) * 0.65
             colour = [c * (1 - m) + k * 4.0 * m for c, k in zip(colour, moss)]
@@ -157,6 +179,21 @@ def _leaf_colour(greens, depth, height, facing, rng):
     colour = flora.mix(colour, style.rgb(style.DUSK), 0.14 * max(0.0, facing) * rim)
     jitter = rng.uniform(0.9, 1.1)
     return tuple(c * jitter for c in colour)
+
+
+def _card_colour(colour, leaf, greens):
+    """A card's corner colour after the species' tint; a "neutral" species (gorse, whose sprite keeps its own green
+    and gold) gets only the light and shade, as a grey as bright relative to the body green as the colour was."""
+    if "tint" in leaf:
+        colour = tuple(c * t for c, t in zip(colour, leaf["tint"]))
+    if leaf.get("neutral"):
+        grey = min(1.0, 0.85 * _luminance(colour) / _luminance(greens.body))
+        colour = (grey, grey, grey)
+    return colour
+
+
+def _luminance(colour):
+    return 0.2126 * colour[0] + 0.7152 * colour[1] + 0.0722 * colour[2]
 
 
 def _preshape(branches, spec, plan):
@@ -279,6 +316,7 @@ def _leaves(rng, plant, spec, branches, greens):
             rise = (p.z - low) / max(1e-3, high - low)
             facing = out.normalized().dot(flora.KEY_LIGHT) if out.length > 1e-3 else 0.0
             colour = _leaf_colour(greens, 0.7 * depth + 0.3 * (0.5 + 0.5 * d.z), rise, facing, rng)
+            colour = _card_colour(colour, leaf, greens)
             low_colour = tuple(c * leaf.get("bottom", 0.78) for c in colour)
             high_colour = tuple(min(1.0, c * leaf.get("top", 1.08)) for c in colour)
             sway = 0.35 + 0.65 * (p.z / height) ** 1.5
@@ -299,11 +337,20 @@ def _boughs(rng, plant, spec, branches, greens):
     tiers = {}
     for b in boughs:
         tiers.setdefault(b.tier, []).append(b)
-    per = leaf.get("per_tier", 8)
+    # The card budget is spread over every tier, so a smaller crown (young or coastal) thins each tier, with wider
+    # sprays, instead of leaving its top bare.
+    per_tier, skirts = leaf.get("per_tier", 8), leaf.get("skirts", 0)
+    budget = (leaf["count"] - 4) / max(1, len(tiers))
+    per = max(3, min(per_tier, int(budget * per_tier / (per_tier + skirts))))
+    skirts = max(0, min(skirts, int(budget) - per))
+    widen = (per_tier / per) ** 0.35
+    levels = sorted(tiers)
+    heights = {tier: sum(b.points[0].z for b in tiers[tier]) / len(tiers[tier]) for tier in levels}
     placed = 0
-    for tier in sorted(tiers):
+    for i, tier in enumerate(levels):
         group = tiers[tier]
-        z = sum(b.points[0].z for b in group) / len(group)
+        z = heights[tier]
+        gap = z - heights[levels[i - 1]] if i else z
         reach = sum(Vector((b.points[-1].x - b.points[0].x, b.points[-1].y - b.points[0].y, 0.0)).length for b in group) / len(group)
         drop = sum(b.points[0].z - b.points[-1].z for b in group) / len(group)
         turn = rng.uniform(0.0, 2 * math.pi)
@@ -314,6 +361,8 @@ def _boughs(rng, plant, spec, branches, greens):
             out = Vector((math.cos(a), math.sin(a), 0.0))
             length = max(0.45, reach * rng.uniform(1.0, 1.12))
             slope = math.atan2(drop + leaf.get("droop", 0.25) * length, length)
+            # Long enough to cover the bough out to its tip at the spray's own slope, so no bare tip pokes out.
+            length = max(length, reach * 1.08 / math.cos(slope))
             slope = min(slope, math.asin(min(1.0, max(0.0, z - 0.3) / length)))
             along = (out * math.cos(slope) - axis * math.sin(slope)).normalized()
             normal = (axis * math.cos(slope) + out * math.sin(slope)).normalized()
@@ -322,24 +371,24 @@ def _boughs(rng, plant, spec, branches, greens):
             facing = out.dot(flora.KEY_LIGHT)
             colour = _leaf_colour(greens, 0.75 + 0.25 * rng.random(), rise, facing, rng)
             colour = tuple(c * leaf.get("tone", 1.0) for c in colour)
-            width = min(length * leaf.get("aspect", 0.95), 2 * math.pi * length / per * 1.45)
+            width = min(length * leaf.get("aspect", 0.95) * widen, 2 * math.pi * length / per * 1.45)
             sway = 0.2 + 0.8 * rise ** 1.5
             plant.card(base + along * length * 0.02, normal, along, width, length, rng.choice(leaf["cells"]),
                        (tuple(c * 0.55 for c in colour), colour), (sway * 0.4, sway), rng.random(),
                        base - axis * 1.0, fold=leaf.get("fold", 0.5), pivot=0.0, flip=rng.random() < 0.5)
             placed += 1
-        for k in range(leaf.get("skirts", 0)):
+        for k in range(skirts):
             if placed >= leaf["count"] - 4:
                 break
-            a = turn + 2 * math.pi * (k + 0.5) / leaf["skirts"]
+            a = turn + 2 * math.pi * (k + 0.5) / skirts
             out = Vector((math.cos(a), math.sin(a), 0.0))
-            hang = reach * 0.55
+            hang = max(reach * 0.55, 0.9 * gap)
             top = Vector((0.0, 0.0, z)) + out * reach * 0.72
             if top.z - hang < 0.25:
                 hang = max(0.2, top.z - 0.25)
             colour = tuple(c * leaf.get("tone", 1.0) * 0.85 for c in _leaf_colour(greens, 0.7, z / height, out.dot(flora.KEY_LIGHT), rng))
             sway = 0.2 + 0.8 * (z / height) ** 1.5
-            plant.card(top, out, axis, 2 * math.pi * reach * 0.72 / leaf["skirts"] * 0.95, hang, rng.choice(leaf["cells"]),
+            plant.card(top, out, axis, 2 * math.pi * reach * 0.72 / skirts * 0.95, hang, rng.choice(leaf["cells"]),
                        (tuple(c * 0.5 for c in colour), colour), (sway * 0.6, sway), rng.random(), top - out, fold=0.35,
                        pivot=0.92, flip=rng.random() < 0.5)
             placed += 1
@@ -365,11 +414,10 @@ OAK = {
         {"count": (3, 4), "at": (0.35, 1.0), "angle": (30.0, 55.0), "length": (0.45, 0.6), "radius": 0.6, "tip": 0.4,
          "rise": 0.15, "steps": 3, "sides": 4, "min_radius": 0.012},
     ],
-    "bark": "bark_oak", "tile": 1.4, "sectors": 3, "twist": 0.12,
-    "leaves": {"cells": ("oak_a", "oak_b"), "count": 120, "size": (1.7, 2.2), "puff": 1.5, "at": 0.92, "fold": 0.45,
+    "bark": "bark_oak", "young_bark": "bark_oak_young", "tile": 1.4, "sectors": 3, "twist": 0.12,
+    "leaves": {"cells": ("oak_a", "oak_b"), "count": 150, "size": (1.7, 2.2), "puff": 1.5, "at": 0.92, "fold": 0.45,
                "lift": 0.45, "levels": (1, 2), "core": 3},
 }
-
 
 ASH = {
     "height": 7.7,
@@ -384,9 +432,9 @@ ASH = {
         {"count": (3, 4), "at": (0.4, 1.0), "angle": (25.0, 45.0), "length": (0.4, 0.5), "radius": 0.6, "tip": 0.4,
          "rise": 0.3, "steps": 3, "sides": 4, "min_radius": 0.01},
     ],
-    "bark": "bark_oak", "bark_tint": (0.92, 0.94, 0.95), "tile": 1.2, "sectors": 3, "twist": 0.05,
-    "leaves": {"cells": ("ash",), "count": 118, "size": (1.5, 2.0), "puff": 1.25, "at": {1: 0.55, 2: 0.9}, "fold": 0.45,
-               "lift": 0.5, "levels": (1, 2), "core": 2, "jitter": 0.2},
+    "bark": "bark_ash", "young_bark": "bark_ash_young", "tile": 1.2, "sectors": 3, "twist": 0.05,
+    "leaves": {"cells": ("ash",), "count": 140, "size": (1.5, 2.0), "puff": 1.25, "at": {1: 0.55, 2: 0.9}, "fold": 0.45,
+               "lift": 0.5, "levels": (1, 2), "core": 2, "jitter": 0.2, "tint": (0.98, 1.02, 0.96)},
 }
 
 BIRCH = {
@@ -400,8 +448,8 @@ BIRCH = {
          "droop": 1.0, "steps": 3, "sides": 4, "min_radius": 0.008},
     ],
     "bark": "bark_birch", "tile": 1.0, "sectors": 2, "twist": 0.02, "moss": False, "base_dark": 1.1,
-    "leaves": {"cells": ("birch",), "count": 96, "size": (1.15, 1.5), "puff": 0.85, "at": 0.85, "fold": 0.4,
-               "lift": 0.15, "levels": (1, 2), "core": 2, "jitter": 0.2, "crown_pull": 0.6},
+    "leaves": {"cells": ("birch",), "count": 130, "size": (1.15, 1.5), "puff": 0.85, "at": 0.85, "fold": 0.4,
+               "lift": 0.15, "levels": (1, 2), "core": 2, "jitter": 0.2, "crown_pull": 0.6, "tint": (1.03, 1.05, 0.9)},
 }
 
 SPRUCE = {
@@ -412,12 +460,32 @@ SPRUCE = {
         {"count": (1, 1), "whorls": (11, 5), "at": (0.08, 0.95), "angle": (84.0, 104.0), "length": (0.22, 0.27),
          "radius": 0.32, "tip": 0.25, "droop": 0.3, "rise": 0.12, "steps": 5, "sides": 5, "taper": 0.95, "wobble": 0.05,
          "min_radius": 0.012},
-        {"count": (2, 2), "at": (0.35, 0.85), "angle": (45.0, 60.0), "length": (0.35, 0.45), "radius": 0.5, "tip": 0.4,
-         "droop": 0.2, "steps": 2, "sides": 3, "min_radius": 0.006},
     ],
-    "bark": "bark_spruce", "tile": 1.0, "sectors": 2, "twist": 0.03,
-    "leaves": {"layout": "boughs", "cells": ("spruce",), "count": 116, "per_tier": 6, "skirts": 4, "aspect": 0.95,
+    # A spruce's wood is dark red-brown and its boughs run inside the sprays, where pale wood read as bare pins.
+    "bark": "bark_spruce", "bark_tint": (0.58, 0.52, 0.5), "tile": 1.0, "sectors": 2, "twist": 0.03,
+    "leaves": {"layout": "boughs", "cells": ("spruce",), "count": 140, "per_tier": 7, "skirts": 5, "aspect": 0.95,
                "fold": 0.45, "droop": 0.4, "tone": 0.5},
+}
+
+# Scots pine: a tall clean trunk, grey-brown and plated low and orange high up, under a flat-topped crown of near
+# level limbs that turn up at their ends, the foliage in pads at the limb ends.
+PINE = {
+    "height": 12.0, "width": 6.0,
+    "trunk": {"height": 8.6, "radius": 0.3, "top": 0.12, "sides": 12, "steps": 12, "lean": 3.0, "flare": 0.45,
+              "roots": 4, "wobble": 0.04},
+    "orders": [
+        {"count": (7, 9), "at": (0.5, 1.0), "angle": (68.0, 95.0), "length": (0.22, 0.32), "radius": 0.45, "tip": 0.3,
+         "rise": 0.35, "droop": 0.1, "steps": 8, "sides": 7, "taper": 0.45, "wobble": 0.14},
+        {"count": (3, 4), "at": (0.4, 1.0), "angle": (30.0, 55.0), "length": (0.35, 0.5), "radius": 0.55, "tip": 0.35,
+         "rise": 0.3, "steps": 4, "sides": 5, "wobble": 0.12},
+        {"count": (2, 3), "at": (0.5, 1.0), "angle": (25.0, 45.0), "length": (0.4, 0.55), "radius": 0.6, "tip": 0.4,
+         "rise": 0.25, "steps": 2, "sides": 4, "min_radius": 0.01},
+    ],
+    "bark": "bark_pine", "tile": 1.1, "sectors": 3, "twist": 0.04, "moss": False,
+    # The bark warms to a pine's orange up the trunk, as fractions of the tree's height.
+    "bark_ramp": ((0.0, (0.92, 0.9, 0.88)), (0.4, (0.95, 0.88, 0.8)), (0.65, (1.0, 0.74, 0.52))),
+    "leaves": {"cells": ("pine",), "count": 130, "size": (1.4, 1.8), "puff": 1.05, "at": {1: 0.92, 2: 0.95, 3: 0.95},
+               "fold": 0.35, "lift": 0.6, "levels": (2, 3), "core": 3, "crown_pull": 0.25, "tint": (0.86, 0.97, 0.98)},
 }
 
 APPLE = {
@@ -434,8 +502,48 @@ APPLE = {
          "rise": 0.1, "steps": 3, "sides": 4, "min_radius": 0.008},
     ],
     "bark": "bark_apple", "tile": 0.9, "sectors": 2, "twist": 0.2,
-    "leaves": {"cells": ("apple",), "count": 100, "size": (0.9, 1.15), "puff": 0.95, "at": {1: 0.55, 2: 0.92},
-               "fold": 0.45, "lift": 0.35, "levels": (1, 2), "core": 3},
+    "leaves": {"cells": ("apple",), "count": 125, "size": (0.9, 1.15), "puff": 0.95, "at": {1: 0.55, 2: 0.92},
+               "fold": 0.45, "lift": 0.35, "levels": (1, 2), "core": 3, "tint": (1.0, 1.02, 0.94)},
+}
+
+# Rowan: a slender smooth grey trunk under an open oval crown of ascending limbs, feathery pinnate leaves; its
+# berry bunches are the rowan_berries overlay, which the site lays over the cards in late summer.
+ROWAN = {
+    "height": 8.0, "spread": (0.85, 1.0),
+    "trunk": {"height": 2.2, "radius": 0.17, "top": 0.13, "sides": 10, "steps": 6, "lean": 3.0, "flare": 0.35,
+              "roots": 3, "wobble": 0.05},
+    "fork": True,
+    "orders": [
+        {"count": (5, 6), "at": (0.75, 1.0), "angle": (22.0, 42.0), "length": (0.38, 0.48), "radius": 0.66, "tip": 0.3,
+         "rise": 0.35, "steps": 9, "sides": 8, "wobble": 0.1},
+        {"count": (3, 4), "at": (0.3, 0.95), "angle": (28.0, 50.0), "length": (0.38, 0.5), "radius": 0.55, "tip": 0.35,
+         "rise": 0.3, "droop": 0.1, "steps": 5, "sides": 5, "taper": 0.3},
+        {"count": (2, 3), "at": (0.4, 1.0), "angle": (25.0, 45.0), "length": (0.4, 0.5), "radius": 0.6, "tip": 0.4,
+         "rise": 0.2, "steps": 2, "sides": 4, "min_radius": 0.008},
+    ],
+    "bark": "bark_rowan", "tile": 1.0, "sectors": 2, "twist": 0.03,
+    "leaves": {"cells": ("rowan",), "count": 125, "size": (1.25, 1.6), "puff": 1.0, "at": {1: 0.6, 2: 0.92},
+               "fold": 0.4, "lift": 0.45, "levels": (1, 2), "core": 2, "jitter": 0.2},
+}
+
+# White willow by the stream: a short thick trunk, often leaning, splitting into a few big limbs that climb and then
+# let their long twigs hang, narrow silvery leaves.
+WILLOW = {
+    "height": 9.5, "spread": (1.0, 0.9),
+    "trunk": {"height": 2.0, "radius": 0.38, "top": 0.3, "sides": 14, "steps": 6, "lean": 7.0, "flare": 0.55,
+              "roots": 5, "wobble": 0.08},
+    "fork": True,
+    "orders": [
+        {"count": (4, 6), "at": (0.85, 1.0), "angle": (20.0, 42.0), "length": (0.48, 0.6), "radius": 0.62, "tip": 0.3,
+         "rise": 0.4, "steps": 10, "sides": 9, "wobble": 0.16},
+        {"count": (4, 6), "at": (0.35, 0.98), "angle": (30.0, 50.0), "length": (0.38, 0.5), "radius": 0.5, "tip": 0.35,
+         "rise": 0.15, "droop": 0.45, "steps": 6, "sides": 5, "taper": 0.3},
+        {"count": (3, 4), "at": (0.4, 1.0), "angle": (20.0, 40.0), "length": (0.45, 0.6), "radius": 0.55, "tip": 0.4,
+         "droop": 1.1, "steps": 3, "sides": 4, "min_radius": 0.008},
+    ],
+    "bark": "bark_willow", "tile": 1.3, "sectors": 3, "twist": 0.1,
+    "leaves": {"cells": ("willow",), "count": 150, "size": (1.5, 2.0), "puff": 1.25, "at": {1: 0.7, 2: 0.95},
+               "fold": 0.4, "lift": 0.0, "levels": (1, 2), "core": 3, "jitter": 0.25, "tint": (0.9, 1.0, 1.02)},
 }
 
 HAWTHORN = {
@@ -449,10 +557,112 @@ HAWTHORN = {
         {"count": (2, 3), "at": (0.35, 0.95), "angle": (35.0, 60.0), "length": (0.35, 0.5), "radius": 0.55, "tip": 0.4,
          "droop": 0.2, "steps": 2, "sides": 3, "min_radius": 0.008, "wobble": 0.2},
     ],
-    "bark": "bark_apple", "tile": 0.8, "sectors": 1, "twist": 0.1,
-    "leaves": {"cells": ("hawthorn",), "count": 60, "size": (0.7, 0.95), "puff": 0.6, "at": {1: 0.5, 2: 0.92},
+    "bark": "bark_hawthorn", "tile": 0.8, "sectors": 1, "twist": 0.1,
+    "leaves": {"cells": ("hawthorn",), "count": 72, "size": (0.7, 0.95), "puff": 0.6, "at": {1: 0.5, 2: 0.92},
                "fold": 0.45, "lift": 0.3, "levels": (1, 2), "core": 2},
 }
+
+# Wild box: a dense rounded evergreen shrub of many stems from the ground, small glossy leaves.
+BOX = {
+    "height": 1.8, "spread": (1.0, 0.92),
+    "trunk": {"height": 0.12, "radius": 0.06, "top": 0.05, "sides": 6, "steps": 2, "lean": 3.0, "flare": 0.2,
+              "roots": 0, "wobble": 0.05},
+    "fork": True,
+    "orders": [
+        {"count": (7, 9), "at": (0.9, 1.0), "angle": (12.0, 42.0), "length": (0.55, 0.75), "radius": 0.7, "tip": 0.35,
+         "rise": 0.25, "steps": 4, "sides": 4, "wobble": 0.15},
+        {"count": (2, 3), "at": (0.35, 0.95), "angle": (30.0, 55.0), "length": (0.35, 0.5), "radius": 0.55, "tip": 0.4,
+         "rise": 0.1, "steps": 2, "sides": 3, "min_radius": 0.006},
+    ],
+    "bark": "bark_hawthorn", "tile": 0.5, "sectors": 1, "twist": 0.05, "moss": False,
+    "leaves": {"cells": ("box",), "count": 75, "size": (0.55, 0.75), "puff": 0.42, "at": {1: 0.6, 2: 0.92},
+               "fold": 0.35, "lift": 0.35, "levels": (1, 2), "core": 3, "tint": (0.82, 0.92, 0.85)},
+}
+
+# Gorse on the coast: a spiny mound of green shoots from many stems, gold with flowers; its cards keep the sprite's
+# own colours, their corner colour carrying only the light and shade.
+GORSE = {
+    "height": 1.6, "spread": (1.0, 0.95),
+    "trunk": {"height": 0.1, "radius": 0.05, "top": 0.045, "sides": 6, "steps": 2, "lean": 2.0, "flare": 0.2,
+              "roots": 0, "wobble": 0.05},
+    "fork": True,
+    "orders": [
+        {"count": (8, 10), "at": (0.9, 1.0), "angle": (18.0, 60.0), "length": (0.55, 0.75), "radius": 0.7, "tip": 0.35,
+         "rise": 0.2, "droop": 0.1, "steps": 4, "sides": 4, "wobble": 0.18},
+        {"count": (2, 3), "at": (0.35, 0.95), "angle": (30.0, 55.0), "length": (0.35, 0.5), "radius": 0.55, "tip": 0.4,
+         "steps": 2, "sides": 3, "min_radius": 0.006},
+    ],
+    "bark": "bark_gorse", "tile": 0.5, "sectors": 1, "twist": 0.05, "moss": False,
+    "leaves": {"cells": ("gorse",), "count": 72, "size": (0.6, 0.85), "puff": 0.45, "at": {1: 0.6, 2: 0.92},
+               "fold": 0.35, "lift": 0.4, "levels": (1, 2), "core": 3, "neutral": True},
+}
+
+# Card counts by form (DESIGN.md section 18.3): mature trees are the hero trees along the ring, young trees and the
+# coastal form fill in elsewhere.
+# Every recipe with a trunk, for the bark cells' sizes in metres (wood_metres).
+RECIPES = (OAK, ASH, BIRCH, SPRUCE, PINE, APPLE, ROWAN, WILLOW, HAWTHORN, BOX, GORSE)
+CARDS = {"young": 75, "coastal": 85}
+# How a young tree differs from the mature one: share of the height, how much slimmer its trunk is for that height,
+# how many fewer first-order limbs, how much more upright they rise, and the share of the leaf clusters' size.
+YOUNG = {"height": 0.55, "slim": 0.8, "limbs": 1, "upright": 0.85, "leaves": 0.72}
+# How hard the sea wind combs a coastal tree's crown landward, and how much shorter it grows.
+WIND, WIND_HEIGHT = 0.8, 0.9
+SEAWARD = -flora.LANDWARD
+
+
+def form(spec, age="mature", coastal=False):
+    """A species recipe at an age, or as its coastal form. A young tree is about half as tall, slimmer for its height,
+    with a limb fewer rising more steeply, smaller leaf clusters and, where the species has one, the smooth bark of
+    its youth; it keeps one order of twigs less. The coastal form is a mature tree a little shorter, its crown combed
+    landward by the sea wind (see grow)."""
+    out = copy.deepcopy(spec)
+    leaves = out["leaves"]
+    if coastal:
+        out["height"] = spec["height"] * WIND_HEIGHT
+        out["wind"] = WIND
+        leaves["count"] = CARDS["coastal"]
+        return out
+    if age == "mature":
+        return out
+    out["height"] = spec["height"] * YOUNG["height"]
+    trunk = out["trunk"]
+    trunk["height"] *= YOUNG["height"]
+    trunk["radius"] *= YOUNG["height"] * YOUNG["slim"]
+    trunk["top"] *= YOUNG["height"] * YOUNG["slim"]
+    trunk["roots"] = max(0, trunk.get("roots", 0) - 2)
+    trunk["flare"] = trunk.get("flare", 0.5) * 0.6
+    first = out["orders"][0]
+    first["count"] = tuple(max(1, c - YOUNG["limbs"]) for c in first["count"])
+    for rule in out["orders"]:
+        rule["angle"] = tuple(a * YOUNG["upright"] for a in rule["angle"])
+    if len(out["orders"]) > 2:
+        out["orders"] = out["orders"][:-1]
+        levels = tuple(level for level in leaves.get("levels", ()) if level <= len(out["orders"]))
+        leaves["levels"] = levels or (len(out["orders"]) - 1,)
+    leaves["count"] = CARDS["young"]
+    if "size" in leaves:
+        # Cluster layouts only: a conifer's bough sprays already take their size from its shorter boughs.
+        leaves["size"] = tuple(s * YOUNG["leaves"] for s in leaves["size"])
+        leaves["puff"] = leaves["puff"] * YOUNG["leaves"]
+    out["bark"] = spec.get("young_bark", spec["bark"])
+    out["tile"] = spec.get("tile", 1.0) * 0.6
+    return out
+
+
+def wood_metres():
+    """Per bark cell, the metres one repeat of it covers on the trunk of the first recipe that wears it: along the
+    trunk, and round the trunk's foot (its girth over the sectors the cell repeats round it). Limbs and twigs repeat
+    the cell twice as often along and once round; a young tree wears its young bark at its own trunk's size."""
+    out = {}
+    for spec in RECIPES:
+        for age in ("mature", "young"):
+            grown = form(spec, age)
+            if grown["bark"] in out:
+                continue
+            girth = 2.0 * math.pi * grown["trunk"]["radius"]
+            out[grown["bark"]] = {"along": round(grown.get("tile", 1.0), 3),
+                                  "around": round(girth / grown.get("sectors", 2), 3)}
+    return out
 
 
 def _column_shade(greens, height, tone, exposure):
@@ -521,7 +731,7 @@ def cypress(rng, name, exposure=flora.INLAND, plan=None, height=13.0, radius=1.0
 
 def box_bush(rng, name, form="ball", size=(0.7, 0.7, 0.66), exposure=flora.INLAND):
     """Clipped box by the doors: a ball, or a block with softened edges and a flat top, its clipped surface textured
-    with the dense evergreen cell and a fringe of small box sprays breaking the outline."""
+    with the box_clipped cell of small packed leaves and a fringe of small box sprays breaking the outline."""
     plant = cards.Plant("foliage")
     greens = flora.greens(exposure)
     w, d, h = size
@@ -544,9 +754,9 @@ def box_bush(rng, name, form="ball", size=(0.7, 0.7, 0.66), exposure=flora.INLAN
             return 1.0 + 0.04 * math.sin(5 * angle + s * 9.0)
     path = [Vector((0.0, 0.0, z)) for z in stations]
     shade = _column_shade(greens, h, 0.8, exposure)
-    plant.tube(path, [max(0.03, profile(z)) for z in stations], "cypress", shade, lambda p: 0.04 * p.z / h, 0.0,
+    plant.tube(path, [max(0.03, profile(z)) for z in stations], "box_clipped", shade, lambda p: 0.04 * p.z / h, 0.0,
                sides=16, tile=0.45, sectors=4, shape=shape)
-    plant.disc(Vector((0.0, 0.0, stations[-1])), UP, max(0.04, profile(stations[-1])) * 1.05, "cypress",
+    plant.disc(Vector((0.0, 0.0, stations[-1])), UP, max(0.04, profile(stations[-1])) * 1.05, "box_clipped",
                lambda p, n: shade(p, n), sides=10)
     # Small sprays lying just proud of the clipped surface, following its curve, give it leafy relief.
     centre = Vector((0.0, 0.0, h * 0.5))
@@ -598,3 +808,35 @@ def stump(rng, name, exposure=flora.INLAND, plan=None, height=0.7):
         plant.card(p, normal, UP, 0.38, 0.38, "oak_a", (tuple(c * 0.75 for c in colour), colour), (0.6, 0.9), rng.random(),
                    base, fold=0.4, flip=rng.random() < 0.5)
     return plant.finish(name, plan=plan, height=height)
+
+
+def bramble(rng, name, exposure=flora.INLAND, canes=8, reach=(1.0, 1.5), rise=(0.8, 1.2), count=64):
+    """A bramble thicket: prickly canes rising from its middle and bowing over to root at its rim, with leafy shoot
+    cards along them facing out of the mound. The bramble sprite keeps its own colours (leaves, flowers and berries),
+    so the cards' corner colour carries only the light and shade."""
+    plant = cards.Plant("foliage")
+    greens = flora.greens(exposure)
+    shade = _bark({"bark_tint": (0.95, 0.95, 0.95), "moss": False}, greens, exposure)
+    top = max(rise) * 1.3
+    paths = []
+    for k in range(canes):
+        a = 2 * math.pi * k / canes + rng.uniform(-0.3, 0.3)
+        out = Vector((math.cos(a), math.sin(a), 0.0))
+        far, high = rng.uniform(*reach), rng.uniform(*rise)
+        ends = (out * 0.08, out * far * 0.35 + UP * high * 1.3, out * far + UP * 0.02)
+        path = [ends[0] * (1 - t) ** 2 + ends[1] * (2 * (1 - t) * t) + ends[2] * t * t for t in (i / 10 for i in range(11))]
+        plant.tube(path, [0.014 * (1.0 - 0.5 * i / 10) for i in range(11)], "bark_cane", shade,
+                   lambda p: 0.2 * max(0.0, p.z) / top, rng.random(), sides=5, tile=0.3)
+        paths.append(path)
+    centre = Vector((0.0, 0.0, max(rise) * 0.35))
+    for k in range(count):
+        path = paths[k % canes]
+        i = min(len(path) - 2, int(rng.uniform(0.15, 0.95) * (len(path) - 1)))
+        point = path[i].lerp(path[i + 1], rng.random())
+        normal = ((point - centre).normalized() + UP * 0.4).normalized()
+        size = rng.uniform(0.45, 0.62)
+        light = 0.62 + 0.38 * min(1.0, point.z / max(rise))
+        grey = min(1.0, light * (0.9 + 0.12 * max(0.0, normal.dot(flora.KEY_LIGHT))) * rng.uniform(0.92, 1.05))
+        plant.card(point + normal * 0.05, normal, UP, size, size, "bramble", ((grey * 0.7,) * 3, (grey,) * 3),
+                   (0.15, 0.4), rng.random(), centre, fold=0.35, flip=rng.random() < 0.5)
+    return plant.finish(name)

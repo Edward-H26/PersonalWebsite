@@ -1,9 +1,9 @@
-"""Tileable textures painted with numpy for the vegetation atlases and the island ground (DESIGN.md section 13b):
-bark for oak and ash, birch, spruce and apple, end grain for sawn faces, the cypress's scale foliage, slate with its
-strata and lichen, the ground of meadow grass, clover and worn earth, and the terrain's dark earth, cobbles, gravel and
-sand. Noise is white noise shaped in the Fourier domain and stamps wrap round the edges, so every texture repeats
-without a seam. Colours are sRGB-encoded arrays of shape (height, width, 3) in
-[0, 1], rows from the top; bark runs along the image's vertical axis."""
+"""Tileable textures painted with numpy for the vegetation atlases and the island ground (DESIGN.md sections 13b and
+18.3): bark with a height field for its normal map for every tree and shrub, end grain for sawn faces, the cypress's
+scale foliage and clipped box, moss decals, slate with its strata and lichen, the ground of meadow grass, clover and
+worn earth, and the terrain's dark earth, cobbles, gravel and sand. Noise is white noise shaped in the Fourier domain
+and stamps wrap round the edges, so every texture repeats without a seam. Colours are sRGB-encoded arrays of shape
+(height, width, 3) in [0, 1], rows from the top; bark runs along the image's vertical axis."""
 
 import math
 
@@ -11,13 +11,11 @@ import numpy as np
 
 
 def noise(shape, rng, scale, stretch=(1.0, 1.0), power=2.0):
-    """Seamless noise in [0, 1] with features about `scale` pixels across; stretch (y, x) above 1 lengthens them
-    along that axis."""
-    h, w = shape
-    fy = np.fft.fftfreq(h)[:, None] * stretch[0]
-    fx = np.fft.fftfreq(w)[None, :] * stretch[1]
-    radius = np.sqrt(fx * fx + fy * fy) * scale
-    field = np.real(np.fft.ifft2(np.fft.fft2(rng.standard_normal(shape)) * np.exp(-radius ** power)))
+    """Seamless noise in [0, 1] over an array of any rank with features about `scale` samples across; stretch (one
+    factor per axis, (y, x) for an image) above 1 lengthens them along that axis."""
+    freqs = np.meshgrid(*[np.fft.fftfreq(n) * k for n, k in zip(shape, stretch)], indexing="ij", sparse=True)
+    radius = np.sqrt(sum(f * f for f in freqs)) * scale
+    field = np.real(np.fft.ifftn(np.fft.fftn(rng.standard_normal(shape)) * np.exp(-radius ** power)))
     field -= field.min()
     return field / max(1e-9, field.max())
 
@@ -50,36 +48,181 @@ def _stamp(canvas, mask, value, cy, cx):
     canvas[np.ix_(rows, cols)] = region * (1.0 - m) + value * m
 
 
+def _smooth(edge0, edge1, x):
+    t = np.clip((x - edge0) / (edge1 - edge0), 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
+
+
+def _sample(field, y, x, nearest=False):
+    """A field (2D, or 3D with channels last) read at fractional pixel positions (y, x), wrapping at its edges;
+    bilinear, or the nearest pixel for fields of labels."""
+    h, w = field.shape[:2]
+    if nearest:
+        return field[np.rint(y).astype(int) % h, np.rint(x).astype(int) % w]
+    y0, x0 = np.floor(y).astype(int), np.floor(x).astype(int)
+    fy, fx = y - y0, x - x0
+    if field.ndim == 3:
+        fy, fx = fy[..., None], fx[..., None]
+    y0, x0 = y0 % h, x0 % w
+    y1, x1 = (y0 + 1) % h, (x0 + 1) % w
+    return (field[y0, x0] * (1 - fy) * (1 - fx) + field[y0, x1] * (1 - fy) * fx + field[y1, x0] * fy * (1 - fx)
+            + field[y1, x1] * fy * fx)
+
+
+def _warped(rng, fields, amount, scale, stretch=(1.0, 1.0)):
+    """The same smooth wander applied to several tiling fields: each is read at positions pushed up to `amount` px
+    by noise with features about `scale` px across, so the straight edges of cells meander like real fissures."""
+    shape = fields[0].shape[:2]
+    dy = (noise(shape, rng, scale, stretch) - 0.5) * 2.0 * amount
+    dx = (noise(shape, rng, scale, stretch) - 0.5) * 2.0 * amount
+    y, x = np.mgrid[0:shape[0], 0:shape[1]]
+    return [_sample(f, y + dy, x + dx) for f in fields]
+
+
+def _long_cells(size, rows, cols, rng, jitter=0.4):
+    """Voronoi cells drawn long down the image, (size / rows) / (size / cols) times taller than wide: cells laid out
+    on a canvas squashed that much and stretched back. Returns per pixel how far it lies from its cell's edge in real
+    pixels, a crack across the slope of the edge keeping one width, and the cell's index."""
+    stretch = cols / rows
+    height = max(8, int(round(size / stretch)))
+    first, second, index, _, _ = _cells(height, rows, cols, rng, jitter, width=size)
+    edge = second - first
+    gy = (np.roll(edge, -1, axis=0) - np.roll(edge, 1, axis=0)) * 0.5
+    gx = (np.roll(edge, -1, axis=1) - np.roll(edge, 1, axis=1)) * 0.5
+    norm = np.hypot(gx, gy) + 1e-9
+    # A crack across a squashed horizontal edge is stretched `stretch` times taller, so count its distance that much more.
+    edge = edge * np.sqrt((gx / norm) ** 2 + (stretch * gy / norm) ** 2)
+    y, x = np.mgrid[0:size, 0:size]
+    ys = (y + 0.5) * height / size - 0.5
+    return _sample(edge, ys, x), _sample(index, ys, x, nearest=True)
+
+
+def _plates(size, rng, rows, cols, rise, blocks=None, jitter=0.4):
+    """Seamless bark plates from Voronoi cells over a rows x cols grid, run long down the trunk when rows < cols: per
+    pixel a rounded profile rising from the fissure at the plate's edge over `rise` px, a narrower break across the
+    plate every `blocks` (min, max) plate widths when given, and a tone per plate."""
+    edge, index = _long_cells(size, rows, cols, rng, jitter)
+    profile = _smooth(0.0, rise, edge) ** 0.7
+    count = rows * cols
+    tone = rng.uniform(0.86, 1.1, count)[index]
+    if blocks is None:
+        return profile, tone
+    # Whole blocks per tile, so the breaks repeat with the texture.
+    length = size / np.maximum(1, np.round(size / (rng.uniform(*blocks, count) * size / cols)))
+    phase = rng.uniform(0.0, 1.0, count)
+    y = np.arange(size)[:, None] + np.zeros((1, size))
+    u = (y / length[index] + phase[index]) % 1.0
+    across = np.minimum(u, 1.0 - u) * length[index]
+    return profile * (0.7 + 0.3 * _smooth(0.0, 3.0, across)), tone
+
+
+def _dashes(shape, rng, count, length, width, value=1.0):
+    """A field of short soft horizontal dashes (lenticels), wrapping at the edges; 0 elsewhere."""
+    canvas = np.zeros(shape)
+    span_y, span_x = int(width * 2) + 2, int(length) + 2
+    yy, xx = np.mgrid[-span_y:span_y + 1, -span_x:span_x + 1]
+    for _ in range(count):
+        scale = rng.uniform(0.6, 1.3)
+        mask = np.clip(1.0 - np.hypot(xx / (length * 0.5 * scale), yy / (width * 0.5 * scale)), 0.0, 1.0) ** 0.7
+        _stamp(canvas, mask, value, rng.integers(0, shape[0]), rng.integers(0, shape[1]))
+    return canvas
+
+
+# Plated barks: Voronoi grid (rows, cols) whose cells run long down the trunk, how far the plate's rounded profile
+# rises (px), breaks across the plates every (min, max) plate widths or none, the inner bark in the fissures and the
+# ramp from low to high. A cell spans about a metre of trunk in 496 px, so a centimetre is three to five pixels.
+PLATED = {
+    "oak": ((5, 22), 12.0, (3.0, 6.0), "#1a140f", ("#352c24", "#574e43", "#7a7166", "#948b7f")),
+    "pine": ((4, 9), 14.0, (1.0, 2.0), "#8a4a26", ("#4a3d33", "#685848", "#86735e", "#9a876f")),
+    "apple": ((8, 12), 10.0, (0.9, 1.6), "#7a5638", ("#3c332c", "#5c5045", "#7c7061", "#948876")),
+    "hawthorn": ((8, 18), 7.0, (0.8, 1.6), "#6a4026", ("#463e37", "#665e56", "#827a71", "#978f85")),
+    "spruce": ((22, 22), 5.0, None, "#3a2a22", ("#4e3a30", "#6e5444", "#8a7058", "#9c8468")),
+}
+# Netted barks, whose ridges run along the cell edges round long diamond furrows: grid, ridge width (px) and ramp.
+NETTED = {"ash": ((8, 36), 5.5, ("#3a3731", "#5e5b53", "#827f76", "#9a978d")),
+          "willow": ((6, 20), 9.0, ("#2e2822", "#4e463c", "#6e6457", "#8a7f71"))}
+
+
 def bark(rng, size=256, kind="oak"):
-    """oak: grey-brown ridges split by deep vertical fissures and broken across into blocks; birch: chalk white with
-    dark horizontal lenticels and black diamond scars; spruce: thin grey-brown scales flaking at their rims; apple:
-    grey-brown plates flaking to warmer underbark."""
+    """Bark as (colour, height), both tiling, running along the image's vertical axis. oak: long grey-brown ridges
+    split by deep fissures and broken across into blocks, lichen on the ridge tops; pine: thick plates over orange
+    inner bark; apple: grey-brown plates flaking to warmer underbark; hawthorn: small plates over orange cracks;
+    spruce: thin round scales; ash: a net of grey ridges round long diamond furrows; willow: the same, coarser and
+    deeper; oak_young, ash_young and rowan: smooth grey with fine striations and lenticels; birch: chalk white with
+    dark lenticels, black diamond scars and papery strips; cane: a bramble's purple-red stem with a pale bloom and
+    prickle scars; gorse: a green-brown stem with deep grooves."""
     shape = (size, size)
+    fine = noise(shape, rng, 1.5)
+    fibre = noise(shape, rng, 1.6, stretch=(7.0, 1.0))
+    if kind in PLATED:
+        (rows, cols), rise, blocks, under, stops = PLATED[kind]
+        profile, tone = _plates(size, rng, rows, cols, rise, blocks)
+        bumps = octaves(shape, rng, (10, 3), (0.65, 0.35))
+        height = profile * tone * (0.8 + 0.2 * bumps) + 0.07 * fibre
+        if kind == "apple":
+            # Flakes lift off the plates and show the warmer underbark beneath.
+            height = height * (1.0 - 0.35 * np.clip((noise(shape, rng, 9) - 0.62) * 6.0, 0.0, 1.0))
+        elif kind == "pine":
+            # A pine's plates are stacks of thin flakes, their edges stepping across the plate.
+            layers = noise(shape, rng, 2.5, stretch=(1.0, 5.0))
+            height = height * (0.82 + 0.18 * np.floor(layers * 4.0) / 4.0)
+        height = np.clip(height, 0.0, 1.0)
+        colour = ramp(height, [(0.0, hexes(under)[0]), (0.25, hexes(stops[0])[0]), (0.5, hexes(stops[1])[0]),
+                               (0.78, hexes(stops[2])[0]), (1.0, hexes(stops[3])[0])])
+        if kind == "oak":
+            lichen = np.clip((octaves(shape, rng, (40, 10), (0.7, 0.3)) - 0.64) * 5.0, 0.0, 1.0) * _smooth(0.55, 0.8, height)
+            colour = colour * (1.0 - 0.6 * lichen[..., None]) + hexes("#9aa38a")[0] * (0.6 * lichen[..., None])
+            height = height + 0.05 * lichen
+        colour, height = _warped(rng, [colour, height], 2.5 if kind == "spruce" else 4.0, 14.0)
+        return np.clip(colour * (0.93 + 0.14 * fine[..., None]), 0.0, 1.0), np.clip(height, 0.0, 1.0)
+    if kind in NETTED:
+        (rows, cols), ridge, stops = NETTED[kind]
+        edge, _ = _long_cells(size, rows, cols, rng, 0.45)
+        crest = 1.0 - _smooth(0.0, ridge, edge)
+        height = np.clip(crest ** 0.8 * (0.8 + 0.2 * fine) + 0.12 * fibre, 0.0, 1.0)
+        colour = ramp(height, [(0.0, hexes(stops[0])[0]), (0.35, hexes(stops[1])[0]), (0.7, hexes(stops[2])[0]),
+                               (1.0, hexes(stops[3])[0])])
+        colour, height = _warped(rng, [colour, height], 2.5 if kind == "ash" else 4.0, 12.0)
+        return np.clip(colour * (0.93 + 0.14 * fine[..., None]), 0.0, 1.0), height
+    if kind in ("oak_young", "ash_young", "rowan"):
+        base, light, dash = {"oak_young": ("#4e5046", "#6a6c5e", "#34352e"),
+                             "ash_young": ("#5a5e56", "#767a70", "#3c3f3a"),
+                             "rowan": ("#5e5e58", "#7c7c74", "#2e2c28")}[kind]
+        striations = noise(shape, rng, 1.2, stretch=(14.0, 1.0))
+        mottle = octaves(shape, rng, (60, 14), (0.6, 0.4))
+        lenticels = _dashes(shape, rng, int(size * size / (900 if kind == "rowan" else 1500)), 9.0 if kind == "rowan" else 5.0, 2.2)
+        height = np.clip(0.55 + 0.12 * striations + 0.1 * mottle - 0.25 * lenticels, 0.0, 1.0)
+        colour = ramp(mottle, [(0.0, hexes(base)[0]), (1.0, hexes(light)[0])]) * (0.93 + 0.1 * striations[..., None])
+        colour = colour * (1.0 - 0.75 * lenticels[..., None]) + hexes(dash)[0] * (0.75 * lenticels[..., None])
+        return np.clip(colour, 0.0, 1.0), height
     if kind == "birch":
         base = ramp(octaves(shape, rng, (40, 10), (0.7, 0.3)), [(0.0, hexes("#c9c6bb")[0]), (1.0, hexes("#f2f0e8")[0])])
         lenticels = np.clip((noise(shape, rng, 2.5, stretch=(0.6, 9.0)) - 0.66) * 7.0, 0, 1)
         scars = np.clip((octaves(shape, rng, (26, 8), (0.7, 0.3), stretch=(0.8, 2.2)) - 0.74) * 6.0, 0, 1)
+        strips = np.clip((noise(shape, rng, 6, stretch=(0.4, 6.0)) - 0.7) * 6.0, 0, 1)
         dark = np.clip(lenticels * 0.85 + scars, 0, 1)
-        return base * (1.0 - 0.88 * dark[..., None]) + hexes("#2b2622")[0] * (0.88 * dark[..., None])
-    if kind == "spruce":
-        flakes = octaves(shape, rng, (9, 3), (0.75, 0.25), stretch=(1.3, 1.0))
-        rims = np.clip(np.abs(np.gradient(flakes, axis=0)) * 30.0, 0, 1)
-        colour = ramp(flakes, [(0.0, hexes("#3a2a22")[0]), (0.55, hexes("#6a5143")[0]), (1.0, hexes("#8c7461")[0])])
-        return colour * (1.0 - 0.45 * rims[..., None])
-    ridges = octaves(shape, rng, (10, 3), (0.8, 0.2), stretch=(5.0, 1.0) if kind == "oak" else (1.6, 1.0))
-    breaks = np.clip((noise(shape, rng, 4, stretch=(1.0, 6.0)) - 0.7) * 5.0, 0, 1)
-    depth = np.clip((ridges - 0.36) * 2.6, 0, 1) * (1.0 - 0.6 * breaks)
-    light = noise(shape, rng, 2)
-    if kind == "apple":
-        stops = [(0.0, hexes("#2a221c")[0]), (0.45, hexes("#5a4c40")[0]), (0.8, hexes("#82786a")[0]), (1.0, hexes("#9c8f7c")[0])]
-    else:
-        stops = [(0.0, hexes("#1e1914")[0]), (0.45, hexes("#4e463d")[0]), (0.8, hexes("#77706a")[0]), (1.0, hexes("#8e877e")[0])]
-    return ramp(depth * (0.82 + 0.18 * light), stops)
+        colour = base * (1.0 + 0.06 * strips[..., None]) * (1.0 - 0.88 * dark[..., None]) + hexes("#2b2622")[0] * (0.88 * dark[..., None])
+        height = np.clip(0.6 + 0.12 * strips - 0.22 * lenticels - 0.35 * scars + 0.04 * fine, 0.0, 1.0)
+        return np.clip(colour, 0.0, 1.0), height
+    if kind == "cane":
+        ribs = noise(shape, rng, 0.9, stretch=(20.0, 1.0))
+        bloom = np.clip((octaves(shape, rng, (30, 8), (0.7, 0.3)) - 0.55) * 3.0, 0.0, 1.0)
+        scars = _dashes(shape, rng, int(size * size / 2500), 3.0, 3.0)
+        colour = ramp(ribs, [(0.0, hexes("#4a1c28")[0]), (1.0, hexes("#7a3446")[0])])
+        colour = colour * (1.0 - 0.35 * bloom[..., None]) + hexes("#b8a8b0")[0] * (0.35 * bloom[..., None])
+        colour = colour * (1.0 - scars[..., None]) + hexes("#b0806a")[0] * scars[..., None]
+        return np.clip(colour, 0.0, 1.0), np.clip(0.5 + 0.2 * ribs + 0.3 * scars, 0.0, 1.0)
+    if kind == "gorse":
+        grooves = noise(shape, rng, 1.1, stretch=(18.0, 1.0))
+        height = np.clip((grooves - 0.2) * 1.4, 0.0, 1.0)
+        colour = ramp(height, [(0.0, hexes("#2a3018")[0]), (0.5, hexes("#4a5a30")[0]), (1.0, hexes("#6e7044")[0])])
+        return np.clip(colour * (0.9 + 0.2 * fine[..., None]), 0.0, 1.0), height
+    raise KeyError(kind)
 
 
 def end_grain(rng, size=256):
-    """The sawn face of a log filling the cell: pale sapwood to darker heartwood in uneven annual rings, a radial
-    check and a bark rim."""
+    """The sawn face of a log filling the cell, as (colour, height): pale sapwood to darker heartwood in uneven annual
+    rings standing a little proud, a radial check and a bark rim."""
     y, x = (np.mgrid[0:size, 0:size] + 0.5) / size - 0.5
     wobble = (noise((size, size), rng, 24) - 0.5) * 0.04
     r = np.sqrt(x * x + y * y) / 0.5 + wobble
@@ -92,26 +235,88 @@ def end_grain(rng, size=256):
     angle = np.arctan2(y, x)
     check = np.clip(1.0 - np.abs(angle - 0.7) * r * 40.0, 0, 1) * (r < 0.85)
     wood *= (1.0 - 0.75 * check)[..., None]
-    return np.where((r > 0.93)[..., None], hexes("#3a2e24")[0], wood)
+    rim = r > 0.93
+    height = np.where(rim, 0.8, 0.5 + 0.12 * rings - 0.4 * check)
+    return np.where(rim[..., None], hexes("#3a2e24")[0], wood), height
 
 
 def scale_foliage(rng, size=256, sprays=900):
-    """Dense cypress foliage as a neutral tone that tiles: upright feathery sprays stamped back to front, each lit
-    from above and shading down to its base, deep shadow in the gaps between them."""
+    """Dense cypress foliage as a neutral tone that tiles, as (colour, height): upright feathery sprays stamped back to
+    front, each lit from above and shading down to its base, deep shadow in the gaps between them; `sprays` is the
+    count for a 256 px cell, scaled with the area."""
     canvas = np.full((size, size), 0.14)
-    yy, xx = np.mgrid[-16:17, -10:11]
-    for _ in range(sprays):
+    depth = np.zeros((size, size))
+    scale = size / 256
+    yy, xx = np.mgrid[-math.ceil(16 * scale):math.ceil(16 * scale) + 1, -math.ceil(10 * scale):math.ceil(10 * scale) + 1]
+    for _ in range(int(sprays * scale * scale)):
         cy, cx = rng.integers(0, size), rng.integers(0, size)
-        length, width = rng.uniform(9.0, 15.0), rng.uniform(3.5, 6.0)
+        length, width = rng.uniform(9.0, 15.0) * scale, rng.uniform(3.5, 6.0) * scale
         lean = rng.uniform(-0.35, 0.35)
         u = yy + xx * lean
         v = xx - yy * lean
-        edge = 1.0 + 0.35 * np.sin(u * 1.9 + rng.uniform(0, 6))
+        edge = 1.0 + 0.35 * np.sin(u * 1.9 / scale + rng.uniform(0, 6))
         d = np.sqrt((v / (width * edge)) ** 2 + (u / length) ** 2)
         mask = np.clip((1.0 - d) * 3.0, 0, 1)
         lit = np.clip(0.62 - 0.5 * u / length, 0.18, 1.0) * rng.uniform(0.7, 1.0)
         _stamp(canvas, mask, lit, cy, cx)
-    return np.repeat(canvas[..., None], 3, axis=-1)
+        _stamp(depth, mask, 1.0 - 0.5 * np.clip(d, 0.0, 1.0), cy, cx)
+    return np.repeat(canvas[..., None], 3, axis=-1), np.clip(depth, 0.0, 1.0)
+
+
+def box_foliage(rng, size=256, leaves=None):
+    """Clipped box as a neutral tone that tiles, as (colour, height): small oval leaves packed in every direction,
+    each lit from the top left and domed, darker in the gaps between them."""
+    canvas = np.full((size, size), 0.25)
+    height = np.zeros((size, size))
+    count = leaves or int(size * size / 28)
+    span = 13
+    yy, xx = np.mgrid[-span:span + 1, -span:span + 1]
+    for _ in range(count):
+        turn = rng.uniform(0.0, math.pi)
+        length, width = rng.uniform(9.0, 13.0), rng.uniform(5.0, 7.0)
+        u = xx * math.cos(turn) + yy * math.sin(turn)
+        v = yy * math.cos(turn) - xx * math.sin(turn)
+        d = np.hypot(u / length, v / width)
+        mask = np.clip((1.0 - d) * 4.0, 0.0, 1.0)
+        dome = np.sqrt(np.clip(1.0 - d * d, 0.0, 1.0))
+        lit = np.clip(0.5 + 0.25 * dome - 0.1 * (xx + yy) / span, 0.3, 0.9) * rng.uniform(0.8, 1.05)
+        cy, cx = rng.integers(0, size), rng.integers(0, size)
+        _stamp(canvas, mask, lit, cy, cx)
+        _stamp(height, mask, 0.5 + 0.5 * dome, cy, cx)
+    return np.repeat(canvas[..., None], 3, axis=-1), height
+
+
+def moss(rng, size=512, cushions=True):
+    """A patch of moss seen from above as an RGBA decal in its own colours: cushions domed and lit from the top left
+    with a fine granular texture of shoots, or (cushions False) a looser, thinner spread of moss with dead needles
+    and bits of twig caught in it; the patch thins to nothing at its rim."""
+    shape = (size, size)
+    y, x = (np.mgrid[0:size, 0:size] + 0.5) / size - 0.5
+    r = np.hypot(x, y)
+    falloff = _smooth(0.47, 0.25, r)
+    lumps = octaves(shape, rng, (size / 6, size / 18), (0.7, 0.3))
+    body = lumps * falloff
+    threshold = 0.32 if cushions else 0.42
+    cover = _smooth(threshold, threshold + 0.03, body)
+    dome = _smooth(threshold, threshold + (0.35 if cushions else 0.2), body)
+    gy, gx = np.gradient(dome)
+    lit = np.clip(0.75 + (gx + gy) * -size * 0.02, 0.45, 1.25)
+    grain = noise(shape, rng, 1.2)
+    colour = ramp(np.clip(0.55 * dome + 0.45 * grain, 0.0, 1.0),
+                  [(0.0, hexes("#2a4214")[0]), (0.45, hexes("#4f6e20")[0]), (0.8, hexes("#7a9632")[0]), (1.0, hexes("#a2b44a")[0])])
+    colour = colour * lit[..., None] * (0.85 + 0.3 * grain[..., None])
+    if not cushions:
+        for _ in range(int(size * size / 900)):
+            length = rng.uniform(5.0, 14.0)
+            a = rng.uniform(0.0, math.pi)
+            span = int(length) + 2
+            yy, xx = np.mgrid[-span:span + 1, -span:span + 1]
+            along = xx * math.cos(a) + yy * math.sin(a)
+            across = yy * math.cos(a) - xx * math.sin(a)
+            mask = np.clip(1.0 - np.abs(across) / 0.9, 0.0, 1.0) * (np.abs(along) < length / 2)
+            _stamp(colour, mask, hexes("#7a5232")[0] * rng.uniform(0.75, 1.1), rng.integers(0, size), rng.integers(0, size))
+    alpha = cover * (grain > 0.18 if not cushions else 1.0)
+    return np.concatenate([np.clip(colour, 0.0, 1.0), alpha[..., None]], axis=-1)
 
 
 def rock(rng, size=1024):
@@ -181,22 +386,28 @@ def ground(rng, size=1024, clover=9000, pebbles=900):
     return np.clip(turf * (1.0 - worn[..., None]) + soil * worn[..., None], 0, 1)
 
 
-def _cells(size, rows, cols, rng, jitter=0.35):
-    """Seamless Voronoi cells over a jittered rows x cols grid of points: per pixel the distances to the nearest and
-    the second nearest point, the nearest point's index, and the pixel's (y, x) offset from that point."""
-    ch, cw = size / rows, size / cols
+def _cells(size, rows, cols, rng, jitter=0.35, width=None):
+    """Seamless Voronoi cells over a jittered rows x cols grid of points on a canvas `size` high and `width` (default
+    `size`) wide: per pixel the distances to the nearest and the second nearest point, the nearest point's index, and
+    the pixel's (y, x) offset from that point."""
+    width = width or size
+    ch, cw = size / rows, width / cols
     py = (np.arange(rows)[:, None] + 0.5 + rng.uniform(-jitter, jitter, (rows, cols))) * ch
     px = (np.arange(cols)[None, :] + 0.5 + rng.uniform(-jitter, jitter, (rows, cols))) * cw
-    y, x = np.mgrid[0:size, 0:size] + 0.5
+    y, x = np.mgrid[0:size, 0:width] + 0.5
     r0, c0 = np.floor(y / ch).astype(int), np.floor(x / cw).astype(int)
-    first, second = np.full((size, size), np.inf), np.full((size, size), np.inf)
-    index, dy, dx = np.zeros((size, size), int), np.zeros((size, size)), np.zeros((size, size))
-    for step_r in (-1, 0, 1):
-        for step_c in (-1, 0, 1):
+    first, second = np.full((size, width), np.inf), np.full((size, width), np.inf)
+    index, dy, dx = np.zeros((size, width), int), np.zeros((size, width)), np.zeros((size, width))
+    # Long thin cells keep their nearest points several columns (or rows) away, so look that far; near-square grids
+    # look one cell round, as the ground textures were painted.
+    reach_r = math.ceil(cw / ch) if cw > 1.5 * ch else 1
+    reach_c = math.ceil(ch / cw) if ch > 1.5 * cw else 1
+    for step_r in range(-reach_r, reach_r + 1):
+        for step_c in range(-reach_c, reach_c + 1):
             rr, cc = r0 + step_r, c0 + step_c
             r, c = rr % rows, cc % cols
             # The neighbouring cell's point, moved by whole tiles when the neighbour lies across the edge.
-            qy, qx = py[r, c] + (rr // rows) * size, px[r, c] + (cc // cols) * size
+            qy, qx = py[r, c] + (rr // rows) * size, px[r, c] + (cc // cols) * width
             d = np.hypot(y - qy, x - qx)
             nearer = d < first
             second = np.where(nearer, first, np.minimum(second, d))

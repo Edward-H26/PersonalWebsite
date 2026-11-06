@@ -116,6 +116,8 @@ WINDOW_GLASS, LANTERN_GLASS, HEARTH_GLOW = "isl_window_glass", "isl_lantern_glas
 # The mill pond's surface keeps a slot of its own too, so the site can draw it with its water shader.
 POND_WATER = "isl_pond_water"
 COLOR_ATTRIBUTE = "Col"
+# A plant's wind channel, exported as COLOR_1: R how far a corner sways, G its phase, B 1 on cards and 0 on wood.
+WIND_ATTRIBUTE = "Wind"
 WINDOW_GLOW = 1.5
 LANTERN_GLOW = 3.0
 EMBER_GLOW = 1.4

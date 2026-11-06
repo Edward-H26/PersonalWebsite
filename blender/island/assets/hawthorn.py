@@ -1,5 +1,6 @@
-"""hawthorn: a hawthorn bush for hedgerows and field edges (DESIGN.md section 13b), several crooked stems from one
-foot spreading into a dense mound of small lobed leaves, leafy down to the ground. One mesh, one textured material."""
+"""hawthorn: a hawthorn bush for hedgerows and field edges, crooked stems from one foot spreading into a dense mound of
+small lobed leaves, leafy down to the ground (DESIGN.md section 18.3); the seed shapes it, three seeds per species.
+One mesh, one textured material."""
 
 import random
 

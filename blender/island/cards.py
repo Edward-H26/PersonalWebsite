@@ -13,8 +13,6 @@ from mathutils import Vector
 
 from island import atlas, flora, mesh, style
 
-WIND_ATTRIBUTE = "Wind"
-UV_MAP = "UVMap"
 _ANCHOR = "anchor"
 _CARD = "card"
 # How far a card's normals lean from its face toward the direction out of its anchor.
@@ -40,10 +38,12 @@ class Plant:
 
     def __init__(self, family):
         self.family = family
+        # Cards draw from the family's card atlas, tubes and discs from its wood atlas (bark, for the foliage family).
+        _, self.card_atlas, self.wood_atlas = atlas.FAMILIES[family]
         self.bm = bmesh.new()
-        self.uv = self.bm.loops.layers.uv.new(UV_MAP)
+        self.uv = self.bm.loops.layers.uv.new(atlas.UV_MAP)
         self.col = self.bm.loops.layers.float_color.new(style.COLOR_ATTRIBUTE)
-        self.wind = self.bm.loops.layers.float_color.new(WIND_ATTRIBUTE)
+        self.wind = self.bm.loops.layers.float_color.new(style.WIND_ATTRIBUTE)
         self.anchor = self.bm.loops.layers.float_vector.new(_ANCHOR)
         self.kind = self.bm.faces.layers.int.new(_CARD)
 
@@ -85,7 +85,7 @@ class Plant:
                 out = side * math.cos(angle) + normal * math.sin(angle)
                 ring.append((self.bm.verts.new(p + out * r * (shape(s, angle) if shape else 1.0)), out))
             rings.append(ring)
-        u0, v0, u1, v1 = atlas.cell_rect(self.family, cell)
+        u0, v0, u1, v1 = atlas.cell_rect(self.wood_atlas, cell)
         per = sides // sectors
         for j in range(len(rings) - 1):
             s0, s1 = stations[j][0], stations[j + 1][0]
@@ -104,7 +104,7 @@ class Plant:
         normal = normal.normalized()
         side = normal.orthogonal().normalized()
         other = normal.cross(side)
-        u0, v0, u1, v1 = atlas.cell_rect(self.family, cell)
+        u0, v0, u1, v1 = atlas.cell_rect(self.wood_atlas, cell)
         hub = (u0 + u1) * 0.5, (v0 + v1) * 0.5
         rim = [(centre + (side * math.cos(a) + other * math.sin(a)) * radius, math.cos(a), math.sin(a))
                for a in (2 * math.pi * k / sides for k in range(sides))]
@@ -131,7 +131,7 @@ class Plant:
             up = normal.orthogonal()
         up.normalize()
         right = up.cross(normal)
-        u0, v0, u1, v1 = atlas.cell_rect(self.family, cell)
+        u0, v0, u1, v1 = atlas.cell_rect(self.card_atlas, cell)
         if flip:
             u0, u1 = u1, u0
         grid = []

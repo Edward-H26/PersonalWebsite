@@ -1,13 +1,15 @@
 """dandelion: a rosette of toothed leaves lying open on the ground with yellow heads on hollow stalks, one gone to a
 white seed clock (DESIGN.md section 13b); the "rosette" form is the flat rosette with two heads nestled in it,
-like the second scanned plant the site uses. One mesh, one textured material."""
+like the second scanned plant the site uses, and the "clocks" form has gone mostly to seed (DESIGN.md section 18.3). One
+mesh, one textured material."""
 
 import random
 
 from island import flora, ground
 
 FORMS = {"head": {"heads": 4, "clocks": 1, "stem": (0.16, 0.26), "leaves": 12, "tilt": (62.0, 80.0)},
-         "rosette": {"heads": 2, "clocks": 0, "stem": (0.03, 0.045), "leaves": 16, "tilt": (72.0, 84.0)}}
+         "rosette": {"heads": 2, "clocks": 0, "stem": (0.03, 0.045), "leaves": 16, "tilt": (72.0, 84.0)},
+         "clocks": {"heads": 1, "clocks": 4, "stem": (0.2, 0.3), "leaves": 12, "tilt": (62.0, 80.0)}}
 
 
 def build(seed=7, form="head", exposure=flora.INLAND, plan=None):
