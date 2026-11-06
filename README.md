@@ -87,8 +87,8 @@ swell, foam, and horizon haze in its shader), `SkyDome` (the dusk gradient, set 
 colours and the weights of its four ground textures), `terrain_height.png` (the heightmap) and
 `terrain.json` (the map: roads, stream, coast, landmarks, fields and orchard). `islands/terrain/`
 loads them, decodes the heightmap for every height the scene asks, walks the ring road for the
-camera, and draws the ground with one splat material. `islands/layout/` places everything on it
-from the map: the harbour, the landmarks at their anchors, the village on its terraces facing the
+camera, and draws the ground with one splat material, bare rock on its steep faces.
+`islands/layout/` places everything on it from the map: the harbour, the landmarks at their anchors, the village on its terraces facing the
 street, the lanterns along the ring, the fields, and the vegetation, whose grass and flowers grow
 only near the roads and the village and whose trees keep off rock and cliff tops. The order in
 `buildIslandLayout` matters, because every placement records a footprint that later placements
@@ -97,6 +97,8 @@ near it, and repeated houses take their character variants by placement order. T
 and covered by unit tests. Model paths live in
 `src/config/modelPaths.ts` and load through `src/components/canvas/models/`. `RoadLanterns` lights
 the lanterns along the road one by one as the deck carries the walk towards them (`lanternGlow.ts`).
+`StreamWater` lays the stream's water down its bed on the sea's clock and wind (the mill pond stands still
+in the same water), and `Rotor` turns the water wheel on its axle and the windmill's sails on their hub.
 
 **Content.** Card text lives in `src/config/content/`, one module per stop of the walk
 (`research`, `publications`, `experience`, `service`, `projects`, `info`), assembled into
