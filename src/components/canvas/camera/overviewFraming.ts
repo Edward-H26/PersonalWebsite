@@ -1,10 +1,5 @@
-import { MathUtils, Sphere, Vector3 } from "three"
+import { MathUtils, Vector3 } from "three"
 import { BIRD_EYE_CAMERA_CONFIG } from "./birdEyeCameraConfig"
-
-/** A screen rectangle in CSS pixels, measured from the top left of the viewport. */
-type ScreenRect = { left: number; top: number; right: number; bottom: number }
-/** Where the island and the harbor may appear on the overview slide. */
-type Layout = { island: ScreenRect; harbor: ScreenRect }
 
 export type OverviewFraming = {
   position: Vector3
@@ -14,24 +9,25 @@ export type OverviewFraming = {
 }
 
 /**
- * What the overview keeps in view, in world units: bounding spheres of the island and of the harbour
- * for wide screens, and the points phones fit across their width.
+ * What the overview keeps in view, in world units: the coastline at sea level and at the height of the
+ * island's skyline, and the corners of the harbour's pier, ship and marks.
  */
-export type OverviewScene = { island: Sphere; harbor: Sphere; phonePoints: readonly Vector3[] }
+export type OverviewScene = { points: readonly Vector3[] }
 
 // The overview slide's own layout, in CSS pixels (OverviewPage, Navigation). From the md breakpoint the
 // hero card sits at left 32 and top 128, 560 wide and about 353 tall, under a menu bar that ends at 74, and
-// the island keeps clear of the right edge. Below it the menu bar sits at the top, 49 tall from 12, and the
-// card follows from 73 and is about 372 tall, which leaves the island the band from 457 to the bottom edge.
+// the island keeps clear of the right edge and the card. Below it the menu bar sits at the top, 49 tall from 12,
+// and the card follows from 73 and is about 372 tall, which leaves the island the band from 457 to the bottom edge.
 const DESKTOP_MIN_WIDTH = 768
 const DESKTOP_CARD = { right: 592, bottom: 481 }
 const DESKTOP_TOP = 96
 const DESKTOP_RIGHT_INSET = 56
 const DESKTOP_GAP = 24
 const PHONE_BAND_TOP = 457
-const PHONE_BOTTOM_INSET = 16
 /** Share of a phone's width that the island and the harbour span together. */
 const PHONE_WIDTH_FILL = 0.9
+/** Where the horizon sits on a phone, as a share of the screen's height from the top. */
+const PHONE_HORIZON_FROM_TOP = 1 / 3
 
 const UP = new Vector3(0, 1, 0)
 const BISECTION_STEPS = 40
@@ -42,152 +38,117 @@ const BISECTION_STEPS = 40
  */
 export function overviewScene(coast: readonly Vector3[], relief: number, harborCorners: readonly Vector3[]): OverviewScene {
   const coastline = coast.flatMap((p) => [p.clone().setY(0), p.clone().setY(relief)])
-  return {
-    island: new Sphere().setFromPoints(coastline),
-    harbor: new Sphere().setFromPoints([...harborCorners]),
-    phonePoints: [...coastline, ...harborCorners]
-  }
+  return { points: [...coastline, ...harborCorners] }
 }
 
-/** The bird's-eye look-at target and the camera's axes, shared by every framing. */
-function cameraBasis() {
-  const lookAt = new Vector3(...BIRD_EYE_CAMERA_CONFIG.lookAt)
-  const forward = lookAt
-    .clone()
-    .sub(new Vector3(...BIRD_EYE_CAMERA_CONFIG.position))
-    .normalize()
+/** The tangents of half the field of view, across and up, for a viewport. */
+function lensFor(width: number, height: number, fovDeg: number) {
+  const tanY = Math.tan(MathUtils.degToRad(fovDeg) / 2)
+  return { tanX: tanY * (width / height), tanY }
+}
+
+/**
+ * The bird's-eye look-at target and the camera's axes, shared by every framing, with the scene's points in
+ * those axes relative to the target, and how far the bisections may have to back off for them.
+ */
+function cameraSpace(scene: OverviewScene) {
+  const { from, lookAt: target, elevationDeg } = BIRD_EYE_CAMERA_CONFIG
+  const lookAt = new Vector3(...target)
+  const pitch = MathUtils.degToRad(elevationDeg)
+  const bearing = new Vector3(lookAt.x - from[0], 0, lookAt.z - from[1]).normalize()
+  const forward = bearing.multiplyScalar(Math.cos(pitch)).setY(-Math.sin(pitch))
   const right = forward.clone().cross(UP).normalize()
   const up = right.clone().cross(forward)
-  return { lookAt, forward, right, up }
-}
-
-/** The places the island may take beside or below the hero card on wide screens. */
-function candidateLayouts(width: number, height: number): Layout[] {
-  const right = width - DESKTOP_RIGHT_INSET
-  const bottom = height - DESKTOP_GAP
-  const below = { left: DESKTOP_GAP, top: DESKTOP_CARD.bottom + DESKTOP_GAP, right, bottom }
-  return [
-    {
-      island: { left: DESKTOP_CARD.right + DESKTOP_GAP, top: DESKTOP_TOP, right, bottom },
-      harbor: { left: DESKTOP_GAP, top: DESKTOP_TOP, right, bottom }
-    },
-    { island: below, harbor: below }
-  ]
-}
-
-/** Tangent-space interval covered by a sphere `offset` to the side of the view axis at `depth`. */
-function tangentRange(offset: number, depth: number, radius: number): [number, number] {
-  const spread = radius * Math.sqrt(offset * offset + depth * depth - radius * radius)
-  const denom = depth * depth - radius * radius
-  return [(offset * depth - spread) / denom, (offset * depth + spread) / denom]
-}
-
-/**
- * Keeps the bird's-eye direction and look-at target and solves for the camera distance and lens shift:
- * the smallest distance at which some shift puts every sphere inside its screen rectangle, found by
- * bisection, with the shift centred in the range that still fits.
- */
-function fitLayout(scene: OverviewScene, layout: Layout, width: number, height: number, fovDeg: number) {
-  const { lookAt, forward, right, up } = cameraBasis()
-  const tanY = Math.tan(MathUtils.degToRad(fovDeg) / 2)
-  const tanX = tanY * (width / height)
-  const targets = [
-    { sphere: scene.island, rect: layout.island },
-    { sphere: scene.harbor, rect: layout.harbor }
-  ].map(({ sphere, rect }) => {
-    const rel = sphere.center.clone().sub(lookAt)
-    return {
-      x: rel.dot(right),
-      y: rel.dot(up),
-      z: rel.dot(forward),
-      radius: sphere.radius,
-      // Rectangle edges in normalized device coordinates, y up.
-      x0: (2 * rect.left) / width - 1,
-      x1: (2 * rect.right) / width - 1,
-      y0: 1 - (2 * rect.bottom) / height,
-      y1: 1 - (2 * rect.top) / height
-    }
-  })
-
-  const shiftRange = (distance: number) => {
-    let xLow = Number.NEGATIVE_INFINITY
-    let xHigh = Number.POSITIVE_INFINITY
-    let yLow = Number.NEGATIVE_INFINITY
-    let yHigh = Number.POSITIVE_INFINITY
-    for (const t of targets) {
-      const depth = t.z + distance
-      if (depth <= t.radius) return null
-      const [ax, bx] = tangentRange(t.x, depth, t.radius)
-      const [ay, by] = tangentRange(t.y, depth, t.radius)
-      xLow = Math.max(xLow, bx - tanX * t.x1)
-      xHigh = Math.min(xHigh, ax - tanX * t.x0)
-      yLow = Math.max(yLow, by - tanY * t.y1)
-      yHigh = Math.min(yHigh, ay - tanY * t.y0)
-    }
-    return xLow <= xHigh && yLow <= yHigh ? { x: (xLow + xHigh) / 2, y: (yLow + yHigh) / 2 } : null
-  }
-
-  let near = Math.max(...targets.map((t) => t.radius - t.z))
-  let far = near + 100 * scene.island.radius
-  for (let i = 0; i < BISECTION_STEPS; i += 1) {
-    const mid = (near + far) / 2
-    if (shiftRange(mid)) far = mid
-    else near = mid
-  }
-  const shift = shiftRange(far) ?? { x: 0, y: 0 }
-  return {
-    distance: far,
-    framing: {
-      position: lookAt.clone().addScaledVector(forward, -far),
-      lookAt,
-      viewOffset: { x: (shift.x * width) / (2 * tanX), y: (-shift.y * height) / (2 * tanY) }
-    }
-  }
-}
-
-/**
- * Phones: the camera backs off until the island and the harbour span PHONE_WIDTH_FILL of the screen's
- * width, and the lens shift centres them across the screen and in the band below the card. It measures
- * their points rather than the bounding spheres, whose round extent is mostly open water.
- */
-function fitPhone(scene: OverviewScene, width: number, height: number, fovDeg: number): OverviewFraming {
-  const { lookAt, forward, right, up } = cameraBasis()
-  const tanY = Math.tan(MathUtils.degToRad(fovDeg) / 2)
-  const tanX = tanY * (width / height)
-  const points = scene.phonePoints.map((p) => {
+  const points = scene.points.map((p) => {
     const rel = p.clone().sub(lookAt)
     return { x: rel.dot(right), y: rel.dot(up), z: rel.dot(forward) }
   })
-  // The tangent-space interval the points cover along one camera axis, seen from `distance` behind the target.
-  const extent = (axis: "x" | "y", distance: number) => {
-    const tangents = points.map((p) => p[axis] / (p.z + distance))
-    return { low: Math.min(...tangents), high: Math.max(...tangents) }
-  }
+  const reach = Math.max(...points.map((p) => Math.hypot(p.x, p.y, p.z)))
+  return { lookAt, forward, points, near: Math.max(...points.map((p) => -p.z)), far: 100 * reach }
+}
 
-  let near = Math.max(...points.map((p) => -p.z))
-  let far = near + 100 * scene.island.radius
-  for (let i = 0; i < BISECTION_STEPS; i += 1) {
-    const mid = (near + far) / 2
-    const { low, high } = extent("x", mid)
-    if (high - low <= 2 * tanX * PHONE_WIDTH_FILL) far = mid
-    else near = mid
-  }
-
-  const horizontal = extent("x", far)
-  const vertical = extent("y", far)
-  const bandCentre = 1 - (PHONE_BAND_TOP + height - PHONE_BOTTOM_INSET) / height
-  const shift = { x: (horizontal.low + horizontal.high) / 2, y: (vertical.low + vertical.high) / 2 - bandCentre * tanY }
+/** The overview's camera `distance` behind its target, with a lens shift given in tangents. */
+function framingAt(
+  { lookAt, forward }: Pick<ReturnType<typeof cameraSpace>, "lookAt" | "forward">,
+  distance: number,
+  shift: { x: number; y: number },
+  width: number,
+  height: number,
+  { tanX, tanY }: ReturnType<typeof lensFor>
+): OverviewFraming {
   return {
-    position: lookAt.clone().addScaledVector(forward, -far),
+    position: lookAt.clone().addScaledVector(forward, -distance),
     lookAt,
     viewOffset: { x: (shift.x * width) / (2 * tanX), y: (-shift.y * height) / (2 * tanY) }
   }
 }
 
+/**
+ * Wide screens: the camera comes as close as it can while every point stays on screen and clear of the
+ * hero card, so the island fills the frame right of the card and may run on beneath it. The lens shift
+ * holds it in the bottom right corner, furthest from the card, with the harbour along the bottom edge and
+ * the sea and the sky above. The closest distance is found by bisection.
+ */
+function fitBesideCard(scene: OverviewScene, width: number, height: number, fovDeg: number): OverviewFraming {
+  const space = cameraSpace(scene)
+  const lens = lensFor(width, height, fovDeg)
+  // The shift that puts the right-most point at the right inset and the lowest at the bottom gap.
+  const anchoredShift = (distance: number) => ({
+    x: Math.max(...space.points.map((p) => p.x / (p.z + distance))) - lens.tanX * (1 - (2 * DESKTOP_RIGHT_INSET) / width),
+    y: Math.min(...space.points.map((p) => p.y / (p.z + distance))) + lens.tanY * (1 - (2 * DESKTOP_GAP) / height)
+  })
+  const fits = (distance: number) => {
+    const shift = anchoredShift(distance)
+    return space.points.every((p) => {
+      const x = ((p.x / (p.z + distance) - shift.x) / lens.tanX + 1) * (width / 2)
+      const y = (1 - (p.y / (p.z + distance) - shift.y) / lens.tanY) * (height / 2)
+      const clearOfCard = x >= DESKTOP_CARD.right + DESKTOP_GAP || y >= DESKTOP_CARD.bottom + DESKTOP_GAP
+      return x >= DESKTOP_GAP && y >= DESKTOP_TOP && clearOfCard
+    })
+  }
+
+  let near = space.near
+  let far = space.near + space.far
+  for (let i = 0; i < BISECTION_STEPS; i += 1) {
+    const mid = (near + far) / 2
+    if (fits(mid)) far = mid
+    else near = mid
+  }
+  return framingAt(space, far, anchoredShift(far), width, height, lens)
+}
+
+/**
+ * Phones: the camera backs off until the island and the harbour span PHONE_WIDTH_FILL of the screen's
+ * width. The lens shift centres them across the screen and puts the horizon PHONE_HORIZON_FROM_TOP of the
+ * way down, with the sky and the clouds above it, unless that would lift the island into the hero card: then
+ * the island's top keeps to the band below the card.
+ */
+function fitPhone(scene: OverviewScene, width: number, height: number, fovDeg: number): OverviewFraming {
+  const space = cameraSpace(scene)
+  const lens = lensFor(width, height, fovDeg)
+  // The tangent-space interval the points cover along one camera axis, seen from `distance` behind the target.
+  const extent = (axis: "x" | "y", distance: number) => {
+    const tangents = space.points.map((p) => p[axis] / (p.z + distance))
+    return { low: Math.min(...tangents), high: Math.max(...tangents) }
+  }
+
+  let near = space.near
+  let far = space.near + space.far
+  for (let i = 0; i < BISECTION_STEPS; i += 1) {
+    const mid = (near + far) / 2
+    const { low, high } = extent("x", mid)
+    if (high - low <= 2 * lens.tanX * PHONE_WIDTH_FILL) far = mid
+    else near = mid
+  }
+
+  const horizontal = extent("x", far)
+  const horizonShift = Math.tan(MathUtils.degToRad(BIRD_EYE_CAMERA_CONFIG.elevationDeg)) - lens.tanY * (1 - 2 * PHONE_HORIZON_FROM_TOP)
+  const belowCardShift = extent("y", far).high - lens.tanY * (1 - (2 * PHONE_BAND_TOP) / height)
+  const shift = { x: (horizontal.low + horizontal.high) / 2, y: Math.max(horizonShift, belowCardShift) }
+  return framingAt(space, far, shift, width, height, lens)
+}
+
 /** The overview camera for a viewport: the whole island in view beside or below the hero card. */
 export function getOverviewFraming(scene: OverviewScene, width: number, height: number, fovDeg: number): OverviewFraming {
-  if (width < DESKTOP_MIN_WIDTH) return fitPhone(scene, width, height, fovDeg)
-  const fits = candidateLayouts(width, height).map((layout) => fitLayout(scene, layout, width, height, fovDeg))
-  fits.sort((a, b) => a.distance - b.distance)
-  return fits[0].framing
+  return width < DESKTOP_MIN_WIDTH ? fitPhone(scene, width, height, fovDeg) : fitBesideCard(scene, width, height, fovDeg)
 }
