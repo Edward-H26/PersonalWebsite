@@ -6,7 +6,10 @@ import { clamp01 } from "@/utils/math"
 // Ground height in world units at a world-space x/z, published by the island once it is built.
 type GroundHeightSampler = (x: number, z: number) => number
 
-/** The road the deck walks, by route t from 0 to 1, published by the island once its terrain has loaded. */
+/**
+ * The road the deck walks, by route t from 0 to 1, published by the island once its terrain has loaded. It is a
+ * loop: t = 0 and t = 1 are the same point, the quay.
+ */
 export type WalkRoute = {
   /** Length in world units. */
   readonly length: number

@@ -3,7 +3,7 @@ import { SKY_GLSL, SKY_UNIFORMS } from "./skyShader"
 import { WIND_DIRECTION } from "./wind"
 
 /** The painted sea's colours: the deep-sea navy of the loader, teal in the shallows round the island. */
-const SEA_COLOURS = {
+export const SEA_COLOURS = {
   deep: "#0b1e3f",
   shallow: "#1f6670",
   /** The loader's wave line, cool white, drawn on the swell's crests. */
@@ -17,8 +17,8 @@ export type SeaSurroundings = {
   /** The distance from the shore as a texture over `rect`, positive at sea, and where it lies in world x/z. */
   shore: { texture: Texture; rect: { minX: number; minZ: number; sizeX: number; sizeZ: number } }
   /**
-   * The pier: the first length's middle and the way it runs, the bents of posts along each length, and
-   * `pieces` lengths laid `pieceStep` apart along that way.
+   * The pier's bents of posts: the first bent's middle, the way out along the pier, how far apart the bents
+   * stand and how many there are, and each bent's two posts this far either side of the middle and this thick.
    */
   pier: {
     x: number
@@ -26,11 +26,9 @@ export type SeaSurroundings = {
     dirX: number
     dirZ: number
     postSpacing: number
-    postReach: number
+    postCount: number
     postSide: number
     postRadius: number
-    pieces: number
-    pieceStep: number
   }
   ship: { x: number; z: number; bowX: number; bowZ: number; stem: number; transom: number; halfBeam: number }
   markers: ReadonlyArray<readonly [number, number]>
@@ -39,13 +37,21 @@ export type SeaSurroundings = {
   calm: { x: number; z: number; radius: number }
 }
 
-/** The sea's uniforms: its own, plus the shared sky and wind, so section 12 can drive all three. */
+/**
+ * The clock and the wind shared by all the island's water, the sea and the stream: one clock, advanced once a
+ * frame by the sea, keeps their ripples in step and stops them together for reduced motion.
+ */
+export const WATER_UNIFORMS = {
+  uTime: { value: 0 },
+  uWindDir: { value: WIND_DIRECTION }
+}
+
+/** The sea's uniforms: its own, plus the shared sky, wind and water clock, so section 12 can drive them all. */
 export function createSeaUniforms(around: SeaSurroundings) {
   const [markerA, markerB] = around.markers
   return {
     ...SKY_UNIFORMS,
-    uTime: { value: 0 },
-    uWindDir: { value: WIND_DIRECTION },
+    ...WATER_UNIFORMS,
     uIslandCenter: { value: new Vector2(around.island.x, around.island.z) },
     uShoreField: { value: around.shore.texture },
     uShoreRect: { value: new Vector4(around.shore.rect.minX, around.shore.rect.minZ, around.shore.rect.sizeX, around.shore.rect.sizeZ) },
@@ -54,8 +60,7 @@ export function createSeaUniforms(around: SeaSurroundings) {
     uCrest: { value: new Color(SEA_COLOURS.crest) },
     uFoam: { value: new Color(SEA_COLOURS.foam) },
     uPier: { value: new Vector4(around.pier.x, around.pier.z, around.pier.dirX, around.pier.dirZ) },
-    uPierPosts: { value: new Vector4(around.pier.postSpacing, around.pier.postReach, around.pier.postSide, around.pier.postRadius) },
-    uPierRun: { value: new Vector2(around.pier.pieceStep, around.pier.pieces) },
+    uPierPosts: { value: new Vector4(around.pier.postSpacing, around.pier.postCount, around.pier.postSide, around.pier.postRadius) },
     uShip: { value: new Vector4(around.ship.x, around.ship.z, around.ship.bowX, around.ship.bowZ) },
     uHull: { value: new Vector3(around.ship.stem, around.ship.transom, around.ship.halfBeam) },
     uMarkers: { value: new Vector4(markerA[0], markerA[1], markerB[0], markerB[1]) },
@@ -63,6 +68,22 @@ export function createSeaUniforms(around: SeaSurroundings) {
     uCalm: { value: new Vector3(around.calm.x, around.calm.z, around.calm.radius) }
   }
 }
+
+/** Hash and value noise for the water's ripples and foam. */
+export const NOISE_GLSL = /* glsl */ `
+float hash12( vec2 p ) {
+  vec3 p3 = fract( vec3( p.xyx ) * 0.1031 );
+  p3 += dot( p3, p3.yzx + 33.33 );
+  return fract( ( p3.x + p3.y ) * p3.z );
+}
+
+float valueNoise( vec2 p ) {
+  vec2 i = floor( p );
+  vec2 f = fract( p );
+  vec2 u = f * f * ( 3.0 - 2.0 * f );
+  return mix( mix( hash12( i ), hash12( i + vec2( 1.0, 0.0 ) ), u.x ), mix( hash12( i + vec2( 0.0, 1.0 ) ), hash12( i + vec2( 1.0 ) ), u.x ), u.y );
+}
+`
 
 // The main swell train, which the crest strokes follow in the fragment shader.
 const LEAD_SWELL_GLSL = /* glsl */ `
@@ -150,7 +171,6 @@ uniform vec3 uCrest;
 uniform vec3 uFoam;
 uniform vec4 uPier;
 uniform vec4 uPierPosts;
-uniform vec2 uPierRun;
 uniform vec4 uShip;
 uniform vec3 uHull;
 uniform vec4 uMarkers;
@@ -164,6 +184,7 @@ varying float vCrest;
 varying float vSwell;
 
 ${SKY_GLSL}
+${NOISE_GLSL}
 ${LEAD_SWELL_GLSL}
 
 /** Width of the shallow teal halo round the island, in world units. */
@@ -173,19 +194,6 @@ const float HAZE_DISTANCE = 6000.0;
 /** The scallops drawn on the crests: each this long along the crest, arching this high. */
 const float SCALLOP_LENGTH = 18.0;
 const float SCALLOP_RISE = 2.4;
-
-float hash12( vec2 p ) {
-  vec3 p3 = fract( vec3( p.xyx ) * 0.1031 );
-  p3 += dot( p3, p3.yzx + 33.33 );
-  return fract( ( p3.x + p3.y ) * p3.z );
-}
-
-float valueNoise( vec2 p ) {
-  vec2 i = floor( p );
-  vec2 f = fract( p );
-  vec2 u = f * f * ( 3.0 - 2.0 * f );
-  return mix( mix( hash12( i ), hash12( i + vec2( 1.0, 0.0 ) ), u.x ), mix( hash12( i + vec2( 0.0, 1.0 ) ), hash12( i + vec2( 1.0 ) ), u.x ), u.y );
-}
 
 /** Foam that fades out over 'width' from an edge 'd' away, its outline broken by noise. */
 float foamFrom( float d, float width, vec2 grain ) {
@@ -212,21 +220,13 @@ float cliffFoam( float shore ) {
   return max( ring, ( 1.0 - smoothstep( 0.0, 0.45, backwash ) ) * 0.55 * valueNoise( vWorld.xz * 0.6 ) );
 }
 
-/** The most lengths of pier the shader looks along. */
-const int MAX_PIER_PIECES = 4;
-
-/** Rings round the pier's posts: the nearest post of the grid of bents along each length, either side of it. */
+/** Rings round the pier's posts: the nearest bent along the pier, and its post on this side. */
 float pierFoam() {
-  float bents = floor( uPierPosts.y / uPierPosts.x + 0.5 );
-  float d = 1e6;
-  for ( int piece = 0; piece < MAX_PIER_PIECES; piece++ ) {
-    if ( float( piece ) >= uPierRun.y ) break;
-    vec2 rel = vWorld.xz - uPier.xy - uPier.zw * uPierRun.x * float( piece );
-    float along = dot( rel, uPier.zw );
-    float across = abs( dot( rel, vec2( -uPier.w, uPier.z ) ) );
-    float bent = clamp( floor( along / uPierPosts.x + 0.5 ), -bents, bents );
-    d = min( d, length( vec2( along - bent * uPierPosts.x, across - uPierPosts.z ) ) - uPierPosts.w );
-  }
+  vec2 rel = vWorld.xz - uPier.xy;
+  float along = dot( rel, uPier.zw );
+  float across = abs( dot( rel, vec2( -uPier.w, uPier.z ) ) );
+  float bent = clamp( floor( along / uPierPosts.x + 0.5 ), 0.0, uPierPosts.y - 1.0 );
+  float d = length( vec2( along - bent * uPierPosts.x, across - uPierPosts.z ) ) - uPierPosts.w;
   return foamFrom( d, 1.3, vWorld.xz * 2.5 + uTime * 0.3 );
 }
 

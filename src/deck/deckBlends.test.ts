@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { buildScrollDeckPages } from "@/config/scrollDeckPages"
 import { EARTH_SECTION_T_STOPS } from "@/config"
+import { loopDelta } from "@/utils/math"
 import { TITLE_CARD_WINDOW, getSlideBlends, getTitleCardBlend, getWrapZoneBlends } from "./deckBlends"
 import { getDeckLayout } from "./deckLayout"
 import { getRouteTAtPagePos, getSectionRanges } from "./deckMath"
@@ -8,7 +9,11 @@ import { getRouteTAtPagePos, getSectionRanges } from "./deckMath"
 const pages = buildScrollDeckPages()
 const layout = getDeckLayout(pages)
 const ranges = getSectionRanges(pages)
-const lastStop = EARTH_SECTION_T_STOPS[EARTH_SECTION_T_STOPS.length - 1]
+
+/** How far apart two route positions are round the ring loop. */
+function loopDistance(a: number, b: number) {
+  return Math.abs(loopDelta(a, b))
+}
 
 describe("getTitleCardBlend", () => {
   it("is full on a title slide and fades to nothing a window away", () => {
@@ -49,20 +54,36 @@ describe("getSlideBlends", () => {
 describe("getWrapZoneBlends", () => {
   it("runs from the end of the road to the overview across the bottom sentinel", () => {
     const atLast = getWrapZoneBlends(layout.lastRealIndex, false, layout, ranges)
-    expect(atLast.routeT).toBe(getRouteTAtPagePos(layout.lastRealIndex, ranges))
+    expect(atLast.routeT).toBeCloseTo(getRouteTAtPagePos(layout.lastRealIndex, ranges), 10)
     expect(atLast.overviewBlend).toBe(1)
     const atSentinel = getWrapZoneBlends(layout.sentinelBottomIndex, false, layout, ranges)
-    expect(atSentinel.routeT).toBe(EARTH_SECTION_T_STOPS[0])
+    expect(loopDistance(atSentinel.routeT, EARTH_SECTION_T_STOPS[0])).toBeLessThan(1e-9)
     expect(atSentinel.overviewBlend).toBe(0)
-    expect(atLast.routeT).toBeLessThanOrEqual(lastStop)
+  })
+
+  it("carries the walk on round the loop to the quay instead of back along the ring", () => {
+    const lastT = getRouteTAtPagePos(layout.lastRealIndex, ranges)
+    let previous = lastT
+    let travelled = 0
+    for (let pos = layout.lastRealIndex + 0.1; pos <= layout.sentinelBottomIndex + 1e-9; pos += 0.1) {
+      const { routeT } = getWrapZoneBlends(pos, false, layout, ranges)
+      expect(routeT).toBeGreaterThanOrEqual(0)
+      expect(routeT).toBeLessThanOrEqual(1)
+      const step = loopDelta(previous, routeT)
+      expect(step).toBeGreaterThanOrEqual(0)
+      travelled += step
+      previous = routeT
+    }
+    expect(travelled).toBeCloseTo(1 - lastT, 10)
   })
 
   it("mirrors the same journey across the top sentinel", () => {
     const atTopSentinel = getWrapZoneBlends(layout.sentinelTopIndex, true, layout, ranges)
-    expect(atTopSentinel.routeT).toBe(getRouteTAtPagePos(layout.lastRealIndex, ranges))
+    expect(atTopSentinel.routeT).toBeCloseTo(getRouteTAtPagePos(layout.lastRealIndex, ranges), 10)
     expect(atTopSentinel.overviewBlend).toBe(1)
     const atFirst = getWrapZoneBlends(layout.firstRealIndex, true, layout, ranges)
     expect(atFirst.overviewBlend).toBe(0)
+    expect(loopDistance(atFirst.routeT, EARTH_SECTION_T_STOPS[0])).toBeLessThan(1e-9)
     const halfway = getWrapZoneBlends(0.5, true, layout, ranges)
     expect(halfway.overviewBlend).toBeCloseTo(0.5, 10)
   })

@@ -1,17 +1,19 @@
 import { Suspense, useEffect, useMemo, useRef } from "react"
 import { useFrame } from "@react-three/fiber"
-import { GltfModel } from "@/components/canvas/models/GltfModel"
+import { createStillWaterMaterial } from "@/components/canvas/environment/streamShader"
+import { GltfModel, type MaterialOverrides } from "@/components/canvas/models/GltfModel"
 import { InstancedGltfModel } from "@/components/canvas/models/InstancedGltfModel"
 import { useVegetationMaterials } from "@/components/canvas/models/vegetationMaterials"
 import { useWorldStore } from "@/store/worldStore"
 import { buildIslandLayout } from "./layout"
 import { islandOverviewScene } from "./layout/overview"
 import { RoadLanterns } from "./RoadLanterns"
+import { Rotor } from "./Rotor"
+import { StreamWater } from "./StreamWater"
 import { TerrainGround } from "./terrain/TerrainGround"
 import { TerrainSite } from "./terrain/terrainSite"
 import { useTerrain } from "./terrain/useTerrain"
 import type { InstancedGroup, Placement } from "./village/types"
-import { WaterWheel } from "./WaterWheel"
 
 /** The instanced plants, rocks and props; plants and rocks draw with their family's shared atlas material. */
 function Instances({ groups }: { groups: readonly InstancedGroup[] }) {
@@ -35,7 +37,7 @@ function Instances({ groups }: { groups: readonly InstancedGroup[] }) {
   )
 }
 
-function Models({ placements }: { placements: readonly Placement[] }) {
+function Models({ placements, materialOverrides }: { placements: readonly Placement[]; materialOverrides: MaterialOverrides }) {
   return (
     <>
       {placements.map((p) => (
@@ -47,6 +49,7 @@ function Models({ placements }: { placements: readonly Placement[] }) {
           fitHeight={p.fitHeight}
           scale={p.scale}
           pivot={p.pivot}
+          materialOverrides={materialOverrides}
         />
       ))}
     </>
@@ -58,6 +61,10 @@ function IslandFromTerrain() {
   const terrain = useTerrain()
   const site = useMemo(() => new TerrainSite(terrain), [terrain])
   const layout = useMemo(() => buildIslandLayout(site), [site])
+  // The watermill's pond takes the stream's water, standing still, in place of its own flat colour.
+  const stillWater = useMemo(() => createStillWaterMaterial(), [])
+  const waterOverrides = useMemo(() => ({ isl_pond_water: stillWater }), [stillWater])
+  useEffect(() => () => stillWater.dispose(), [stillWater])
 
   useEffect(() => {
     const store = useWorldStore.getState()
@@ -74,10 +81,13 @@ function IslandFromTerrain() {
   return (
     <>
       <TerrainGround map={terrain.data.map} />
-      <Models placements={layout.placements} />
+      <StreamWater terrain={terrain} />
+      <Models placements={layout.placements} materialOverrides={waterOverrides} />
       <Instances groups={layout.instanced} />
       <RoadLanterns lanterns={layout.lanterns} />
-      <WaterWheel wheel={layout.wheel} />
+      {layout.rotors.map((rotor) => (
+        <Rotor key={rotor.key} rotor={rotor} />
+      ))}
     </>
   )
 }

@@ -191,17 +191,15 @@ function placeHawthorns(ctx: LayoutContext, copies: Copies, field: FieldPlan, fi
  */
 export function placeFields(ctx: LayoutContext): Fields {
   const { map, layout } = ctx.site.terrain.data
-  // terrain.json before batch 2 drew a single field as bare corners; only fields with sides are laid out.
-  const fields = layout.fields.filter((field) => "edges" in field)
   const copies = new Copies()
-  fields.forEach((field, i) => {
+  layout.fields.forEach((field, i) => {
     placeBoundary(ctx, copies, field, i)
     placeHaystacks(ctx, copies, field, i)
     placeHawthorns(ctx, copies, field, i)
   })
   return {
     groups: copies.groups(GROUP_KEYS),
-    outlines: fields.map((field) =>
+    outlines: layout.fields.map((field) =>
       field.corners.map(([x, y]) => {
         const [sx, , sz] = mapToScene(map, x, y)
         return [sx, sz] as const

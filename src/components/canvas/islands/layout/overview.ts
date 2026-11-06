@@ -3,7 +3,7 @@ import { islandSize } from "@/config/modelSizes"
 import { type OverviewScene, overviewScene } from "@/components/canvas/camera/overviewFraming"
 import type { InstanceTransform, Placement } from "../village/types"
 import type { TerrainSite } from "../terrain/terrainSite"
-import type { Harbor } from "./harbor"
+import { type Harbor, pierCorners } from "./harbor"
 
 /**
  * Height in world units that the island's skyline reaches: the peak at 59.8 with spruce on the ridge,
@@ -34,9 +34,10 @@ export function islandOverviewScene(site: TerrainSite, harbor: Harbor): Overview
     const [x, z] = site.scene(point)
     return new Vector3(x, 0, z)
   })
-  const afloat = harbor.placements.filter((p: Placement) => p.key.startsWith("pier") || p.key === "ship")
+  const afloat = harbor.placements.filter((p: Placement) => p.key === "ship")
   const marks = harbor.instanced.find((group) => group.key === "seaMarkers")
   const corners = [
+    ...pierCorners(site.terrain.data),
     ...afloat.flatMap((p) => boxCorners(p, p.path)),
     ...(marks ? marks.instances.flatMap((instance) => boxCorners(instance, marks.path)) : [])
   ]

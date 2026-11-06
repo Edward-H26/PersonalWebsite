@@ -1,4 +1,4 @@
-import { clamp01, lerp, smoothstep01 } from "@/utils/math"
+import { clamp01, fract, lerp, loopDelta, smoothstep01 } from "@/utils/math"
 import type { DeckLayout } from "./deckLayout"
 import { type SectionRanges, getRouteTAtPagePos } from "./deckMath"
 
@@ -23,8 +23,9 @@ export function getTitleCardBlend(pagePos: number, stageTitleIndices: readonly n
 }
 
 /**
- * Blends while the deck sits between a sentinel and the nearest real slide: the camera travels
- * from the end of the road back to the overview as the wrap progresses.
+ * Blends while the deck sits between a sentinel and the nearest real slide: the walk goes on round
+ * the ring, the short way, from the last slide's stop to the overview's at the quay, while the camera
+ * rises to the overview as the wrap progresses.
  */
 export function getWrapZoneBlends(pagePos: number, isTopWrapZone: boolean, layout: DeckLayout, sectionRanges: SectionRanges): DeckBlends {
   const wrapT = isTopWrapZone
@@ -37,7 +38,7 @@ export function getWrapZoneBlends(pagePos: number, isTopWrapZone: boolean, layou
   const virtualPos = lerp(layout.lastRealIndex, layout.overviewTargetIndex, wrapEase)
 
   return {
-    routeT: lerp(routeTAtLastReal, routeTAtOverview, wrapEase),
+    routeT: fract(routeTAtLastReal + loopDelta(routeTAtLastReal, routeTAtOverview) * wrapEase),
     overviewBlend: lerp(1, 0, wrapEase),
     titleCardBlend: getTitleCardBlend(virtualPos, layout.stageTitleIndices)
   }

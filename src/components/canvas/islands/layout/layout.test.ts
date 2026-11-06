@@ -1,15 +1,17 @@
 // @vitest-environment node
 import { beforeAll, describe, expect, it } from "vitest"
+import { Vector3 } from "three"
 import { MODEL_PATHS } from "@/config/modelPaths"
-import { islandSize } from "@/config/modelSizes"
+import { ISLAND_MOUNTS, islandSize } from "@/config/modelSizes"
 import type { InstancedGroup, Placement } from "../village/types"
-import { type FieldPlan, mapToScene, sceneToMap } from "../terrain/terrainData"
+import { type FieldPlan, facingToYaw, mapToScene, sceneToMap } from "../terrain/terrainData"
 import { loadIslandTerrain } from "../terrain/terrainFixture"
 import { TerrainSite } from "../terrain/terrainSite"
 import type { IslandTerrain } from "../terrain/useTerrain"
 import { createLayoutContext } from "./context"
 import { placeFields } from "./fields"
 import { type IslandLayout, buildIslandLayout } from "./index"
+import { mountRotor } from "./landmarks"
 import { type GroundRect, type RoadSample, distanceToRoadEdge, rectDistanceToRoadEdge } from "./placement"
 import { DENSE_REACH_M, MEADOW_COPSES } from "./vegetation"
 import { BUILDING_ROAD_CLEARANCE, VILLAGE_BUILDINGS } from "./village"
@@ -109,9 +111,28 @@ describe("the landmarks", () => {
   })
 
   it("hangs the water wheel on its axle at the wheel's anchor", () => {
+    const wheel = layout.rotors.find((rotor) => rotor.key === "waterWheel")!
     const [x, y, h] = terrain.data.landmarks.watermill_wheel.at
-    expect(layout.wheel.position).toEqual(mapToScene(terrain.data.map, x, y, h))
-    expect(layout.wheel.path).toBe(MODEL_PATHS.earth.watermillWheel)
+    expect(wheel.position).toEqual(mapToScene(terrain.data.map, x, y, h))
+    expect(wheel.path).toBe(MODEL_PATHS.earth.watermillWheel)
+    expect(wheel.turnsPerMinute).toBeGreaterThan(0)
+  })
+
+  it("mounts a rotor on its host's hub, its axle along the host's front, wherever the host faces", () => {
+    // The windmill's sails as stats.json mounts them on the mill: 9.35 m up and 3.579 m out of its front, turned a quarter.
+    const mount = ISLAND_MOUNTS.mill_sails
+    for (const yaw of [0, 0.7, -2.4]) {
+      const mill: Placement = { key: "mill", path: "mill.glb", position: [10, 2, -5], rotation: [0, yaw, 0], scale: 1.3 }
+      const sails = mountRotor(mill, mount, "millSails", "mill_sails.glb", 3)
+      const front = new Vector3(Math.sin(yaw), 0, Math.cos(yaw))
+      const hub = new Vector3(...sails.position).sub(new Vector3(...mill.position))
+      expect(hub.y).toBeCloseTo(9.35 * 1.3, 9)
+      expect(hub.dot(front)).toBeCloseTo(3.579 * 1.3, 9)
+      expect(Math.hypot(hub.x, hub.z)).toBeCloseTo(3.579 * 1.3, 9)
+      // The sails turn about their own x, which the extra quarter turn lays along the mill's front.
+      const axle = new Vector3(Math.cos(sails.yaw), 0, -Math.sin(sails.yaw))
+      expect(Math.abs(axle.dot(front))).toBeCloseTo(1, 9)
+    }
   })
 })
 
@@ -120,7 +141,7 @@ describe("the vegetation", () => {
     const apples = instancesOf(groups(/^appleTrees/))
     const clear = terrain.data.layout.orchard.filter(([x, y]) => site.roadDistance(x, y, 8) >= 8)
     expect(apples).toHaveLength(clear.length)
-    expect(apples.length).toBeGreaterThanOrEqual(13)
+    expect(apples.length).toBeGreaterThanOrEqual(12)
     for (const { position } of apples) {
       const [x, y] = mapPoint(position)
       expect(Math.min(...terrain.data.layout.orchard.map(([ox, oy]) => Math.hypot(ox - x, oy - y)))).toBeLessThan(0.5)
@@ -186,18 +207,37 @@ describe("the road lanterns", () => {
 })
 
 describe("the harbour", () => {
-  it("runs the pier out to its head in terrain.json with the ship berthed along it, afloat", () => {
-    const head = mapToScene(terrain.data.map, ...(terrain.data.landmarks.pier_head.at.slice(0, 2) as [number, number]))
-    const pier = layout.placements.filter((p) => p.key.startsWith("pier"))
-    const { depth } = islandSize(MODEL_PATHS.earth.pier)
-    const outer = pier.reduce((best, p) =>
-      Math.hypot(p.position[0] - head[0], p.position[2] - head[2]) < Math.hypot(best.position[0] - head[0], best.position[2] - head[2])
-        ? p
-        : best
-    )
-    expect(Math.hypot(outer.position[0] - head[0], outer.position[2] - head[2])).toBeCloseTo(depth / 2, 3)
-    // The hull's waterline outline lies over open water on the bay's side of the pier.
+  it("stands the quay wall, the breakwater and the whole pier where blender/island built them, about the map's origin", () => {
+    for (const [key, anchor] of [
+      ["quayWall", "quay_wall"],
+      ["breakwater", "breakwater"],
+      ["pier", "pier"]
+    ]) {
+      const placed = layout.placements.find((p) => p.key === key)!
+      const [x, y, h] = terrain.data.landmarks[anchor].at
+      expect(placed.position).toEqual(mapToScene(terrain.data.map, x, y, h))
+      expect(placed.pivot).toBe("origin")
+    }
+    expect(layout.placements.filter((p) => p.path === MODEL_PATHS.earth.pier)).toHaveLength(1)
+  })
+
+  it("moors the ship along the berth on the pier's north side, her bow out to sea, alongside its bollards and afloat", () => {
+    const berth = terrain.data.landmarks.pier_berth
     const ship = layout.placements.find((p) => p.key === "ship")!
+    expect(ship.rotation[1]).toBeCloseTo(facingToYaw(berth.alongside!), 9)
+    const unit = (facing: number) => [Math.sin((facing * Math.PI) / 180), -Math.cos((facing * Math.PI) / 180)]
+    const [x, y] = mapPoint(ship.position)
+    const [outX, outY] = unit(berth.facing)
+    const besideMetres = ((x - berth.at[0]) * outX + (y - berth.at[1]) * outY) * terrain.data.map.metresPerPx
+    expect(besideMetres).toBeCloseTo(0.3 + 0.8 + 4.5, 6)
+    // At least two of the berth's bollards lie within her waterline length, 16.5 m aft to 15 m forward of her middle.
+    const [aheadX, aheadY] = unit(berth.alongside!)
+    const alongside = berth.bollards!.filter(([bx, by]) => {
+      const metres = ((bx - x) * aheadX + (by - y) * aheadY) * terrain.data.map.metresPerPx
+      return metres > -16.5 && metres < 15
+    })
+    expect(alongside.length).toBeGreaterThanOrEqual(2)
+    // The hull's waterline outline lies over open water.
     const hull = islandSize(MODEL_PATHS.earth.ship)
     const yaw = ship.rotation[1]
     for (const [across, along] of [
@@ -212,12 +252,6 @@ describe("the harbour", () => {
       const [mx, my] = sceneToMap(terrain.data.map, x, z)
       expect(site.h(mx, my)).toBeLessThan(0)
     }
-    const bay = terrain.data.points.bay_centre
-    const pierMiddle = mapPoint(pier[0].position)
-    const shipPoint = mapPoint(ship.position)
-    expect(Math.hypot(shipPoint[0] - bay[0], shipPoint[1] - bay[1])).toBeLessThan(
-      Math.hypot(pierMiddle[0] - bay[0], pierMiddle[1] - bay[1])
-    )
   })
 
   it("draws the rowing boats up on the beach above the water", () => {

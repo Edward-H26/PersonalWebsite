@@ -47,8 +47,9 @@ const SPECIES: Record<Species, { key: string; path: string }> = {
 
 /**
  * The copses of the north meadow (DESIGN.md section 17), in map pixels: oak, ash and birch in
- * patches between the lighthouse path and the north cliffs, some near enough to the roads to be
- * walked past. `spacing` is how far apart, in world units, the trees of a copse stand.
+ * patches either side of the ring's north stretch, one by the sawmill, some near enough to the roads to
+ * be walked past, and none on the standing stones' hummock. `spacing` is how far apart, in world units,
+ * the trees of a copse stand.
  */
 export const MEADOW_COPSES: ReadonlyArray<{
   centre: MapPoint
@@ -62,7 +63,7 @@ export const MEADOW_COPSES: ReadonlyArray<{
   { centre: [530, 150], radiusPx: 30, count: 7, spacing: 6.5, mix: { birch: 0.7, ash: 0.3 } },
   { centre: [230, 250], radiusPx: 28, count: 6, spacing: 9, mix: { oak: 0.8, birch: 0.2 } },
   { centre: [590, 240], radiusPx: 24, count: 5, spacing: 6.5, mix: { birch: 0.8, oak: 0.2 } },
-  { centre: [360, 300], radiusPx: 26, count: 6, spacing: 9, mix: { oak: 0.5, ash: 0.5 } },
+  { centre: [385, 315], radiusPx: 26, count: 6, spacing: 9, mix: { oak: 0.5, ash: 0.5 } },
   { centre: [500, 320], radiusPx: 26, count: 6, spacing: 7.5, mix: { birch: 0.5, oak: 0.5 } }
 ]
 

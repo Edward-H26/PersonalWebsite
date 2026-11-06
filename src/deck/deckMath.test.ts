@@ -50,7 +50,8 @@ describe("section ranges and route mapping", () => {
     expect(pages[1].kind).toBe("overview")
   })
 
-  it("covers sections 1 to 6 in order without gaps", () => {
+  it("covers the overview and sections 1 to 6 in order without gaps", () => {
+    expect(ranges.get(0)).toEqual({ startIndex: 1, endIndex: ranges.get(1)!.startIndex })
     for (let section = 1; section <= 6; section += 1) {
       expect(ranges.get(section as 1 | 2 | 3 | 4 | 5 | 6)).toBeDefined()
     }
@@ -62,9 +63,23 @@ describe("section ranges and route mapping", () => {
     expect(ranges.get(6)!.endIndex).toBe(pages.length - 1)
   })
 
-  it("keeps the camera at the route start until the first section", () => {
+  it("has a stop for the overview, every chapter and the end, rising once round the ring", () => {
+    expect(EARTH_SECTION_T_STOPS).toHaveLength(8)
+    expect(EARTH_SECTION_T_STOPS[0]).toBe(0)
+    expect(EARTH_SECTION_T_STOPS[EARTH_SECTION_T_STOPS.length - 1]).toBe(1)
+    for (let i = 1; i < EARTH_SECTION_T_STOPS.length; i += 1) {
+      expect(EARTH_SECTION_T_STOPS[i]).toBeGreaterThan(EARTH_SECTION_T_STOPS[i - 1])
+    }
+  })
+
+  it("starts the walk at the first stop on the overview and on the sentinel above it", () => {
     expect(getRouteTAtPagePos(0, ranges)).toBe(EARTH_SECTION_T_STOPS[0])
     expect(getRouteTAtPagePos(1, ranges)).toBe(EARTH_SECTION_T_STOPS[0])
+  })
+
+  it("walks from the overview to the first chapter while the deck pages to its title", () => {
+    const titleIndex = ranges.get(1)!.startIndex
+    expect(getRouteTAtPagePos((1 + titleIndex) / 2, ranges)).toBeCloseTo((EARTH_SECTION_T_STOPS[0] + EARTH_SECTION_T_STOPS[1]) / 2, 10)
   })
 
   it("is monotonic along the deck and ends at the last stop", () => {
@@ -78,11 +93,20 @@ describe("section ranges and route mapping", () => {
     expect(getRouteTAtPagePos(pages.length - 1, ranges)).toBe(EARTH_SECTION_T_STOPS[EARTH_SECTION_T_STOPS.length - 1])
   })
 
-  it("hits each section stop exactly on its title slide", () => {
-    for (let section = 1; section <= 5; section += 1) {
-      const range = ranges.get(section as 1 | 2 | 3 | 4 | 5)!
-      expect(getRouteTAtPagePos(range.startIndex, ranges)).toBeCloseTo(EARTH_SECTION_T_STOPS[section - 1], 10)
+  it("hits each chapter's stop exactly on its title slide", () => {
+    for (let section = 1; section <= 6; section += 1) {
+      const range = ranges.get(section as 1 | 2 | 3 | 4 | 5 | 6)!
+      expect(getRouteTAtPagePos(range.startIndex, ranges)).toBeCloseTo(EARTH_SECTION_T_STOPS[section], 10)
     }
+  })
+
+  it("spaces the slides between two chapters evenly along the road", () => {
+    const research = ranges.get(2)!
+    const steps = Array.from({ length: research.endIndex - research.startIndex }, (_, i) => {
+      const index = research.startIndex + i
+      return getRouteTAtPagePos(index + 1, ranges) - getRouteTAtPagePos(index, ranges)
+    })
+    for (const step of steps) expect(step).toBeCloseTo(steps[0], 10)
   })
 
   it("clamps positions beyond the deck to the last stop", () => {

@@ -3,12 +3,10 @@ import { FileLoader, Loader } from "three"
 import { withBase } from "@/utils/assets"
 import { type HeightField, decodeHeightPng, groundHeightSampler } from "./heightField"
 import { RoadPath } from "./roadPath"
-import type { TerrainData } from "./terrainData"
+import type { SpurName, TerrainData } from "./terrainData"
 
 /** terrain.json, written by blender/island beside terrain.glb and the heightmap it names. */
 export const TERRAIN_DATA_PATH = withBase("/models/island/terrain.json")
-
-export type SpurName = keyof TerrainData["roads"]["spurs"]
 
 /**
  * Rows either side over which the walk averages the ring's plan: its corners become arcs of about 12 m

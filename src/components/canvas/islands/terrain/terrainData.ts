@@ -22,6 +22,29 @@ export type RoadProfile = {
 /** Where a landmark stands and the map angle its front faces, north 0 and clockwise. */
 export type Landmark = { at: MapPointH; facing: number }
 
+/** The spurs that leave the ring road: to the viewpoint, the well, the watermill, the standing stones and the beach. */
+export type SpurName = "viewpoint" | "well" | "mill" | "stones" | "beach"
+
+/** A stretch of the coast's outline: its ends and the outline's indices between them. */
+export type CoastStretch = { from: MapPoint; to: MapPoint; outlineIndex: readonly [number, number] }
+
+/** What some landmarks carry beside their anchor. */
+export type LandmarkDetails = {
+  /** The road a bridge carries and the stretch of it, in that road's t, that runs over the bridge. */
+  road?: SpurName
+  roadT?: readonly [number, number]
+  /** The watermill's pond level and its dam's crest, as fractions of the peak. */
+  pondLevel?: number
+  damCrest?: number
+  /** Where the castle stair's foot meets the road. */
+  foot?: MapPointH
+  /** The model that turns on this one's hub (the windmill's sails). */
+  sails?: string
+  /** The pier's berth: its bollards and the map angle a ship lies along. */
+  bollards?: ReadonlyArray<MapPointH>
+  alongside?: number
+}
+
 /** One side of a field, corner to corner: hedgerow or dry-stone wall, with a gateway centred on `gate` when it has one. */
 export type FieldEdge = { from: MapPoint; to: MapPoint; kind: "hedge" | "wall"; gate: MapPoint | null }
 
@@ -46,18 +69,19 @@ export type TerrainData = {
   map: MapFrame
   heightmap: { file: string; bits: number; sizePx: readonly [number, number]; range: readonly [number, number]; seaLevelGrey: number }
   mesh: { file: string; COLOR_1: { channels: readonly string[] } }
-  roads: { ring: RoadProfile; spurs: Record<"lighthouse" | "well" | "mill", RoadProfile> }
+  roads: { ring: RoadProfile; spurs: Record<SpurName, RoadProfile> }
   stream: { points: ReadonlyArray<ProfileRow>; pond: { centre: MapPoint; radiusPx: number; level: number } }
   coast: {
     outline: ReadonlyArray<MapPoint>
     /** The sea stacks and the islet off the coast. */
     islands: ReadonlyArray<ReadonlyArray<MapPoint>>
-    /** The quay wall's and the beach's stretches of the outline: their ends and the outline's indices between them. */
-    quayWall: { from: MapPoint; to: MapPoint; outlineIndex: readonly [number, number] }
-    beach: { from: MapPoint; to: MapPoint; outlineIndex: readonly [number, number] }
+    /** The quay wall's, the revetment's (under the beach walk's fill) and the beach's stretches of the outline. */
+    quayWall: CoastStretch
+    revetment: CoastStretch
+    beach: CoastStretch
   }
   points: Readonly<Record<string, MapPointH>>
-  landmarks: Readonly<Record<string, Landmark & { ringT?: readonly [number, number]; pondLevel?: number }>>
+  landmarks: Readonly<Record<string, Landmark & LandmarkDetails>>
   layout: { fields: ReadonlyArray<FieldPlan>; orchard: ReadonlyArray<MapPoint> }
 }
 

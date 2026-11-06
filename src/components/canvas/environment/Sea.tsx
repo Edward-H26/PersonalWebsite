@@ -7,7 +7,7 @@ import { TerrainSite } from "@/components/canvas/islands/terrain/terrainSite"
 import { type IslandTerrain, useTerrain } from "@/components/canvas/islands/terrain/useTerrain"
 import { useReducedMotion } from "@/hooks/useReducedMotion"
 import { buildSeaGeometry } from "./seaGeometry"
-import { SEA_FRAGMENT, SEA_VERTEX, createSeaUniforms } from "./seaShader"
+import { SEA_FRAGMENT, SEA_VERTEX, WATER_UNIFORMS, createSeaUniforms } from "./seaShader"
 
 /** The sea round the island's shore field, its foam wrapped round the harbor's pier, ship and markers. */
 function createSea(terrain: IslandTerrain) {
@@ -44,7 +44,8 @@ function SeaSurface() {
   )
 
   useFrame((_, delta) => {
-    if (!reducedMotion) sea.material.uniforms.uTime.value += delta
+    // The stream runs on the same clock, so this one step moves all the island's water.
+    if (!reducedMotion) WATER_UNIFORMS.uTime.value += delta
   })
 
   return <primitive object={sea} />

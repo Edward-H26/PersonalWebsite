@@ -1,11 +1,11 @@
 import type { ScrollDeckPage } from "@/config/scrollDeckPages"
 import { EARTH_SECTION_T_STOPS } from "@/config"
-import { clamp01 } from "@/utils/math"
+import { clamp01, lerp } from "@/utils/math"
 
 export type DeckSection = 0 | 1 | 2 | 3 | 4 | 5 | 6
 export const LAST_SECTION: DeckSection = 6
 
-/** Slide index range of a section: its title slide up to (and excluding) the next title. */
+/** Slide index range of a section: its first slide, the overview or its title, up to the next section's first slide. */
 export type SectionRange = { startIndex: number; endIndex: number }
 export type SectionRanges = Map<DeckSection, SectionRange>
 
@@ -23,48 +23,38 @@ export function isNearSnap(scrollTop: number, index: number, pageHeight: number)
   return Math.abs(scrollTop - target) <= epsilon
 }
 
-// Maps a (possibly fractional) slide position onto the camera's route parameter, interpolating
-// linearly inside each section between the configured stops.
+// Maps a (possibly fractional) slide position onto the camera's route parameter. Section k runs from
+// stop k to stop k + 1 linearly by slide, so its slides split the road between two chapters evenly
+// by length; the overview is section 0, and the last section runs on to the final stop.
 export function getRouteTAtPagePos(pagePos: number, sectionRanges: SectionRanges, stops: ReadonlyArray<number> = EARTH_SECTION_T_STOPS) {
-  const maxSegment = stops.length - 1
-  const lastStop = stops[stops.length - 1]
-
-  const firstRange = sectionRanges.get(1)
-  if (firstRange && pagePos <= firstRange.startIndex) return stops[0]
-
-  for (let segment = 1; segment <= maxSegment; segment += 1) {
-    const range = sectionRanges.get(segment as DeckSection)
-    if (!range) continue
-    if (pagePos <= range.endIndex) {
-      const denom = Math.max(1e-6, range.endIndex - range.startIndex)
-      const local = clamp01((pagePos - range.startIndex) / denom)
-      const startT = stops[segment - 1]
-      const endT = stops[segment]
-      return startT + (endT - startT) * local
-    }
+  for (let section = 0; section < stops.length - 1; section += 1) {
+    const range = sectionRanges.get(section as DeckSection)
+    if (!range || pagePos > range.endIndex) continue
+    const local = clamp01((pagePos - range.startIndex) / Math.max(1e-6, range.endIndex - range.startIndex))
+    return lerp(stops[section], stops[section + 1], local)
   }
 
-  return lastStop
+  return stops[stops.length - 1]
 }
 
 export function getSectionRanges(pages: readonly ScrollDeckPage[]): SectionRanges {
   const ranges: SectionRanges = new Map()
 
-  const titleIndexBySection = new Map<DeckSection, number>()
+  const firstIndexBySection = new Map<DeckSection, number>()
   for (let i = 0; i < pages.length; i += 1) {
     const page = pages[i]
-    if (page.kind !== "stage_title") continue
-    titleIndexBySection.set(page.section, i)
+    if (page.kind !== "overview" && page.kind !== "stage_title") continue
+    firstIndexBySection.set(page.section, i)
   }
 
   const sentinelBottomIndex = pages.length - 1
 
-  for (let section = 1; section <= LAST_SECTION; section += 1) {
-    const startIndex = titleIndexBySection.get(section as DeckSection)
+  for (let section = 0; section <= LAST_SECTION; section += 1) {
+    const startIndex = firstIndexBySection.get(section as DeckSection)
     if (startIndex == null) continue
 
     const endIndex =
-      section === LAST_SECTION ? sentinelBottomIndex : (titleIndexBySection.get((section + 1) as DeckSection) ?? sentinelBottomIndex)
+      section === LAST_SECTION ? sentinelBottomIndex : (firstIndexBySection.get((section + 1) as DeckSection) ?? sentinelBottomIndex)
 
     ranges.set(section as DeckSection, { startIndex, endIndex })
   }

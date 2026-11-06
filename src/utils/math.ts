@@ -24,8 +24,14 @@ export function smoothstep(edge0: number, edge1: number, x: number) {
   return smoothstep01((x - edge0) / (edge1 - edge0))
 }
 
-function fract(value: number) {
+export function fract(value: number) {
   return value - Math.floor(value)
+}
+
+/** The signed step from `from` to `to` the short way round a loop of length 1, from -0.5 up to 0.5. */
+export function loopDelta(from: number, to: number) {
+  const delta = to - from
+  return delta - Math.round(delta)
 }
 
 export function seededRandom(seed: number) {

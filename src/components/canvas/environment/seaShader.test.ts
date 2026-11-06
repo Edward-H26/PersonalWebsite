@@ -14,12 +14,10 @@ const AROUND: SeaSurroundings = {
     z: -260,
     dirX: 0.31,
     dirZ: -0.95,
-    postSpacing: 4.9,
-    postReach: 19.5,
-    postSide: 3,
-    postRadius: 0.27,
-    pieces: 2,
-    pieceStep: -24.9
+    postSpacing: 3.2,
+    postCount: 14,
+    postSide: 2.08,
+    postRadius: 0.21
   },
   ship: { x: -120, z: -300, bowX: 1, bowZ: 0, stem: 31.2, transom: 34.3, halfBeam: 9.4 },
   markers: [
@@ -43,8 +41,7 @@ describe("the sea's uniforms", () => {
     expect(uniforms.uShoreField.value).toBe(SHORE_TEXTURE)
     expect(uniforms.uShoreRect.value.toArray()).toEqual([-480, -370, 968, 734])
     expect(uniforms.uPier.value.toArray()).toEqual([-90, -260, 0.31, -0.95])
-    expect(uniforms.uPierPosts.value.toArray()).toEqual([4.9, 19.5, 3, 0.27])
-    expect(uniforms.uPierRun.value.toArray()).toEqual([-24.9, 2])
+    expect(uniforms.uPierPosts.value.toArray()).toEqual([3.2, 14, 2.08, 0.21])
     expect(uniforms.uShip.value.toArray()).toEqual([-120, -300, 1, 0])
     expect(uniforms.uHull.value.toArray()).toEqual([31.2, 34.3, 9.4])
     expect(uniforms.uMarkers.value.toArray()).toEqual([-40, -320, -160, -250])

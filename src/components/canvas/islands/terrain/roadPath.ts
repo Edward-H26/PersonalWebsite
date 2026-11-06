@@ -8,16 +8,19 @@ const TANGENT_HALF_SPAN_PX = 4
 const ahead = new Vector3()
 const behind = new Vector3()
 
-/** Each row's plan position averaged with `rows` neighbours either side, wrapping round a closed road. */
-function roundCorners(points: ReadonlyArray<ProfileRow>, closed: boolean, rows: number): Array<[number, number]> {
+/**
+ * Each row's plan position averaged with `rows` neighbours either side, wrapping round a closed road. Near the
+ * ends of an open line the window narrows to the rows there are on both sides, so its ends stay where they are.
+ */
+export function roundCorners(points: ReadonlyArray<ProfileRow>, closed: boolean, rows: number): Array<[number, number]> {
   const count = closed ? points.length - 1 : points.length
   return points.map((_, i) => {
+    const reach = closed ? rows : Math.min(rows, i, count - 1 - i)
     let x = 0
     let y = 0
     let weight = 0
-    for (let k = -rows; k <= rows; k += 1) {
+    for (let k = -reach; k <= reach; k += 1) {
       const j = closed ? (((i + k) % count) + count) % count : i + k
-      if (j < 0 || j >= count) continue
       x += points[j][0]
       y += points[j][1]
       weight += 1

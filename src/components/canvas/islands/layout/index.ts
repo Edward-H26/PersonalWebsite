@@ -6,7 +6,7 @@ import type { TerrainSite } from "../terrain/terrainSite"
 import { createLayoutContext } from "./context"
 import { placeFields } from "./fields"
 import { type Harbor, buildHarbor } from "./harbor"
-import { type WaterWheel, placeLandmarks } from "./landmarks"
+import { type Rotor, placeLandmarks } from "./landmarks"
 import { placeRoadLanterns } from "./lanterns"
 import { placeVegetation } from "./vegetation"
 import { placeBunting, placeBuildings, placeVillageClusters, placeVillageProps } from "./village"
@@ -17,7 +17,8 @@ export type IslandLayout = {
   /** Everything drawn many times over as one instanced mesh per model. */
   instanced: InstancedGroup[]
   lanterns: RoadLanternGroup
-  wheel: WaterWheel
+  /** The parts that turn: the water wheel, and the windmill's sails once the windmill stands. */
+  rotors: Rotor[]
   harbor: Harbor
 }
 
@@ -47,7 +48,7 @@ export function buildIslandLayout(site: TerrainSite): IslandLayout {
       ...landmarks.placements,
       ...assignVariants(buildings),
       ...assignVariants(props),
-      placeBunting(ctx, props),
+      placeBunting(ctx, landmarks.placements),
       ...harbor.placements
     ],
     instanced: [
@@ -55,7 +56,7 @@ export function buildIslandLayout(site: TerrainSite): IslandLayout {
       ...harbor.instanced
     ],
     lanterns,
-    wheel: landmarks.wheel,
+    rotors: landmarks.rotors,
     harbor
   }
 }

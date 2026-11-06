@@ -4,10 +4,10 @@ import * as THREE from "three"
 import { Vector3 } from "three"
 import { easing } from "maath"
 import { useWorldStore } from "@/store/worldStore"
-import { EARTH_SECTION_T_STOPS, WORLD_CONFIG } from "@/config"
+import { EARTH_SECTION_T_STOPS, WORLD_CONFIG, cardPullbackAt } from "@/config"
 import { getOverviewFraming } from "./overviewFraming"
 import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
-import { clamp01 } from "@/utils/math"
+import { clamp01, fract, loopDelta } from "@/utils/math"
 
 const CAMERA_BACK_OFFSET = 12
 const CAMERA_LEFT_OFFSET = 1.2
@@ -18,7 +18,6 @@ const UP = new THREE.Vector3(0, 1, 0)
 const LOOK_DISTANCE = 16
 const LOOK_DOWN_OFFSET = 3.6
 const TITLE_LIFT = 1.2
-const TITLE_BACK = 7.0
 
 export function FirstPersonController() {
   const { camera, size } = useThree()
@@ -74,14 +73,17 @@ export function FirstPersonController() {
     const routeTarget = clamp01(routeT)
     const overviewTarget = clamp01(overviewBlend)
     const titleTarget = clamp01(titleCardBlend)
-    const researchSectionEnd = EARTH_SECTION_T_STOPS[1] ?? 1
+    const firstSectionEnd = EARTH_SECTION_T_STOPS[2] ?? 1
 
-    smoothedRouteT.current = THREE.MathUtils.damp(smoothedRouteT.current, routeTarget, 10, delta)
+    // The walk is a loop that starts and ends at the quay, so the camera eases towards the deck's route t
+    // the short way round: on from the end of the road to the overview, never back along the whole ring.
+    const routeGap = loopDelta(smoothedRouteT.current, routeTarget)
+    smoothedRouteT.current = fract(smoothedRouteT.current + THREE.MathUtils.damp(0, routeGap, 10, delta))
     smoothedOverviewBlend.current = THREE.MathUtils.damp(smoothedOverviewBlend.current, overviewTarget, 10, delta)
     smoothedTitleBlend.current = THREE.MathUtils.damp(smoothedTitleBlend.current, titleTarget, 10, delta)
     smoothedLookYaw.current = THREE.MathUtils.damp(smoothedLookYaw.current, worldState.lookYaw, 6, delta)
 
-    if (Math.abs(smoothedRouteT.current - routeTarget) < 0.0006) {
+    if (Math.abs(loopDelta(smoothedRouteT.current, routeTarget)) < 0.0006) {
       smoothedRouteT.current = routeTarget
     }
     if (Math.abs(smoothedOverviewBlend.current - overviewTarget) < 0.002) {
@@ -94,7 +96,7 @@ export function FirstPersonController() {
     const pathT = smoothedRouteT.current
     const overviewMix = smoothedOverviewBlend.current
     const titleMix = smoothedTitleBlend.current
-    const isResearchTitle = titleMix > 0.6 && routeTarget <= researchSectionEnd + 0.001
+    const isFirstTitle = titleMix > 0.6 && routeTarget <= firstSectionEnd + 0.001
 
     const baseDir: 1 | -1 = travelDir === -1 ? -1 : 1
     let walkDir: 1 | -1 = lastMotionDir.current
@@ -102,13 +104,13 @@ export function FirstPersonController() {
     const prevT = prevPathT.current
     prevPathT.current = pathT
     let deltaT = 0
-    const routeDelta = Math.abs(routeTarget - pathT)
+    const routeDelta = Math.abs(loopDelta(pathT, routeTarget))
 
     if (prevT == null) {
       walkDir = baseDir
       lastMotionDir.current = baseDir
     } else {
-      deltaT = pathT - prevT
+      deltaT = loopDelta(prevT, pathT)
       if (Math.abs(deltaT) > 1e-4) {
         walkDir = deltaT > 0 ? 1 : -1
         lastMotionDir.current = walkDir
@@ -123,7 +125,7 @@ export function FirstPersonController() {
     if (isSettled !== prevIsSettled.current) {
       prevIsSettled.current = isSettled
     }
-    if (isResearchTitle && travelDir === 1 && titleMix > 0.25) {
+    if (isFirstTitle && travelDir === 1 && titleMix > 0.25) {
       walkDir = 1
       lastMotionDir.current = 1
     } else if (isSettled && walkDir !== baseDir) {
@@ -157,8 +159,9 @@ export function FirstPersonController() {
     desiredX += pathForwardFlat.current.z * CAMERA_LEFT_OFFSET
     desiredZ += -pathForwardFlat.current.x * CAMERA_LEFT_OFFSET
     if (titleMix > 1e-4) {
-      desiredX += pathForwardFlat.current.x * (-TITLE_BACK * titleMix)
-      desiredZ += pathForwardFlat.current.z * (-TITLE_BACK * titleMix)
+      const pullback = cardPullbackAt(routeTarget)
+      desiredX += pathForwardFlat.current.x * (-pullback * titleMix)
+      desiredZ += pathForwardFlat.current.z * (-pullback * titleMix)
     }
 
     // The camera stands on the road behind the walk's point, so it takes the road's own height there, which
@@ -180,7 +183,7 @@ export function FirstPersonController() {
 
     const hasMotion = (prevT != null && Math.abs(deltaT) > 2e-4) || routeDelta > 0.002
     const isTurning = Math.abs(smoothedLookYaw.current - worldState.lookYaw) > 1e-3 || Math.abs(smoothedLookYaw.current) > 1e-4
-    if (hasMotion || isTurning || prevT == null || (isResearchTitle && travelDir === 1 && titleMix > 0.25)) {
+    if (hasMotion || isTurning || prevT == null || (isFirstTitle && travelDir === 1 && titleMix > 0.25)) {
       lastLookDir.current.copy(lookDir.current)
     }
 

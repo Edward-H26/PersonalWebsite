@@ -24,23 +24,17 @@ describe("the ring road as a path", () => {
     expect(ring.length).toBeCloseTo(TERRAIN.roads.ring.lengthPx * TERRAIN.map.unitsPerPx)
   })
 
-  it("crosses the stream mouth on the stone bridge, about 1.5 m above the water", () => {
-    const [mouthX, mouthY] = TERRAIN.points.mouth
-    const [x, , z] = mapToScene(TERRAIN.map, mouthX, mouthY)
-    const deck = ring.getPointAt(ring.nearestT(x, z)).y
-    const water = TERRAIN.stream.points[TERRAIN.stream.points.length - 1][2] * TERRAIN.map.heightScale
-    expect((deck - water) / TERRAIN.map.unitsPerMetre).toBeCloseTo(1.5, 0)
-  })
-
-  it("rounds its corners into a walk that stays on the 7 m road", () => {
+  it("rounds its corners into a walk that stays on the 7 m road, the castle gate's hairpin included", () => {
     for (const [x, y, , , t] of TERRAIN.roads.ring.points) {
       const [sx, , sz] = mapToScene(TERRAIN.map, x, y)
       const p = walk.getPointAt(t)
-      expect(Math.hypot(p.x - sx, p.z - sz) / TERRAIN.map.unitsPerMetre).toBeLessThan(2.5)
+      expect(Math.hypot(p.x - sx, p.z - sz) / TERRAIN.map.unitsPerMetre).toBeLessThan(3)
     }
   })
 
-  it("turns the walk at most 5 degrees a pixel, under half as sharply as the centreline", () => {
+  // The ring doubles back at the castle gate, turning about 117 degrees there; no line that stays on the road
+  // can round that at 5 degrees a pixel, so the walk takes it at under 9 and everywhere else much gentler.
+  it("turns the walk at most 9 degrees a pixel, under half as sharply as the centreline", () => {
     const step = 1 / TERRAIN.roads.ring.lengthPx
     let sharpest = 0
     let sharpestRoad = 0
@@ -50,8 +44,24 @@ describe("the ring road as a path", () => {
       sharpest = Math.max(sharpest, here.angleTo(walk.getTangentAt(t + step)))
       sharpestRoad = Math.max(sharpestRoad, ring.getTangentAt(t).angleTo(ring.getTangentAt(t + step)))
     }
-    expect(sharpest).toBeLessThan((5 * Math.PI) / 180)
+    expect(sharpest).toBeLessThan((9 * Math.PI) / 180)
     expect(sharpestRoad).toBeGreaterThan(sharpest * 2)
+  })
+
+  it("leaves the stream to the beach walk, which crosses its mouth on the stone bridge about 2.5 m above the water", () => {
+    const beach = new RoadPath(TERRAIN.roads.spurs.beach, TERRAIN.map)
+    const [mouthX, mouthY] = TERRAIN.points.mouth
+    const [x, , z] = mapToScene(TERRAIN.map, mouthX, mouthY)
+    const t = beach.nearestT(x, z)
+    const [from, to] = TERRAIN.landmarks.stone_bridge.roadT!
+    expect(TERRAIN.landmarks.stone_bridge.road).toBe("beach")
+    expect(t).toBeGreaterThan(from)
+    expect(t).toBeLessThan(to)
+    const water = TERRAIN.stream.points[TERRAIN.stream.points.length - 1][2] * TERRAIN.map.heightScale
+    expect((beach.getPointAt(t).y - water) / TERRAIN.map.unitsPerMetre).toBeCloseTo(2.5, 0)
+    // The ring itself no longer meets the stream.
+    const nearestRing = ring.getPointAt(ring.nearestT(x, z))
+    expect(Math.hypot(nearestRing.x - x, nearestRing.z - z) / TERRAIN.map.unitsPerMetre).toBeGreaterThan(5)
   })
 
   it("finds the t of a place beside the road", () => {

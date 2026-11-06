@@ -15,37 +15,29 @@ const PROP_SINK = 0.08
 
 /**
  * The village on its terraces (DESIGN.md section 17), each building at its place on the plan in map
- * pixels. The inn's plan spot lies on the village street, so it starts on the street's uphill side.
+ * pixels. The inn's plan spot lies on the village street, so it starts on the street's uphill side; the
+ * ring's descent from the lighthouse now meets the street at the quay, so the third house stands east of
+ * the street, towards the beach walk.
  */
 export const VILLAGE_BUILDINGS: ReadonlyArray<{ key: string; path: string; at: MapPoint }> = [
   { key: "inn", path: MODEL_PATHS.earth.inn, at: [390, 444] },
   { key: "houseQuay", path: MODEL_PATHS.earth.house02, at: [362, 486] },
   { key: "houseStream", path: MODEL_PATHS.earth.house03, at: [430, 480] },
-  { key: "houseWest", path: MODEL_PATHS.earth.house01, at: [345, 470] },
-  { key: "bellTower", path: MODEL_PATHS.earth.bellTower, at: [448, 405] },
-  { key: "blacksmith", path: MODEL_PATHS.earth.blacksmith, at: [518, 404] },
-  { key: "sawmill", path: MODEL_PATHS.earth.sawmill, at: [556, 456] },
-  { key: "stable", path: MODEL_PATHS.earth.stable, at: [618, 500] }
+  { key: "houseBeachWalk", path: MODEL_PATHS.earth.house01, at: [396, 488] },
+  { key: "blacksmith", path: MODEL_PATHS.earth.blacksmith, at: [518, 404] }
 ]
 
 /** The well stands at the end of its path from the square, facing back up the path. */
 const WELL_AT: MapPoint = [470, 445]
 const WELL_FACES: MapPoint = [450, 420]
 
-// The stands' counters face the model's +x, a quarter turn from the +z front that every placement
-// turns towards the road, so the stands turn back by that quarter to sell to the street.
-const STAND_COUNTER_YAW = -Math.PI / 2
-
-/** The market on the square's south side, between the street and the well path, with the cart beside it. */
-const MARKET: ReadonlyArray<{ key: string; path: string; at: MapPoint; yaw?: number }> = [
-  { key: "marketStandA", path: MODEL_PATHS.earth.marketStand01, at: [447, 437], yaw: STAND_COUNTER_YAW },
-  { key: "marketStandB", path: MODEL_PATHS.earth.marketStand02, at: [440, 448], yaw: STAND_COUNTER_YAW },
-  { key: "marketStandC", path: MODEL_PATHS.earth.marketStand02, at: [455, 447], yaw: STAND_COUNTER_YAW },
+/** The cart on the square's south side, by the well path, and the fire pit behind the inn. */
+const SQUARE_PROPS: ReadonlyArray<{ key: string; path: string; at: MapPoint; yaw?: number }> = [
   { key: "cart", path: MODEL_PATHS.earth.cart, at: [433, 457], yaw: 0.4 },
   { key: "firePit", path: MODEL_PATHS.earth.firePit, at: [378, 432] }
 ]
 
-/** Barrels and crates by the market, the inn, the blacksmith, the stable and the quay, in map pixels. */
+/** Barrels and crates by the square, the inn, the blacksmith, the gate market, the stable and the quay, in map pixels. */
 const CLUSTERS: ReadonlyArray<{ key: string; path: string; at: readonly MapPoint[] }> = [
   {
     key: "barrels",
@@ -54,7 +46,7 @@ const CLUSTERS: ReadonlyArray<{ key: string; path: string; at: readonly MapPoint
       [452, 455],
       [398, 432],
       [508, 414],
-      [611, 486],
+      [570, 186],
       [380, 500]
     ]
   },
@@ -63,17 +55,19 @@ const CLUSTERS: ReadonlyArray<{ key: string; path: string; at: readonly MapPoint
     path: MODEL_PATHS.earth.crate,
     at: [
       [444, 458],
-      [462, 438],
+      [650, 337],
       [527, 412],
       [372, 497],
-      [627, 491]
+      [566, 192]
     ]
   }
 ]
 
-// The bunting is tied from the well's roof to stand C's awning, stretched to the gap between them, and
-// hangs beside the well path rather than over it, so the walking camera never passes through its flags.
+// The bunting is tied to the gate market's two stands, at the outer corners of their awnings on the counter
+// side, so it hangs over the buyers in front of the counters rather than through the roofs.
 const BUNTING_TIE_HEIGHT_M = 2.7
+/** How far in front of a stand's counter the bunting is tied, in metres. */
+const BUNTING_FRONT_M = 0.2
 
 /** A cypress stand behind the bell tower, the vertical accent over the square. */
 const CYPRESSES: readonly MapPoint[] = [
@@ -146,27 +140,44 @@ function placeProp(ctx: LayoutContext, key: string, path: string, at: MapPoint, 
   }
 }
 
-/** The well and the market's stands, the cart and the fire pit. */
+/** The well, the cart and the fire pit. */
 export function placeVillageProps(ctx: LayoutContext): Placement[] {
   return [
     placeProp(ctx, "well", MODEL_PATHS.earth.well, WELL_AT, 0, WELL_FACES),
-    ...MARKET.map(({ key, path, at, yaw }) => placeProp(ctx, key, path, at, yaw ?? 0))
+    ...SQUARE_PROPS.map(({ key, path, at, yaw }) => placeProp(ctx, key, path, at, yaw ?? 0))
   ]
 }
 
-/** The string of bunting from the well's roof to stand C, stretched to the gap between them. */
-export function placeBunting(ctx: LayoutContext, props: readonly Placement[]): Placement {
-  const [from, to] = ["well", "marketStandC"].map((key) => {
-    const prop = props.find((p) => p.key === key)
-    if (!prop) throw new Error(`The bunting is tied to "${key}", which is not placed`)
-    return prop
+/**
+ * Where the bunting is tied to a market stand: the corner of its awning on the counter side (its +x) at the
+ * end of its long side (its z) away from the other stand.
+ */
+function awningCorner(stand: Placement, awayX: number, awayZ: number): [number, number] {
+  const { width, depth } = islandSize(stand.path)
+  const yaw = stand.rotation[1]
+  const [counterX, counterZ] = [Math.cos(yaw), -Math.sin(yaw)]
+  const [alongX, alongZ] = [Math.sin(yaw), Math.cos(yaw)]
+  const end = Math.sign(alongX * awayX + alongZ * awayZ) * (depth / 2)
+  const front = width / 2 + BUNTING_FRONT_M * ISLAND_UNITS_PER_METRE
+  return [stand.position[0] + counterX * front + alongX * end, stand.position[2] + counterZ * front + alongZ * end]
+}
+
+/** The string of bunting along the gate market's two stands, stretched to the gap between their outer awning corners. */
+export function placeBunting(ctx: LayoutContext, landmarks: readonly Placement[]): Placement {
+  const [standA, standB] = ["marketStandA", "marketStandB"].map((key) => {
+    const stand = landmarks.find((p) => p.key === key)
+    if (!stand) throw new Error(`The bunting is tied to "${key}", which is not placed`)
+    return stand
   })
-  const dx = to.position[0] - from.position[0]
-  const dz = to.position[2] - from.position[2]
+  const [abX, abZ] = [standB.position[0] - standA.position[0], standB.position[2] - standA.position[2]]
+  const from = awningCorner(standA, -abX, -abZ)
+  const to = awningCorner(standB, abX, abZ)
+  const dx = to[0] - from[0]
+  const dz = to[1] - from[1]
   const { width: span, height: drop } = islandSize(MODEL_PATHS.earth.bunting)
   const stretch = Math.hypot(dx, dz) / span
-  const x = (from.position[0] + to.position[0]) / 2
-  const z = (from.position[2] + to.position[2]) / 2
+  const x = (from[0] + to[0]) / 2
+  const z = (from[1] + to[1]) / 2
   return {
     key: "bunting",
     path: MODEL_PATHS.earth.bunting,
