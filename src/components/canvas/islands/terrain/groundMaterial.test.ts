@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest"
 import * as THREE from "three"
 import atlasesJson from "../../../../../public/models/island/atlases.json?raw"
-import { GROUND_LAYERS, GROUND_TEXTURES, SPLAT_CHANNELS, createGroundMaterial, paintMeans } from "./groundMaterial"
+import {
+  GROUND_LAYERS,
+  GROUND_TEXTURES,
+  ROCK_NORMAL_Y,
+  ROCK_TILE_METRES,
+  SPLAT_CHANNELS,
+  createGroundMaterial,
+  paintMeans
+} from "./groundMaterial"
 import { TERRAIN } from "./terrainFixture"
 
 const ATLASES: Record<string, { tile_metres?: number }> = JSON.parse(atlasesJson)
@@ -39,7 +47,8 @@ describe("the ground material", () => {
       GROUND_LAYERS.map((name) => [name, { map: new THREE.Texture(), tileMetres: GROUND_TEXTURES[name].tileMetres }])
     ) as Parameters<typeof createGroundMaterial>[0]
     const paint = SPLAT_CHANNELS.map(() => new THREE.Vector3(0.3, 0.3, 0.3))
-    const material = createGroundMaterial(layers, paint, { centre: new THREE.Vector2(0, 0), inner: 10, outer: 20 }, 1.3)
+    const rock = new THREE.Texture()
+    const material = createGroundMaterial(layers, rock, paint, { centre: new THREE.Vector2(0, 0), inner: 10, outer: 20 }, 1.3)
     expect(material.vertexColors).toBe(true)
     const shader = {
       uniforms: {} as Record<string, { value: unknown }>,
@@ -52,5 +61,27 @@ describe("the ground material", () => {
     expect(shader.uniforms.uTileUnits.value).toEqual(GROUND_LAYERS.map((name) => GROUND_TEXTURES[name].tileMetres * 1.3))
     expect(shader.uniforms.uWetUnits.value).toBeCloseTo(0.65, 9)
     expect(shader.uniforms.uPaintMean.value).toBe(paint)
+    expect(shader.uniforms.uRock.value).toBe(rock)
+    expect(shader.uniforms.uRockTileUnits.value).toBeCloseTo(ROCK_TILE_METRES * 1.3, 9)
+  })
+
+  it("lays rock on steep ground, taking a share that rises with the slope from the four channels' own proportions", () => {
+    const [allRock, noRock] = ROCK_NORMAL_Y
+    expect(allRock).toBeLessThan(0.8)
+    expect(noRock).toBeGreaterThan(0.8)
+    expect(noRock).toBeLessThan(0.9)
+    const layers = Object.fromEntries(
+      GROUND_LAYERS.map((name) => [name, { map: new THREE.Texture(), tileMetres: GROUND_TEXTURES[name].tileMetres }])
+    ) as Parameters<typeof createGroundMaterial>[0]
+    const material = createGroundMaterial(layers, new THREE.Texture(), [], { centre: new THREE.Vector2(0, 0), inner: 10, outer: 20 }, 1)
+    const shader = {
+      uniforms: {} as Record<string, { value: unknown }>,
+      vertexShader: "#include <common>\n#include <begin_vertex>",
+      fragmentShader: "#include <common>\n#include <color_fragment>"
+    }
+    material.onBeforeCompile(shader as unknown as THREE.WebGLProgramParametersWithUniforms, {} as THREE.WebGLRenderer)
+    expect((shader.uniforms.uRockNormalY.value as THREE.Vector2).toArray()).toEqual([allRock, noRock])
+    expect(shader.fragmentShader).toContain("float rock = 1.0 - smoothstep( uRockNormalY.x, uRockNormalY.y, groundNormal.y );")
+    expect(shader.fragmentShader).toContain("mix( channels, rockColour, rock )")
   })
 })

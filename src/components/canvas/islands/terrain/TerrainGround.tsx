@@ -2,6 +2,7 @@ import { useGLTF } from "@react-three/drei"
 import { useLoader, useThree } from "@react-three/fiber"
 import { useEffect, useMemo } from "react"
 import * as THREE from "three"
+import { useRockAtlas } from "@/components/canvas/models/vegetationMaterials"
 import { islandAtlas, islandModel } from "@/config/modelPaths"
 import { GROUND_LAYERS, GROUND_TEXTURES, type GroundLayer, type GroundLayerName, createGroundMaterial, paintMeans } from "./groundMaterial"
 import { type MapFrame, mapToScene } from "./terrainData"
@@ -20,6 +21,7 @@ const MAX_ANISOTROPY = 8
 export function TerrainGround({ map }: { map: MapFrame }) {
   const { scene } = useGLTF(islandModel("terrain"))
   const textures = useLoader(THREE.TextureLoader, TEXTURE_URLS)
+  const rock = useRockAtlas()
   const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy())
 
   const geometry = useMemo(() => {
@@ -44,8 +46,8 @@ export function TerrainGround({ map }: { map: MapFrame }) {
     ) as Record<GroundLayerName, GroundLayer>
     const [x, , z] = mapToScene(map, ...VILLAGE_CENTRE_PX)
     const cobbles = { centre: new THREE.Vector2(x, z), inner: COBBLES_TO_PX * map.unitsPerPx, outer: GRAVEL_FROM_PX * map.unitsPerPx }
-    return createGroundMaterial(layers, paintMeans(geometry), cobbles, map.unitsPerMetre)
-  }, [textures, maxAnisotropy, map, geometry])
+    return createGroundMaterial(layers, rock, paintMeans(geometry), cobbles, map.unitsPerMetre)
+  }, [textures, rock, maxAnisotropy, map, geometry])
 
   useEffect(() => () => material.dispose(), [material])
 

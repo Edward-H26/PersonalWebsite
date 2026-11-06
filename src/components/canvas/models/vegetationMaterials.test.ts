@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import * as THREE from "three"
 import { WIND_DIRECTION } from "@/components/canvas/environment/wind"
+import { ISLAND_UNITS_PER_METRE } from "@/config/modelSizes"
 import { VEGETATION_FAMILIES, type VegetationFamily, createVegetationMaterials } from "./vegetationMaterials"
 
 const CARD_FAMILIES = ["isl_foliage", "isl_grass", "isl_flowers"] as const
@@ -33,7 +34,6 @@ describe("vegetation materials", () => {
       expect(materials[family]).toMatchObject({
         name: family,
         map: atlases[family],
-        alphaTest: 0.5,
         transparent: false,
         side: THREE.DoubleSide,
         vertexColors: true,
@@ -51,6 +51,9 @@ describe("vegetation materials", () => {
       })
       expect(depthMaterials[family]).toMatchObject({ map: atlases[family], alphaTest: 0.5, depthPacking: THREE.RGBADepthPacking })
     }
+    for (const family of ["isl_foliage", "isl_flowers"] as const)
+      expect(materials[family]).toMatchObject({ alphaTest: 0.5, alphaHash: false })
+    expect(materials.isl_grass).toMatchObject({ alphaTest: 0, alphaHash: true })
     expect(materials.isl_rock).toMatchObject({
       name: "isl_rock",
       map: atlases.isl_rock,
@@ -90,5 +93,26 @@ describe("vegetation materials", () => {
     expect(foliage.uniforms.uWindDir.value).toBe(WIND_DIRECTION)
     expect(shadow.uniforms.uWindStrength).toBe(foliage.uniforms.uWindStrength)
     expect(prepareShader(materials.isl_rock, THREE.ShaderLib.standard).vertexShader).not.toContain("color_1")
+  })
+
+  it("sway the grass with the same wind, lift its shaded roots and thin it out between 40 and 60 m", () => {
+    const { materials } = createVegetationMaterials(blankAtlases(), 8)
+    const grass = prepareShader(materials.isl_grass, THREE.ShaderLib.standard)
+    const foliage = prepareShader(materials.isl_foliage, THREE.ShaderLib.standard)
+    expect(grass.vertexShader).toContain("transformed += windLocal")
+    expect(grass.uniforms.uTime).toBe(foliage.uniforms.uTime)
+
+    const lift = grass.vertexShader.indexOf("vColor.rgb *= mix( 1.15, 1.0, color_1.r );")
+    expect(lift).toBeGreaterThan(grass.vertexShader.indexOf("#include <color_vertex>"))
+
+    const [start, end] = [40, 60].map((metres) => (metres * ISLAND_UNITS_PER_METRE).toFixed(1))
+    const fade = grass.fragmentShader.indexOf(`diffuseColor.a *= 1.0 - smoothstep( ${start}, ${end}, length( vViewPosition ) );`)
+    expect(fade).toBeGreaterThan(grass.fragmentShader.indexOf("#include <color_fragment>"))
+    expect(fade).toBeLessThan(grass.fragmentShader.indexOf("#include <alphahash_fragment>"))
+
+    for (const card of [foliage, prepareShader(materials.isl_flowers, THREE.ShaderLib.standard)]) {
+      expect(card.vertexShader).not.toContain("vColor.rgb *=")
+      expect(card.fragmentShader).not.toContain("length( vViewPosition )")
+    }
   })
 })

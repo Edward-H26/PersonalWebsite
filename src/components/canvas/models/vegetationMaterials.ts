@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react"
 import * as THREE from "three"
 import { WIND_DIRECTION } from "@/components/canvas/environment/wind"
 import { islandAtlas } from "@/config/modelPaths"
+import { ISLAND_UNITS_PER_METRE } from "@/config/modelSizes"
 import { ENV_MAP_INTENSITY } from "@/hooks/useRealtimeMaterials"
 import { useReducedMotion } from "@/hooks/useReducedMotion"
 
@@ -35,6 +36,15 @@ const MAX_ANISOTROPY = 8
 /** How far a card's tip travels at the crest of the wind wave, in metres of the model. */
 const WIND_STRENGTH = 0.12
 
+/**
+ * Grass thins out from this far from the camera and is gone by GRASS_FADE_END_M. Further off its blades shrink below a
+ * pixel long before its shaded roots do, so the clumps would read as dark dots; the ground's own grass carries the meadow there.
+ */
+const GRASS_FADE_START_M = 40
+const GRASS_FADE_END_M = 60
+/** The grass's baked root shade, lifted: its vertex colour is multiplied by this at the root, easing to 1 at the tips. */
+const GRASS_ROOT_LIFT = 1.15
+
 // One set of uniforms shared by every card material and its shadow, so one write per frame moves them all.
 const windUniforms = {
   uTime: { value: 0 },
@@ -65,14 +75,29 @@ transformed += windLocal * ( color_1.r * uWindStrength * ( 0.6 + 0.4 * color_1.b
 `
 
 /**
- * Sways a card material, or its shadow, with the shared wind. Every card material uses this same
- * function, so three.js compiles one program for all three card families.
+ * Sways a card material, or its shadow, with the shared wind. The foliage and flower cards use this same
+ * function, so three.js compiles one program for both; the grass adds its own shading on top.
  */
 function addWind(shader: THREE.WebGLProgramParametersWithUniforms) {
   Object.assign(shader.uniforms, windUniforms)
   shader.vertexShader = shader.vertexShader
     .replace("#include <common>", `#include <common>\n${WIND_DECLARATIONS}`)
     .replace("#include <begin_vertex>", `#include <begin_vertex>\n${WIND_DISPLACEMENT}`)
+}
+
+// COLOR_1.r is 0 at a blade's root, so it also weighs the root lift. The fade lowers the alpha the hash then dithers.
+const GRASS_ROOT_SHADE = /* glsl */ `
+vColor.rgb *= mix( ${GRASS_ROOT_LIFT.toFixed(2)}, 1.0, color_1.r );
+`
+const GRASS_FADE = /* glsl */ `
+diffuseColor.a *= 1.0 - smoothstep( ${(GRASS_FADE_START_M * ISLAND_UNITS_PER_METRE).toFixed(1)}, ${(GRASS_FADE_END_M * ISLAND_UNITS_PER_METRE).toFixed(1)}, length( vViewPosition ) );
+`
+
+/** The grass's wind, plus its lifted roots and its fade with distance. */
+function addGrassShading(shader: THREE.WebGLProgramParametersWithUniforms) {
+  addWind(shader)
+  shader.vertexShader = shader.vertexShader.replace("#include <color_vertex>", `#include <color_vertex>\n${GRASS_ROOT_SHADE}`)
+  shader.fragmentShader = shader.fragmentShader.replace("#include <alphatest_fragment>", `${GRASS_FADE}\n#include <alphatest_fragment>`)
 }
 
 function configureAtlas(atlas: THREE.Texture, wrap: THREE.Wrapping, anisotropy: number) {
@@ -97,6 +122,19 @@ function cardMaterial(family: VegetationFamily, map: THREE.Texture) {
     envMapIntensity: ENV_MAP_INTENSITY
   })
   material.onBeforeCompile = addWind
+  return material
+}
+
+/**
+ * The grass's cards hash their alpha instead of cutting it at a threshold, so a clump whose blades are thinner than a
+ * pixel keeps them as a sparse dither rather than shrinking to its dark root, and dissolves as it fades with distance.
+ * Alpha to coverage would do this more smoothly, but the scene renders without multisampling.
+ */
+function grassMaterial(map: THREE.Texture) {
+  const material = cardMaterial("isl_grass", map)
+  material.alphaTest = 0
+  material.alphaHash = true
+  material.onBeforeCompile = addGrassShading
   return material
 }
 
@@ -137,7 +175,7 @@ export function createVegetationMaterials(
     const map = atlases[family]
     if (FAMILIES[family].cards) {
       configureAtlas(map, THREE.ClampToEdgeWrapping, anisotropy)
-      materials[family] = cardMaterial(family, map)
+      materials[family] = family === "isl_grass" ? grassMaterial(map) : cardMaterial(family, map)
       depthMaterials[family] = cardDepthMaterial(map)
     } else {
       configureAtlas(map, THREE.RepeatWrapping, anisotropy)
@@ -149,6 +187,15 @@ export function createVegetationMaterials(
 
 function disposeVegetationMaterials({ materials, depthMaterials }: VegetationMaterials) {
   for (const material of [...Object.values(materials), ...Object.values(depthMaterials)]) material.dispose()
+}
+
+/**
+ * The rock family's atlas, which the island's ground also lays on its cliffs. It is the very texture the rock
+ * material draws with, since useLoader keeps one load per list of URLs, and useVegetationMaterials sets it up:
+ * repeating, sRGB, and unflipped as glTF lays out its images.
+ */
+export function useRockAtlas() {
+  return useLoader(THREE.TextureLoader, ATLAS_URLS)[VEGETATION_FAMILIES.indexOf("isl_rock")]
 }
 
 /**
