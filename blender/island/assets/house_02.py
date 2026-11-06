@@ -20,6 +20,8 @@ SLATE = {"keys": parts.SLATE_KEYS, "exposure": 0.22, "thickness": 0.03, "run": (
 ROW_TOP = 0.06 + 2.4 * 0.03
 DOOR = (-parts.BAY, parts.DOOR[0], parts.DOOR[1] + 0.2)
 TURRET = 0.72
+# The back gable draws from a random stream of its own, so the draws of every other part stay as they are.
+BACK_GABLE_SEED = 1009
 
 
 def build(seed=7):
@@ -28,7 +30,7 @@ def build(seed=7):
     x0, x1, y0, y1 = -WIDTH / 2, WIDTH / 2, -DEPTH / 2, DEPTH / 2
     ground = _ground(rng, ch, x0, x1, y0, y1)
     first = _first(rng, ch, x0, x1, y0, y1)
-    top = _gable_and_roof(rng, ch, x0, x1, y0 - 2 * JETTY, y1)
+    top = _gable_and_roof(rng, ch, x0, x1, y0 - 2 * JETTY, y1, random.Random(seed + BACK_GABLE_SEED))
     parts.lean(ground + first + top, 0.0, ch.lean * 0.4, "Y")
     parts.lean(first + top, GROUND, ch.lean, "X")
     parts.lean(top, EAVE, -ch.lean * 0.85, "X")
@@ -80,13 +82,15 @@ def _first(rng, ch, x0, x1, y0, y1):
     return storey + parts.place(parts.jetty(rng, WIDTH, JETTY, (x0 + 0.05, -0.6, 0.6, x1 - 0.05)), m)
 
 
-def _gable_and_roof(rng, ch, x0, x1, front, back):
-    """The jettied front gable with its attic window, the slate roof with carved bargeboards, two dormers and moss
-    on the right slope, sagging along its ridge, and the chimney."""
+def _gable_and_roof(rng, ch, x0, x1, front, back, gable_rng):
+    """The jettied front gable with its attic window, the plain back gable (from `gable_rng`), the slate roof with
+    carved bargeboards, two dormers and moss on the right slope, sagging along its ridge, and the chimney."""
     rise = WIDTH / 2 * math.tan(math.radians(PITCH))
     m, width = parts.face_frame("front", x0, x1, front, back, EAVE)
     window = (parts.WINDOW[0] + 0.2, 1.1, 1.0)
     objs = mesh.transform(parts.gable_wall(width, rise, rng, opening=window), m)
+    rear, _ = parts.face_frame("back", x0, x1, front, back, EAVE)
+    objs += mesh.transform(parts.gable_wall(width, rise, gable_rng), rear)
     objs += parts.place(parts.window(window[0], window[1], rng, shutters=(False, False), leaded=True), m, (0.0, 0.0, window[2]))
     length = back - front
     frame = mesh.frame((0.0, front, EAVE), math.pi / 2)
