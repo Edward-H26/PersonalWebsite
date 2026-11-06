@@ -1,4 +1,92 @@
 {
+  "clouds": {
+    "alpha_test": null,
+    "cells": {
+      "cirrus_fibratus": [
+        0.0,
+        0.875,
+        0.5,
+        0.9375
+      ],
+      "cirrus_spissatus": [
+        0.0,
+        0.9375,
+        0.5,
+        1.0
+      ],
+      "cirrus_uncinus": [
+        0.5,
+        0.875,
+        1.0,
+        0.9375
+      ],
+      "congestus_1": [
+        0.5,
+        0.4375,
+        1.0,
+        0.65625
+      ],
+      "congestus_2": [
+        0.0,
+        0.65625,
+        0.5,
+        0.875
+      ],
+      "fractus_1": [
+        0.5,
+        0.65625,
+        1.0,
+        0.875
+      ],
+      "humilis_1": [
+        0.0,
+        0.0,
+        0.5,
+        0.21875
+      ],
+      "humilis_2": [
+        0.5,
+        0.0,
+        1.0,
+        0.21875
+      ],
+      "mediocris_1": [
+        0.0,
+        0.21875,
+        0.5,
+        0.4375
+      ],
+      "mediocris_2": [
+        0.5,
+        0.21875,
+        1.0,
+        0.4375
+      ],
+      "mediocris_3": [
+        0.0,
+        0.4375,
+        0.5,
+        0.65625
+      ]
+    },
+    "cirrus_cell_units": [
+      8.0,
+      1.0
+    ],
+    "cumulus_base_v": 0.942857,
+    "cumulus_cell_units": [
+      4.8,
+      2.1
+    ],
+    "cumulus_lit_from": "upper left",
+    "double_sided": true,
+    "file": "clouds.png",
+    "size": [
+      2048,
+      2048
+    ],
+    "wrap": "clamp"
+  },
   "flowers": {
     "alpha_test": 0.5,
     "cells": {

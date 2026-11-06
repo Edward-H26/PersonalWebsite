@@ -23,11 +23,14 @@ void main() {
   vec2 drifted = mod( origin.xz + uWindDir * uDriftSpeed * uTime + uRegion, 2.0 * uRegion ) - uRegion;
   float edge = max( abs( drifted.x ), abs( drifted.y ) );
   float keep = 1.0 - smoothstep( uRegion * 0.82, uRegion, edge );
-  vec3 world = vec3( drifted.x, origin.y, drifted.y ) + ( ( instanceWorld * vec4( position, 1.0 ) ).xyz - origin ) * keep;
-  // Normals under the instance's stretch: scale each axis back by its squared length before turning.
+  // Each cloud turns its broad side to the camera about the vertical, so none is ever seen end on as a pale sliver.
+  vec2 toCamera = normalize( cameraPosition.xz - drifted );
+  mat3 facing = mat3( vec3( toCamera.y, 0.0, -toCamera.x ), vec3( 0.0, 1.0, 0.0 ), vec3( toCamera.x, 0.0, toCamera.y ) );
   mat3 basis = mat3( instanceWorld );
-  vec3 stretch = vec3( dot( basis[ 0 ], basis[ 0 ] ), dot( basis[ 1 ], basis[ 1 ] ), dot( basis[ 2 ], basis[ 2 ] ) );
-  vNormalW = normalize( basis * ( normal / stretch ) );
+  vec3 size = vec3( length( basis[ 0 ] ), length( basis[ 1 ] ), length( basis[ 2 ] ) );
+  vec3 world = vec3( drifted.x, origin.y, drifted.y ) + facing * ( position * size ) * keep;
+  // Normals under the cloud's stretch: scale each axis back by its size before turning.
+  vNormalW = normalize( facing * ( normal / size ) );
   vWorld = world;
   gl_Position = projectionMatrix * viewMatrix * vec4( world, 1.0 );
 }
@@ -82,12 +85,10 @@ function createClouds() {
   })
   const clouds = new THREE.InstancedMesh(buildCloudGeometry(), material, CLOUD_BANK.length)
   const matrix = new THREE.Matrix4()
-  const rotation = new THREE.Quaternion()
-  const up = new THREE.Vector3(0, 1, 0)
+  const unturned = new THREE.Quaternion()
   CLOUD_BANK.forEach((cloud, i) => {
     const half = cloud.width / 2
-    rotation.setFromAxisAngle(up, cloud.yaw)
-    matrix.compose(new THREE.Vector3(cloud.x, cloud.y, cloud.z), rotation, new THREE.Vector3(half, half * cloud.height, half * cloud.depth))
+    matrix.compose(new THREE.Vector3(cloud.x, cloud.y, cloud.z), unturned, new THREE.Vector3(half, half * cloud.height, half * cloud.depth))
     clouds.setMatrixAt(i, matrix)
   })
   clouds.name = "manuscript_clouds"

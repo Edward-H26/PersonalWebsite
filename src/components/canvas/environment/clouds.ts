@@ -56,28 +56,28 @@ export function buildCloudGeometry(): THREE.BufferGeometry {
 }
 
 /**
- * One cloud of the bank: its base centre and width in world units, its turn about the vertical, and how
- * much taller and deeper than the lobes' own proportions it is drawn.
+ * One cloud of the bank: its base centre and width in world units, and how much taller and deeper than the
+ * lobes' own proportions it is drawn. It turns its broad side to the camera as it is drawn.
  */
-export type CloudPlacement = { x: number; y: number; z: number; width: number; height: number; depth: number; yaw: number }
+export type CloudPlacement = { x: number; y: number; z: number; width: number; height: number; depth: number }
 
 /**
  * The cloud bank round the island, a dozen clouds well beyond the coast so they fill the sky of every
  * view without crossing the overview's sight line to the island.
  */
 export const CLOUD_BANK: readonly CloudPlacement[] = [
-  { x: 1350, y: 470, z: -1150, width: 420, height: 1.2, depth: 0.8, yaw: 1.8 },
-  { x: 380, y: 560, z: -1750, width: 360, height: 1.05, depth: 0.75, yaw: 2.7 },
-  { x: 1850, y: 520, z: -300, width: 400, height: 1.15, depth: 0.85, yaw: 1.2 },
-  { x: 1450, y: 430, z: 650, width: 320, height: 1.3, depth: 0.8, yaw: 2.4 },
-  { x: -650, y: 400, z: -1900, width: 340, height: 1.1, depth: 0.75, yaw: -2.5 },
-  { x: 900, y: 500, z: 1600, width: 360, height: 1.2, depth: 0.85, yaw: 0.4 },
-  { x: -500, y: 450, z: 1950, width: 330, height: 1.25, depth: 0.8, yaw: -1.8 },
-  { x: -1800, y: 590, z: 900, width: 440, height: 1.0, depth: 0.7, yaw: 2.1 },
-  { x: -2000, y: 480, z: -600, width: 380, height: 1.15, depth: 0.8, yaw: -0.5 },
-  { x: -1450, y: 620, z: -1300, width: 300, height: 1.2, depth: 0.85, yaw: -3.0 },
-  { x: 1250, y: 530, z: -2150, width: 340, height: 1.1, depth: 0.75, yaw: 0.7 },
-  { x: 2250, y: 600, z: 250, width: 460, height: 1.0, depth: 0.7, yaw: -2.2 }
+  { x: 1350, y: 470, z: -1150, width: 420, height: 1.2, depth: 0.8 },
+  { x: 380, y: 560, z: -1750, width: 360, height: 1.05, depth: 0.75 },
+  { x: 1850, y: 520, z: -300, width: 400, height: 1.15, depth: 0.85 },
+  { x: 1450, y: 430, z: 650, width: 320, height: 1.3, depth: 0.8 },
+  { x: -650, y: 400, z: -1900, width: 340, height: 1.1, depth: 0.75 },
+  { x: 900, y: 500, z: 1600, width: 360, height: 1.2, depth: 0.85 },
+  { x: -500, y: 450, z: 1950, width: 330, height: 1.25, depth: 0.8 },
+  { x: -1800, y: 590, z: 900, width: 440, height: 1.0, depth: 0.7 },
+  { x: -2000, y: 480, z: -600, width: 380, height: 1.15, depth: 0.8 },
+  { x: -1450, y: 620, z: -1300, width: 300, height: 1.2, depth: 0.85 },
+  { x: 1250, y: 530, z: -2150, width: 340, height: 1.1, depth: 0.75 },
+  { x: 2250, y: 600, z: 250, width: 460, height: 1.0, depth: 0.7 }
 ]
 
 /** The clouds drift with the wind at this speed, in world units per second. */
