@@ -27,7 +27,11 @@ DAM_RADIUS_PX, DAM_ARC_DEG, DAM_THICKNESS, DAM_SEGMENTS, DAM_FOOT = 19.0, (120.0
 WHEEL_PX, WHEEL_R, WHEEL_HALF_WIDTH, AXLE_LENGTH = 18.0, 1.35, 0.45, 2.5
 # Water in the flume runs FLUME_DEPTH deep and falls FLUME_FALL along it; the wheel's top clears the flume's floor.
 FLUME_DEPTH, FLUME_FALL, WHEEL_CLEARANCE = 0.3, 0.1, 0.1
+# The flume's water strip: its width and the height of its middle over the flume's floor; it is 0.02 thick.
+FLUME_WATER_WIDTH, FLUME_WATER_Z = 0.56, FLUME_DEPTH - 0.08
 RACE_WIDTH, RACE_FLOOR, RACE_WATER, RACE_RUN = 1.5, -0.45, -0.12, 3.0
+# The wheel race runs from upstream of the wheel past it and on downstream as the tailrace.
+RACE_LENGTH = 2 * WHEEL_R + 1.4 + RACE_RUN
 HOUSE = (7.0, 6.0)  # along the stream, across it
 HOUSE_STOREYS = (2.4, 2.4)
 FLOOR = 0.2
@@ -65,6 +69,20 @@ def wheel_placement():
     the wheel's own X axis (its axle) across the stream."""
     s = site()
     return s["wheel"].to_3d() + Vector((0.0, 0.0, s["axle_z"])), math.atan2(s["across"].y, s["across"].x)
+
+
+def water_lines():
+    """The water the site draws along this asset, as plan points in metres about the anchor: the flume's surface from
+    the sluice to its spout over the wheel, each end with its height in metres above the sea (a centimetre over the
+    GLB's own flume water), and the wheel race's centre line from upstream of the wheel to the tailrace's end, whose
+    water level is the stream's where the race meets it; with each channel's inner width in metres."""
+    s = site()
+    head, tail = _flume_ends(s)
+    surface = POND_LEVEL_M - FLUME_DEPTH + FLUME_WATER_Z + 0.02
+    race_up = s["wheel"] - s["down"] * (RACE_LENGTH / 2 - RACE_RUN / 2)
+    race_down = s["wheel"] + s["down"] * (RACE_LENGTH / 2 + RACE_RUN / 2)
+    return {"flume": [(head, surface), (tail, surface - FLUME_FALL)], "flume_width": FLUME_WATER_WIDTH,
+            "race": [race_up, race_down], "race_width": RACE_WIDTH}
 
 
 def build(seed=7):
@@ -118,17 +136,22 @@ def _shore(s):
     return [((x - ax) * hm.M_PER_PX, (ay - y) * hm.M_PER_PX) for x, y in hm.simplify(loop[:-1], 0.3)]
 
 
+def _flume_ends(s):
+    """The flume's head at the sluice in the dam and its spout over the wheel, in metres about the anchor."""
+    return s["pond"] + s["down"] * (DAM_RADIUS_PX * hm.M_PER_PX), s["wheel"] - s["down"] * (WHEEL_R * 0.35)
+
+
 def _flume(s):
     """The sluice in the dam and the open flume from it down to the top of the wheel, on pairs of trestle legs."""
-    head = s["pond"] + s["down"] * (DAM_RADIUS_PX * hm.M_PER_PX)
-    tail = s["wheel"] - s["down"] * (WHEEL_R * 0.35)
+    head, tail = _flume_ends(s)
     floor0 = POND_LEVEL_M - FLUME_DEPTH - s["ground"]
     floor1 = floor0 - FLUME_FALL
     run = tail - head
     length = run.length
     timber, plank = parts.mat("timber"), parts.mat("plank")
     trough = [mesh.box("flume_floor", (0.7, length, 0.08), at=(0.0, 0.0, -0.08), origin="bottom", mat=plank),
-              mesh.box("flume_water", (0.56, length, 0.02), at=(0.0, 0.0, FLUME_DEPTH - 0.08), mat=parts.mat("water"))]
+              mesh.box("flume_water", (FLUME_WATER_WIDTH, length, 0.02), at=(0.0, 0.0, FLUME_WATER_Z),
+                       mat=parts.mat("water"))]
     trough += [mesh.box("flume_side", (0.07, length, FLUME_DEPTH + 0.1), at=(side * 0.33, 0.0, -0.08), origin="bottom",
                         mat=plank) for side in (-1, 1)]
     mid = (head + tail) / 2
@@ -159,7 +182,7 @@ def _flume(s):
 def _race(rng, s):
     """The stone wheel race the wheel dips into, running on downstream as the tailrace, both with their water, and a
     bearing for the axle on each side: the house wall's and a pedestal on the far race wall."""
-    length = 2 * WHEEL_R + 1.4 + RACE_RUN
+    length = RACE_LENGTH
     axle = s["axle_z"] - s["wheel_ground"]
     wall_top = RACE_FLOOR + 0.75
     objs = [mesh.box("race_wall", (0.35, length, 0.75), at=(side * (RACE_WIDTH / 2 + 0.17), -RACE_RUN / 2, RACE_FLOOR),

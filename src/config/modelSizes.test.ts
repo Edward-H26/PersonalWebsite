@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest"
 import statsJson from "../../blender/island/build/stats.json?raw"
 import { MODEL_PATHS, islandModel } from "./modelPaths"
-import { ISLAND_MODEL_SIZES_M, ISLAND_UNITS_PER_METRE, islandFitHeight, islandSize } from "./modelSizes"
+import { ISLAND_MODEL_SIZES_M, ISLAND_MOUNTS, ISLAND_UNITS_PER_METRE, islandFitHeight, islandSize } from "./modelSizes"
 
-const stats = JSON.parse(statsJson) as Record<string, { size: [number, number, number] }>
+type Mount = { on: string; offset: [number, number, number]; rotationY: number; spinsAbout: string }
+const stats = JSON.parse(statsJson) as Record<string, { size: [number, number, number]; mount?: Mount }>
 
 describe("island model sizes", () => {
   it("match the size of every model blender/island/build/stats.json records", () => {
@@ -15,6 +16,20 @@ describe("island model sizes", () => {
     expect(ISLAND_UNITS_PER_METRE).toBe(1.3)
     expect(islandFitHeight(MODEL_PATHS.earth.house02)).toBeCloseTo(11.153 * 1.3, 9)
     for (const path of Object.values(MODEL_PATHS.earth)) expect(() => islandSize(path)).not.toThrow()
+  })
+
+  it("hang every turning model where stats.json mounts it, spinning about its own x", () => {
+    const mounted = Object.entries(stats).filter(([, entry]) => entry.mount)
+    expect(Object.keys(ISLAND_MOUNTS).sort()).toEqual(mounted.map(([asset]) => asset).sort())
+    for (const [asset, { mount }] of mounted) {
+      const { on, offset, rotationY } = ISLAND_MOUNTS[asset as keyof typeof ISLAND_MOUNTS]
+      expect({ on, offset: [...offset], rotationY }).toEqual({
+        on: mount!.on,
+        offset: mount!.offset.map((v) => v + 0),
+        rotationY: mount!.rotationY
+      })
+      expect(mount!.spinsAbout).toBe("x")
+    }
   })
 
   it("draw every model at the one scale, flowers and seedling grass included", () => {

@@ -20,6 +20,7 @@ export const MODEL_PATHS = {
     inn: islandModel("inn"),
     bellTower: islandModel("bell_tower"),
     mill: islandModel("mill"),
+    millSails: islandModel("mill_sails"),
     blacksmith: islandModel("blacksmith"),
     barracks: islandModel("barracks"),
     sawmill: islandModel("sawmill"),
@@ -54,6 +55,7 @@ export const MODEL_PATHS = {
     lobsterPots: islandModel("lobster_pots"),
 
     castleKeep: islandModel("castle_keep"),
+    castleStair: islandModel("castle_stair"),
     watermill: islandModel("watermill"),
     watermillWheel: islandModel("watermill_wheel"),
     stoneBridge: islandModel("stone_bridge"),

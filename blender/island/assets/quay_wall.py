@@ -1,10 +1,12 @@
 """quay_wall: the harbour's stone quay on the north shore of the bay (DESIGN.md section 17), where the terrain falls
-from the quay and the ring road straight into the bay instead of down a beach: the bay cut's hard edge along the quay
-segment and, east of it, the bank the road's cut and fill leaves at the water. A face of grey harbour stone stands a
-little out from that stretch of the waterline, from below the bay floor up to a coping of light stone level with the
-quay behind it, thick enough to hold the terrain's steep bank inside it; iron bollards stand along its top and a flight
-of stone steps runs down its face to the water. It is built in the terrain's own space (metres about the map's centre,
-water level at Z = 0), so the site sets it down exactly where the terrain sits; line() gives its face in map pixels."""
+from the quay and the beach walk straight into the bay instead of down a beach: the bay cut's hard edge along the quay
+segment and, east of it, the bank the walk's cut and fill leaves at the water as far as the stone bridge; past the
+bridge it goes on as a revetment along the bank where the walk meets the water. Each run is a face of grey harbour stone
+a little out from that stretch of the waterline, from below the bay floor up to a coping of light stone level with the
+ground behind it, thick enough to hold the terrain's steep bank inside it; iron bollards stand along the quay's top and
+a flight of stone steps runs down its face to the water. It is built in the terrain's own space (metres about the map's
+centre, water level at Z = 0), so the site sets it down exactly where the terrain sits; line() and revetment_line()
+give the two faces in map pixels."""
 
 import functools
 import math
@@ -19,6 +21,9 @@ from island import mesh, parts
 # The wall stands along the longest run of the waterline within QUAY_REACH_PX of the quay segment where the ground
 # falls steeper than STEEP (rise over run); its face follows that run simplified to FACE_TOLERANCE_PX.
 QUAY_REACH_PX, STEEP, FACE_TOLERANCE_PX = 25.0, 3.0, 0.2
+# The revetment stands along the waterline beyond the bridge, away from the quay, where it is within REVETMENT_ROAD_PX
+# of the beach walk's centreline and the ground falls steeper than REVETMENT_STEEP.
+REVETMENT_ROAD_PX, REVETMENT_STEEP = 9.0, 2.0
 # The face stands FACE_OUT metres out from the waterline and the body runs THICK metres back into the bank, from FOOT
 # up to the highest ground behind the face.
 FACE_OUT, THICK, FOOT = 0.5, 2.6, -3.2
@@ -34,20 +39,22 @@ def _ground(x, y):
     return float(hm.at(hm.cached()["height"], np.array([[x, y]]))[0]) * hm.PEAK_M
 
 
-@functools.lru_cache(maxsize=1)
-def line():
-    """The waterline the wall stands along, west to east, in map px: the longest steep run near the quay, with gaps of
-    a point or two closed."""
+def _coast():
+    """The island's coast as a loop of map px without its repeated end, and the ground's slope (rise over run) there."""
     h = hm.cached()["height"]
     coast = np.array(max(hm.coastline(h), key=hm.loop_area))[:-1]
     gy, gx = np.gradient(h * hm.PEAK_M, hm.M_PER_PX)
-    steep = (hm.at(np.hypot(gx, gy), coast) > STEEP) & (hm.segment(coast[:, 0], coast[:, 1], *hm.QUAY)[0] < QUAY_REACH_PX)
+    return coast, hm.at(np.hypot(gx, gy), coast)
+
+
+def _longest_run(coast, keep):
+    """The longest run of consecutive kept points round the loop, gaps of a point or two closed, west to east."""
     for grow in (True, True, False, False):
-        steep = (steep | np.roll(steep, 1) | np.roll(steep, -1)) if grow else (steep & np.roll(steep, 1) & np.roll(steep, -1))
-    order = np.roll(np.arange(len(coast)), -int(np.argmin(steep)))
+        keep = (keep | np.roll(keep, 1) | np.roll(keep, -1)) if grow else (keep & np.roll(keep, 1) & np.roll(keep, -1))
+    order = np.roll(np.arange(len(coast)), -int(np.argmin(keep)))
     runs, run = [], []
     for k in order:
-        if steep[k]:
+        if keep[k]:
             run.append(k)
         elif run:
             runs, run = runs + [run], []
@@ -55,10 +62,30 @@ def line():
     return points if points[0, 0] < points[-1, 0] else points[::-1]
 
 
-def stations():
-    """Along the simplified face, west to east: the face's point and seaward direction in metres and the height of the
-    wall's top, the highest ground across its thickness."""
-    points = np.array(hm.simplify([tuple(p) for p in line()], FACE_TOLERANCE_PX))
+@functools.lru_cache(maxsize=1)
+def line():
+    """The waterline the quay wall stands along, west to east, in map px: the longest steep run near the quay."""
+    coast, slope = _coast()
+    return _longest_run(coast, (slope > STEEP) & (hm.segment(coast[:, 0], coast[:, 1], *hm.QUAY)[0] < QUAY_REACH_PX))
+
+
+@functools.lru_cache(maxsize=1)
+def revetment_line():
+    """The waterline the revetment stands along, in map px: the steep bank by the beach walk beyond the bridge."""
+    coast, slope = _coast()
+    walk = hm.cached()["roads"][hm.BRIDGE_ROAD]["points"]
+    along, _ = hm.arc_length(walk, closed=False)
+    nearest = [int(np.argmin(np.hypot(*(walk - p).T))) for p in coast]
+    near = np.array([np.hypot(*(walk[i] - p)) <= REVETMENT_ROAD_PX for i, p in zip(nearest, coast)])
+    beyond = along[nearest] > along[int(np.argmin(np.hypot(*(walk - np.array(hm.ANCHORS["bridge"])).T)))]
+    return _longest_run(coast, near & beyond & (slope > REVETMENT_STEEP))
+
+
+@functools.lru_cache(maxsize=2)
+def stations(run="quay"):
+    """Along the simplified face of the quay ("quay") or the revetment ("revetment"), west to east: the face's point and
+    seaward direction in metres and the height of the wall's top, the highest ground across its thickness."""
+    points = np.array(hm.simplify([tuple(p) for p in (line() if run == "quay" else revetment_line())], FACE_TOLERANCE_PX))
     result = []
     for k, (x, y) in enumerate(points):
         a, b = points[max(k - 1, 0)], points[min(k + 1, len(points) - 1)]
@@ -75,8 +102,9 @@ def stations():
 
 def build(seed=7):
     rng = random.Random(seed)
-    st = stations()
-    objs = _body(st) + _faces(rng, st) + _ends(rng, st) + _bollards(st) + _steps(rng, st)
+    quay, revetment = stations("quay"), stations("revetment")
+    objs = _body(quay) + _faces(rng, quay) + _ends(rng, quay) + _bollards(quay) + _steps(rng, quay)
+    objs += _body(revetment) + _faces(rng, revetment) + _ends(rng, revetment)
     return mesh.finalize("isl_quay_wall", objs, ground=False, centre=False)
 
 

@@ -1,12 +1,13 @@
-"""castle_stair: the stone stair from the ring road up to the castle's south gate (DESIGN.md section 17). The road
-passes the knoll's foot only a few metres below the gate, with a drum tower on either side of it, so the stair folds
-along the bank: a top landing level with the gate's threshold, an upper flight running west along the foot of the west
-tower, a landing, and a lower flight turning south down to the road's edge. Every flight and landing stands on a
-masonry base reaching into the ground, with a low wall along each side under a coping of light stone. Built in the
-castle's frame (origin at the bailey's centre on its floor, north along +Y), so the site sets it down with castle_keep;
-site() says where it meets the road."""
+"""castle_stair: the stone stair from the ring road up to the castle's south gate (DESIGN.md section 17), on the plan
+heightmap.stair_plan lays out and set into the bailey's slope, which the terrain cuts for it: a top landing level with
+the gate's threshold between the drum towers, an upper flight running west along the slope, a five-sided landing and a
+lower flight running back down along the ring toward the gate vertex, both flights at one pitch no steeper than 35
+degrees. The lower flight ends at the road's paving: a wall closes its end and its lowest steps open sideways onto the
+road. Every flight and landing stands on a masonry base reaching under the ground, with a low wall along its open
+sides under a coping of light stone; where the slope outside rises above a wall's plain height, the wall rises with
+it and holds the cut. Built in the castle's frame (origin at the bailey's centre on its floor, north along +Y), so the
+site sets it down with castle_keep; site() is the plan, with the foot where it meets the road."""
 
-import functools
 import math
 import random
 
@@ -17,79 +18,159 @@ from island import heightmap as hm
 from island import mesh, parts
 from island.assets import castle_keep
 
-GATE_Y = -castle_keep.WALL_R
-# The top landing spans TOP_HALF either side of the gate's axis and TOP_DEPTH out from the wall; the upper flight runs
-# UPPER_RUN west from it; the flights are WIDTH between their walls, each wall WALL_T thick and WALL_H over the nosings.
-TOP_HALF, TOP_DEPTH, UPPER_RUN = 1.5, 3.6, 4.0
-WIDTH, WALL_T, WALL_H, COPING = 1.4, 0.35, 0.7, 0.1
-# Steps rise about RISE; bases reach BASE_DEPTH under the lowest ground beneath them; the lower flight ends where the
-# road's paving begins, ROAD_EDGE_PX from the ring's centreline.
-RISE, BASE_DEPTH, ROAD_EDGE_PX = 0.18, 0.6, 6.0
+# Each wall is WALL_T thick and stands WALL_H over the treads or the landing under a COPING; the flights are the
+# stair's width between their walls. Bases reach BASE_DEPTH under the lowest ground beneath them, and a wall whose
+# outside ground (sampled every WALL_STEP metres, OUTSIDE metres beyond its face) stands higher than its plain top
+# rises to HOLD over that ground.
+WALL_T, WALL_H, COPING, BASE_DEPTH, HOLD, WALL_STEP = hm.STAIR_WALL_M, 0.7, 0.1, 0.6, 0.05, 0.25
+OUTSIDE = (0.05, 0.3)
+WIDTH = 2 * (hm.STAIR_HALF - WALL_T)
 STONES = {"course": (0.4, 0.6), "length": (0.8, 1.5), "keys": castle_keep.STONES["keys"]}
 
 
-def _ground(x, y):
-    """The terrain's height in metres under castle-frame point (x, y)."""
-    bx, by = hm.ANCHORS["bailey"]
-    return float(hm.at(hm.cached()["height"], np.array([[bx + x / hm.M_PER_PX, by - y / hm.M_PER_PX]]))[0]) * hm.PEAK_M
-
-
-@functools.lru_cache(maxsize=1)
 def site():
-    """The stair's plan and heights in the castle's frame: the floor it is measured from (the bailey's), the upper
-    flight's centre line, the landing's square, the lower flight's centre line down to the road's edge, and each
-    flight's rise."""
-    data = hm.cached()
+    """The stair's plan (heightmap.stair_plan): the bailey's floor, the shared pitch, the foot and its level, and the
+    parts down from the gate."""
+    return hm.cached()["stair"]
+
+
+def _ground(x, y):
+    """The terrain's height in metres from the bailey's floor under castle-frame point (x, y), as its mesh has it."""
     bx, by = hm.ANCHORS["bailey"]
-    floor = float(data["height"][by, bx]) * hm.PEAK_M
-    flight = WIDTH + 2 * WALL_T
-    upper_y = GATE_Y - TOP_DEPTH + flight / 2
-    upper = (-TOP_HALF, -TOP_HALF - UPPER_RUN)
-    landing = (upper[1] - flight, upper[1], upper_y - flight / 2, upper_y + flight / 2)
-    lower_x = (landing[0] + landing[1]) / 2
-    # Walk down from the landing until the road's paving begins.
-    y = landing[2]
-    while hm.at(data["road_distance"], np.array([[bx + lower_x / hm.M_PER_PX, by - y / hm.M_PER_PX]]))[0] > ROAD_EDGE_PX:
-        y -= 0.05
-        if landing[2] - y > 20.0:
-            raise RuntimeError("the castle stair's lower flight finds no road below the landing")
-    foot = _ground(lower_x, y) - floor
-    runs = (UPPER_RUN, landing[2] - y)
-    upper_rise = -foot * runs[0] / sum(runs)
-    return {"floor": floor, "upper_y": upper_y, "upper": upper, "landing": landing, "lower_x": lower_x,
-            "lower": (landing[2], y), "foot": foot, "rises": (upper_rise, -foot - upper_rise), "runs": runs}
+    height = hm.mesh_ground(hm.cached(), np.array(bx + x / hm.M_PER_PX), np.array(by - y / hm.M_PER_PX))
+    return float(height) * hm.PEAK_M - site()["floor"]
+
+
+def _outline(part):
+    """A part's outline in the castle's frame, counter-clockwise (heightmap.stair_outline), as vectors."""
+    return [Vector(p) for p in hm.stair_outline(part)]
+
+
+def _base_bottom(points):
+    """The level a base reaches down to: BASE_DEPTH under the lowest ground beneath the given points."""
+    return min(_ground(p.x, p.y) for p in points) - BASE_DEPTH
+
+
+def _spread(a, b, step=0.5):
+    """Points every `step` metres or closer from a to b, both ends included."""
+    n = max(1, int(math.ceil((b - a).length / step)))
+    return [a.lerp(b, k / n) for k in range(n + 1)]
+
+
+def _area(outline, step=0.5):
+    """Points over a convex outline: its corners, along its edges and through its middle."""
+    edges = [p for a, b in zip(outline, outline[1:] + outline[:1]) for p in _spread(a, b, step)]
+    centre = sum(outline, Vector((0.0, 0.0))) / len(outline)
+    return edges + [p.lerp(centre, 0.5) for p in edges] + [centre]
 
 
 def build(seed=7):
     rng = random.Random(seed)
     s = site()
-    top = (-TOP_HALF, TOP_HALF, GATE_Y - TOP_DEPTH, GATE_Y)
-    objs = _block(rng, top, 0.0, s) + _block(rng, s["landing"], -s["rises"][0], s)
-    # The upper flight runs west (-X) from the top landing; the lower one south (-Y) from the landing.
-    objs += _flight(rng, Vector((s["upper"][0], s["upper_y"])), Vector((-1.0, 0.0)), s["runs"][0], 0.0, -s["rises"][0], s)
-    objs += _flight(rng, Vector((s["lower_x"], s["lower"][0])), Vector((0.0, -1.0)), s["runs"][1], -s["rises"][0], s["foot"], s)
-    objs += _top_walls(top)
+    flights = [part for part in s["parts"] if "landing" not in part]
+    objs = []
+    for part in s["parts"]:
+        objs += _landing(rng, part, flights) if "landing" in part else _flight(rng, part)
     return mesh.finalize("isl_castle_stair", objs, ground=False, centre=False)
 
 
-def _base_bottom(points, s):
-    """The level a base reaches down to: BASE_DEPTH under the lowest ground beneath the given castle-frame points."""
-    return min(_ground(x, y) for x, y in points) - s["floor"] - BASE_DEPTH
+def _prism(name, outline, z0, z1, key):
+    """A slab over a plan outline from z0 up to z1."""
+    slab = parts.extrude_xz(name, [(p.x, -p.y) for p in outline], z0, z1, key)
+    return mesh.transform([slab], Matrix.Rotation(math.radians(90.0), 4, "X"))
 
 
-def _block(rng, rect, z, s):
-    """A landing: a stone block from below the ground up to z, its top paved in light stone and its open faces
-    coursed."""
-    x0, x1, y0, y1 = rect
-    corners = [(x, y) for x in np.linspace(x0, x1, 4) for y in np.linspace(y0, y1, 4)]
-    bottom = _base_bottom(corners, s)
-    objs = [mesh.box("landing_core", (x1 - x0, y1 - y0, z - bottom), at=((x0 + x1) / 2, (y0 + y1) / 2, bottom),
-                     origin="bottom", mat=parts.mat("stone_dark")),
-            mesh.box("landing_paving", (x1 - x0, y1 - y0, 0.06), at=((x0 + x1) / 2, (y0 + y1) / 2, z - 0.04), origin="bottom",
-                     mat=parts.mat("stone_light"))]
-    for a, b, out in (((x0, y0), (x1, y0), (0, -1)), ((x0, y0), (x0, y1), (-1, 0)), ((x1, y0), (x1, y1), (1, 0))):
-        objs += _face(rng, Vector(a), Vector(b), bottom, z, Vector(out))
+def _landing(rng, part, flights):
+    """A landing: a stone block from below the ground up to its level, paved in light stone, with walls along the
+    stretches of its edges that it neither leaves open (the gate) nor a flight opens."""
+    outline, level = _outline(part), part["level"]
+    bottom = _base_bottom(_area(outline))
+    objs = _prism("landing_core", outline, bottom, level - 0.04, "stone_dark")
+    objs += _prism("landing_paving", outline, level - 0.04, level + 0.02, "stone_light")
+    openings = [(outline[k], outline[(k + 1) % len(outline)]) for k in part["open"]]
+    for flight in flights:
+        corners = _outline(flight)
+        openings += [(corners[0], corners[3]), (corners[1], corners[2])]
+    for a, b in zip(outline, outline[1:] + outline[:1]):
+        for u0, u1 in _closed_spans(a, b, openings):
+            p, q = a.lerp(b, u0), a.lerp(b, u1)
+            inward = Vector((-(q - p).y, (q - p).x)).normalized()
+            objs += _wall(rng, p + inward * WALL_T / 2, q + inward * WALL_T / 2, lambda u: level + WALL_H, -inward, bottom)
+            objs += _face(rng, p, q, bottom, level, -inward)
     return objs
+
+
+def _closed_spans(a, b, openings, tolerance=0.05):
+    """The stretches of edge a-b, as (u0, u1) in 0..1, that no opening segment lying along it covers."""
+    run = b - a
+    length = run.length
+    along, side = run / length, Vector((-run.y, run.x)) / length
+    covered = []
+    for c, d in openings:
+        if abs((c - a).dot(side)) < tolerance and abs((d - a).dot(side)) < tolerance:
+            u0, u1 = sorted(((c - a).dot(along) / length, (d - a).dot(along) / length))
+            covered.append((max(0.0, u0), min(1.0, u1)))
+    spans, u = [], 0.0
+    for u0, u1 in sorted(covered):
+        if u0 - u > tolerance / length:
+            spans.append((u, u0))
+        u = max(u, u1)
+    if 1.0 - u > tolerance / length:
+        spans.append((u, 1.0))
+    return spans
+
+
+def _flight(rng, part):
+    """A flight from its start along its direction, falling between its two levels: its steps on a stone base, and a
+    wall with a coping along each side that follows the nosings or holds the slope above them. At the foot a wall
+    closes its end, and on its open side the wall stops short of the lowest steps, which reach over its line."""
+    start, along, run = Vector(part["start"]), Vector(part["along"]), part["run"]
+    z0, z1 = part["levels"]
+    count = part["steps"]
+    rise, tread = (z0 - z1) / count, run / count
+    side = Vector((-along.y, along.x))
+    outline = _outline(part)
+    length = (outline[1] - outline[0]).length
+    bottom = _base_bottom(_area(outline))
+    foot = part.get("foot")
+    first_open = count - foot["steps"] if foot else count
+    yaw = math.atan2(along.y, along.x)
+    objs = []
+    for k in range(count):
+        top = z0 - (k + 1) * rise
+        width, shift = (WIDTH + WALL_T, foot["side"] * WALL_T / 2) if k >= first_open else (WIDTH, 0.0)
+        centre = start + along * tread * (k + 0.5) + side * shift
+        step = mesh.box("step", (tread + 0.02, width, top - bottom), at=(0.0, 0.0, 0.0), origin="bottom",
+                        mat=parts.mat(parts.pick(rng, (("stone_light", 0.5), ("stone", 0.5)))))
+        objs += mesh.transform([step], mesh.frame((centre.x, centre.y, bottom), yaw))
+    for sign in (-1, 1):
+        reach = first_open * tread if foot and sign == foot["side"] else length
+        offset = side * sign * (WIDTH / 2 + WALL_T / 2)
+        a, b = start + offset, start + along * reach + offset
+        objs += _wall(rng, a, b, lambda u, reach=reach: z0 + (z1 - z0) * min(u * reach / run, 1.0) + WALL_H,
+                      side * sign, bottom)
+        objs += _face(rng, a + side * sign * WALL_T / 2, b + side * sign * WALL_T / 2, bottom, min(z0, z1), side * sign)
+    if foot:
+        end = start + along * (run + WALL_T / 2)
+        a, b = end - side * hm.STAIR_HALF, end + side * hm.STAIR_HALF
+        objs += _wall(rng, a, b, lambda u: z1 + WALL_H, along, bottom)
+        objs += _face(rng, a + along * WALL_T / 2, b + along * WALL_T / 2, bottom, z1, along)
+    return objs
+
+
+def _wall(rng, a, b, plain, outward, bottom):
+    """A wall WALL_T thick centred on a-b from `bottom` up to its plain top plain(u) (u from 0 at a to 1 at b), or up to
+    HOLD over the ground just outside it where that stands higher, under a coping."""
+    length = (b - a).length
+    us = np.linspace(0.0, 1.0, max(2, int(math.ceil(length / WALL_STEP)) + 1))
+    tops = [max([plain(u)] + [_ground(*(a.lerp(b, u) + outward * (WALL_T / 2 + d))) + HOLD for d in OUTSIDE])
+            for u in us]
+    xs = [u * length for u in us]
+    body = [(0.0, bottom), (length, bottom)] + [(x, z) for x, z in reversed(list(zip(xs, tops)))]
+    coping = [(x, z) for x, z in zip(xs, tops)] + [(x, z + COPING) for x, z in reversed(list(zip(xs, tops)))]
+    wall = parts.extrude_xz("stair_wall", body, -WALL_T / 2, WALL_T / 2, "stone")
+    cap = parts.extrude_xz("stair_coping", coping, -WALL_T / 2 - 0.04, WALL_T / 2 + 0.04, "stone_light")
+    return mesh.transform([wall, cap], mesh.frame((a.x, a.y, 0.0), math.atan2((b - a).y, (b - a).x)))
 
 
 def _face(rng, a, b, bottom, top, outward):
@@ -101,46 +182,3 @@ def _face(rng, a, b, bottom, top, outward):
     yaw = math.atan2(run.y, run.x) + (0.0 if right.dot(outward) > 0 else math.pi)
     centre = (a + b) / 2
     return mesh.transform([face], mesh.frame((centre.x, centre.y, bottom), yaw))
-
-
-def _flight(rng, start, along, run, z0, z1, s):
-    """A flight from `start` along `along` for `run` metres, falling from z0 to z1: its steps on a stone base, and a
-    low wall with a coping on each side following the nosings."""
-    count = max(1, round(abs(z0 - z1) / RISE))
-    rise, tread = (z0 - z1) / count, run / count
-    side = Vector((-along.y, along.x))
-    yaw = math.atan2(along.y, along.x)
-    corners = [start + along * run * u + side * (WIDTH / 2 + WALL_T) * v for u in (0.0, 0.5, 1.0) for v in (-1, 1)]
-    bottom = _base_bottom([tuple(p) for p in corners], s)
-    objs = []
-    for k in range(count):
-        top = z0 - (k + 1) * rise
-        centre = start + along * tread * (k + 0.5)
-        step = mesh.box("step", (tread + 0.02, WIDTH, top - bottom), at=(0.0, 0.0, 0.0), origin="bottom",
-                        mat=parts.mat(parts.pick(rng, (("stone_light", 0.5), ("stone", 0.5)))))
-        objs += mesh.transform([step], mesh.frame((centre.x, centre.y, bottom), yaw))
-    for sign in (-1, 1):
-        offset = side * sign * (WIDTH / 2 + WALL_T / 2)
-        a, b = start + offset, start + along * run + offset
-        profile = [(0.0, bottom), (run, bottom), (run, z1 + WALL_H), (0.0, z0 + WALL_H)]
-        wall = parts.extrude_xz("stair_wall", profile, -WALL_T / 2, WALL_T / 2, "stone")
-        cap = parts.extrude_xz("stair_coping", [(0.0, z0 + WALL_H), (run, z1 + WALL_H), (run, z1 + WALL_H + COPING),
-                                                 (0.0, z0 + WALL_H + COPING)], -WALL_T / 2 - 0.04, WALL_T / 2 + 0.04, "stone_light")
-        objs += mesh.transform([wall, cap], mesh.frame((a.x, a.y, 0.0), yaw))
-        objs += _face(rng, a + side * sign * WALL_T / 2, b + side * sign * WALL_T / 2, bottom, min(z0, z1), side * sign)
-    return objs
-
-
-def _top_walls(top):
-    """The low walls along the top landing's open south and east sides; the gate and the upper flight stay open."""
-    x0, x1, y0, y1 = top
-    objs = []
-    for a, b in (((x0, y0 + WALL_T / 2), (x1, y0 + WALL_T / 2)), ((x1 - WALL_T / 2, y0), (x1 - WALL_T / 2, y1))):
-        a, b = Vector(a), Vector(b)
-        run = b - a
-        wall = mesh.box("landing_wall", (run.length, WALL_T, WALL_H), at=(0.0, 0.0, 0.0), origin="bottom", mat=parts.mat("stone"))
-        cap = mesh.box("landing_coping", (run.length + 0.08, WALL_T + 0.08, COPING), at=(0.0, 0.0, WALL_H), origin="bottom",
-                       mat=parts.mat("stone_light"))
-        centre = (a + b) / 2
-        objs += mesh.transform([wall, cap], mesh.frame((centre.x, centre.y, 0.0), math.atan2(run.y, run.x)))
-    return objs

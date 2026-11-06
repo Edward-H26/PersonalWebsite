@@ -56,6 +56,9 @@ CRAG_DETAIL = 0.002
 # quay, the knoll cliff's top and foot, the bailey's rim and the foot of its bank, the pond's banks. Grid points
 # closer than BREAK_CLEAR_PX to a break line give way to it.
 BREAK_PX, BREAK_CLEAR_PX = 2.0, 1.5
+# The castle stair's cut is traced by rings STAIR_RINGS_M from each part's outline (inside under its walls, just
+# outside them), a point every STAIR_RING_STEP_M, so the mesh rises from the cut to the slope within the walls.
+STAIR_RINGS_M, STAIR_RING_STEP_M = (-0.25, 0.03), 0.3
 QUAY_LEVELS, QUAY_REACH_PX = (0.05, -0.04), 12.0
 CLIFF_LEVELS, CLIFF_REACH_PX = (0.385, 0.255), 52.0
 # Coast loops enclosing less than this many px squared (single pixels at the waterline) are left out of the outline.
@@ -64,9 +67,9 @@ OUTLINE_MIN_AREA_PX = 20.0
 ROCK_SLOPE, ROCK_HEIGHT = (0.55, 0.85), (0.6, 0.75)
 # Sand below SAND_HEIGHT on gentle ground and on the sea floor; wet sand within WET_BAND of the waterline.
 SAND_HEIGHT, WET_BAND = (0.022, 0.034), 0.005
-# Every road is paved (cobbles in the village, gravel outside) fully within PAVED_PX[0] of its centreline, fading out
-# by PAVED_PX[1], with worn earth verges fading into the grass by VERGE_PX[1]; the cobbled quay apron and square.
-PAVED_PX, VERGE_PX, QUAY_APRON_PX, SQUARE_PX = (6.0, 8.0), (8.0, 12.0), (6.0, 10.0), (12.0, 16.0)
+# Every road is paved (cobbles in the village, gravel outside) out to heightmap.PAVED_PX, with worn earth verges
+# fading into the grass by VERGE_PX[1]; the cobbled quay apron and square.
+VERGE_PX, QUAY_APRON_PX, SQUARE_PX = (8.0, 12.0), (6.0, 10.0), (12.0, 16.0)
 STREAM_BED_PX = (2.5, 5.0)
 # The sea this many px out from the shore is painted like the shore beside it.
 SHORE_PAINT_PX = 3
@@ -75,23 +78,34 @@ SEA_GREENS_PX, SEA_GREENS_SHARE = (20.0, 70.0), 0.6
 NOISE_CELLS, NOISE_SEED = 24, 11
 # The outline is simplified to this many px; the beach is the shore rising gentler than BEACH_SLOPE (rise over run).
 OUTLINE_TOLERANCE_PX, BEACH_SLOPE = 0.5, 2.0
-# Three fields (DESIGN.md section 17) on gentle ground by the ring's east leg, turned along the contours and clear of
-# the roads, the stream and the hummocks' tops: centre in map px, size along and across, the long side's direction in
-# degrees in map pixel axes (x east, y south), and whether every side is dry-stone wall or only the one nearest a road,
-# which carries the gateway; the other sides are hedgerow. Each holds a haystack a third of the way in from either end.
-FIELDS = (((628, 426), (46, 30), -41.7, "road"), ((630, 508), (58, 36), -28.2, "road"), ((668, 382), (46, 30), -88.7, "all"))
-# The plan artifact's orchard rows, and the ring junction that gets a signpost.
-ORCHARD_PX = tuple((440 + c * 13 + r * 5, 500 + r * 11) for r in range(3) for c in range(5))
-SIGNPOST_PX = (490, 400)
-# The pier runs from the quay into the bay (DESIGN.md section 17).
-PIER_PX = ((365, 505), (305, 540))
-# The barracks stands as the garrison house across the ring from the castle stair, clear of the road, facing it.
-BARRACKS_PX = (646, 334)
+# Three fields (DESIGN.md section 17) in the north meadow's band (x 380 to 620, y 150 to 205), each turned along the
+# contours at its centre and at least 11 px from every road's centreline: centre in map px, size along and across, the
+# long side's direction in degrees in map pixel axes (x east, y south), and whether every side is dry-stone wall or only
+# the one nearest a road, which carries the gateway; the other sides are hedgerow. Each holds a haystack a third of the
+# way in from either end.
+FIELDS = (((404, 180), (40, 28), -111.5, "road"), ((445, 174), (40, 28), -85.5, "road"), ((510, 171), (50, 32), -8.0, "all"))
+# The orchard: twelve apple trees in staggered rows along the contours inside the zigzag of the south-west descent,
+# 6.6 m apart in a row and 5.4 m between rows, every trunk at least 9 px from a road's centreline.
+ORCHARD_PX = ((271.7, 438.7), (262.8, 419.6), (267.2, 429.2), (277.8, 429.6), (282.2, 439.1), (258.3, 410.1),
+              (268.8, 410.4), (273.3, 420.0), (283.9, 420.4), (288.3, 429.9), (279.4, 410.8), (289.9, 411.2))
+# The buildings and stalls of the layout, each where its footprint stands at least 1.5 m clear of every road's paved
+# edge and 15 px off the stream: map px and the map angle its front faces, or None to face the nearest road.
+BUILDINGS = {"bell_tower": ((423.5, 420.7), 144.5), "sawmill": ((600.0, 253.6), 240.0),
+             "lighthouse": ((190.0, 336.0), 90.0), "stable": ((560.0, 180.0), None),
+             "market_stand_01": ((646.5, 331.0), None), "market_stand_02": ((642.5, 334.5), None)}
+# The garrison house stands by the viewpoint spur below the castle, facing the castle's gate.
+BARRACKS_PX = (682.0, 326.0)
+# The windmill on its hummock turns its sails into the wind, which the site blows toward WIND_TOWARD in scene x and z
+# (WIND_DIRECTION in src/components/canvas/environment/wind.ts), the same directions as map x and y.
+WINDMILL_PX, WIND_TOWARD = (520.0, 240.0), (1.0, -0.3)
+# Signposts: beside the ring at the upper village, where the mill lane leaves, and inside its turn at the lighthouse,
+# each with its arms at least SIGNPOST_OFF_ROAD_M beyond the paving's outer edge (heightmap.PAVED_PX[1]).
+SIGNPOST_PX, LIGHTHOUSE_TURN_PX, SIGNPOST_OFF_ROAD_M = (490, 400), (205, 335), 1.0
 # Previews: the overview from the south-west, and walks at eye height from one map point toward another.
 OVERVIEW_VIEW, OVERVIEW_SIZE = (-28.0, 32.0), (1600, 1000)
 WALK_EYE_M, WALK_LENS, WALK_SIZE = 1.7, 26.0, (1600, 900)
 # (from, toward, eye height in metres): two walks on the ring, and two higher looks at the bay and the knoll.
-WALKS = {"street": ((380, 470), (640, 275), WALK_EYE_M), "fields": ((595, 485), (700, 230), WALK_EYE_M),
+WALKS = {"street": ((380, 470), (640, 275), WALK_EYE_M), "fields": ((560, 232), (410, 175), WALK_EYE_M),
          "bay": ((300, 640), (470, 430), 30.0), "knoll": ((560, 360), (650, 270), 12.0),
          "quay": ((318, 548), (380, 500), 5.0)}
 DEVIATIONS = ("The coast's softness turns from shore to cliff over 0.06 rad either side of 0.2 and 2.4 rad instead of "
@@ -102,14 +116,22 @@ DEVIATIONS = ("The coast's softness turns from shore to cliff over 0.06 rad eith
               "Bare rock is sculpted: gullies up to heightmap.CRAG_DEPTH of the peak are carved into steep or high "
               "ground clear of the roads, the summit and the bailey; nothing rises above the specification.",
               "Each spur leaves the ring at the ring's relaxed height and eases into its own profile over 20 px.",
-              "The roads leave the stream's channel open under the bridge and the watermill, and never fill the sea "
-              "or the pond.")
+              "The roads leave the stream's channel open under the bridge and the watermill, and never fill the sea, "
+              "the pond or the bailey; where a road passes within 10 to 16 px of the bailey's rim, the ground from its "
+              "edge up to the rim is one straight slope.",
+              "The stone bridge's 0.8 m hump eases in and out over a quarter of its 12 px half-width around a straight "
+              "flank, so it is nowhere steeper than 15%; with the walk level under the hump and 10% beyond it, the "
+              "beach walk runs on past (412, 540) along the inlet's shore to (418, 562), where its fall meets the "
+              "beach's own ground, its fill held by the revetment along the water.",
+              "The castle stair is set into the bailey's slope: outside the bailey the ground under it is cut "
+              "below its paving and steps (heightmap.stair_plan and stair_cut), its walls holding the cut; the mesh "
+              "takes the cut at its own points, so its edges stay sharp between the heightmap's samples.")
 
 
 def build(data):
     """The terrain object: the heightmap sampled at points spaced by how much detail the ground has there, joined by
     a Delaunay triangulation, its ground painted."""
-    ob = _triangulate(data["height"], sample_points(data))
+    ob = _triangulate(data, sample_points(data))
     _paint(ob, ground_maps(data))
     ob.data.materials.append(terrain_material())
     ob.data.polygons.foreach_set("use_smooth", np.ones(len(ob.data.polygons), bool))
@@ -200,16 +222,43 @@ def break_points(data):
         lines += [pts[pts[:, 1] < hm.KNOLL_CLIFF_Y + 2.0] for pts in knoll]
     lines += [_circle(hm.KNOLL_CENTRE, r) for r in (hm.BAILEY_PX, hm.BAILEY_PX + hm.BAILEY_BANK_PX)]
     lines += [_circle(hm.POND_CENTRE, r) for r in (hm.POND_PX - hm.POND_BANK_PX, hm.POND_PX + hm.POND_BANK_PX)]
+    lines += _stair_lines(data["stair"])
     return np.concatenate([pts for pts in lines if len(pts)])
 
 
-def _triangulate(height, points):
-    """One mesh of the points at their heights, triangulated by Delaunay in plan, faces turned up."""
+def _stair_lines(plan):
+    """The castle stair's cut as break lines: rings round each part's outline under its walls and just outside them,
+    leaving out the points that fall inside another part, where the cut runs on."""
+    bx, by = hm.ANCHORS["bailey"]
+    outlines = [hm.stair_outline(part) for part in plan["parts"]]
+    lines = []
+    for k, outline in enumerate(outlines):
+        for distance in STAIR_RINGS_M:
+            ring = _offset(outline, distance)
+            ring = hm.resample(np.vstack([ring, ring[:1]]), STAIR_RING_STEP_M)
+            others = [hm.inside_outline(o, ring[:, 0], ring[:, 1]) for j, o in enumerate(outlines) if j != k]
+            ring = ring[~np.any(others, axis=0)]
+            lines.append(np.stack([bx + ring[:, 0] / hm.M_PER_PX, by - ring[:, 1] / hm.M_PER_PX], -1))
+    return lines
+
+
+def _offset(outline, distance):
+    """A convex counter-clockwise outline with every edge moved `distance` outward along its normal (inward if
+    negative), its corners mitred."""
+    edges = np.roll(outline, -1, axis=0) - outline
+    normals = np.stack([edges[:, 1], -edges[:, 0]], -1) / np.hypot(*edges.T)[:, None]
+    before = np.roll(normals, 1, axis=0)
+    return outline + distance * (before + normals) / (1.0 + np.sum(before * normals, axis=1))[:, None]
+
+
+def _triangulate(data, points):
+    """One mesh of the points at the ground's height there (heightmap.mesh_ground), triangulated by Delaunay in plan,
+    faces turned up."""
     from mathutils.geometry import delaunay_2d_cdt
     coords, _, faces, _, _, _ = delaunay_2d_cdt([Vector(p) for p in points], [], [], 0, 1e-6)
     plan = np.array([tuple(c) for c in coords])
     x, y = to_mesh(plan[:, 0], plan[:, 1])
-    z = _bilinear(height, plan[:, 0], plan[:, 1]) * hm.PEAK_M
+    z = hm.mesh_ground(data, plan[:, 0], plan[:, 1]) * hm.PEAK_M
     # Map y grows south, so a triangle counter-clockwise on the map is clockwise seen from above in the mesh.
     tris = np.array([f[::-1] for f in faces], np.int32)
     me = bpy.data.meshes.new(NAME)
@@ -241,21 +290,7 @@ def _value_noise(seed, cells):
     rng = np.random.default_rng(seed)
     coarse = rng.random((cells * hm.H // hm.W + 2, cells + 2))
     ys, xs = hm.grid()
-    return _bilinear(coarse, xs / hm.W * cells, ys / hm.W * cells)
-
-
-def _bilinear(field, x, y):
-    """Sample a 2D array at fractional (x, y) positions, x along columns and y along rows, clamped at the edges."""
-    rows, cols = field.shape[:2]
-    x = np.clip(x, 0.0, cols - 1.001)
-    y = np.clip(y, 0.0, rows - 1.001)
-    i, j = np.floor(x).astype(int), np.floor(y).astype(int)
-    fx, fy = x - i, y - j
-    if field.ndim == 3:
-        fx, fy = fx[..., None], fy[..., None]
-    top = field[j, i] * (1 - fx) + field[j, i + 1] * fx
-    bottom = field[j + 1, i] * (1 - fx) + field[j + 1, i + 1] * fx
-    return top * (1 - fy) + bottom * fy
+    return hm.bilinear(coarse, xs / hm.W * cells, ys / hm.W * cells)
 
 
 def ground_maps(data):
@@ -270,7 +305,7 @@ def ground_maps(data):
     sand = np.where(sea, 1.0, (1.0 - smooth(*SAND_HEIGHT, h)) * (1.0 - smooth(0.25, 0.45, slope)))
     distance = data["road_distance"]
     # Under the bridge and at the watermill the stream's bed stays earth instead of the road's paving above it.
-    road = (1.0 - smooth(*PAVED_PX, distance)) * (1.0 - hm.open_channel(xs, ys))
+    road = (1.0 - smooth(*hm.PAVED_PX, distance)) * (1.0 - hm.open_channel(xs, ys))
     apron = (1.0 - smooth(*QUAY_APRON_PX, hm.segment(xs, ys, *hm.QUAY)[0])) * (h > 0.0)
     square = 1.0 - smooth(*SQUARE_PX, np.hypot(xs - hm.ANCHORS["square"][0], ys - hm.ANCHORS["square"][1]))
     paved = np.maximum.reduce([road, apron, square]) * ~sea
@@ -364,8 +399,8 @@ def _paint(ob, maps):
     co = np.zeros(len(me.vertices) * 3)
     me.vertices.foreach_get("co", co)
     x, y = to_map(co[0::3], co[1::3])
-    for name, values in ((style.COLOR_ATTRIBUTE, np.concatenate([_bilinear(maps["colour"], x, y), np.ones((len(x), 1))], 1)),
-                         (SPLAT_ATTRIBUTE, _bilinear(maps["weights"], x, y))):
+    for name, values in ((style.COLOR_ATTRIBUTE, np.concatenate([hm.bilinear(maps["colour"], x, y), np.ones((len(x), 1))], 1)),
+                         (SPLAT_ATTRIBUTE, hm.bilinear(maps["weights"], x, y))):
         attr = me.color_attributes.new(name, "FLOAT_COLOR", "POINT")
         attr.data.foreach_set("color", values.astype(np.float32).ravel())
     me.color_attributes.active_color = me.color_attributes[style.COLOR_ATTRIBUTE]
@@ -443,9 +478,42 @@ def _landing(x, y, h, facing=180.0, **extra):
     return {"at": _px(x, y, h), "facing": round(facing % 360.0, 1), **extra}
 
 
-def _beside_road(data, at_px, offset_px, uphill=True):
-    """A map point offset_px off the ring beside map point at_px, on its uphill (or downhill) side, and the map angle
-    that faces an asset's front toward the road."""
+def _toward_road(data, at_px):
+    """The map angle from map point at_px toward the nearest point of any road's centreline."""
+    points = np.vstack([road["points"] for road in data["roads"].values()])
+    return _facing(at_px, points[int(np.argmin(np.hypot(*(points - np.asarray(at_px, float)).T)))])
+
+
+def _off_roads(data, start, direction, clear_px):
+    """The first map point from `start` along unit `direction` at least clear_px from every road's centreline."""
+    step = 0.0
+    while hm.bilinear(data["road_distance"], *(start + direction * step)) < clear_px:
+        step += 0.25
+    return start + direction * step
+
+
+def _signpost_clear_px():
+    """How far a signpost stands from every road's centreline: its arms' reach beyond SIGNPOST_OFF_ROAD_M past the
+    paving's outer edge."""
+    from island.assets import signpost
+    reach = max(length for _, length, _ in signpost.ARMS) + signpost.POST / 2
+    return hm.PAVED_PX[1] + (SIGNPOST_OFF_ROAD_M + reach) / hm.M_PER_PX
+
+
+def _inside_turn(data, at_px, clear_px):
+    """A map point inside the ring's turn at map point at_px, clear_px from every road's centreline, and the map angle
+    that faces it back to the turn."""
+    ring = data["roads"]["ring"]["points"]
+    i = int(np.argmin(np.hypot(*(ring - np.asarray(at_px, float)).T)))
+    inward = (ring[i - 20] + ring[(i + 20) % len(ring)]) / 2 - ring[i]
+    x, y = _off_roads(data, ring[i], inward / np.hypot(*inward), clear_px)
+    return x, y, float(hm.at(data["height"], np.array([[x, y]]))[0]), _facing((x, y), ring[i])
+
+
+def _beside_road(data, at_px, offset_px, uphill=True, clear_px=None):
+    """A map point offset_px off the ring beside map point at_px, on its uphill (or downhill) side, or with clear_px
+    the first point that far from every road's centreline out on that side, and the map angle that faces an asset's
+    front toward the road."""
     ring = data["roads"]["ring"]["points"]
     i = int(np.argmin(np.hypot(ring[:, 0] - at_px[0], ring[:, 1] - at_px[1])))
     a, b = ring[i - 3], ring[(i + 3) % len(ring)]
@@ -454,59 +522,103 @@ def _beside_road(data, at_px, offset_px, uphill=True):
     probe = [ring[i] + side * offset_px * k for k in (1, -1)]
     up = [hm.at(data["height"], p[None])[0] for p in probe]
     pick = 0 if (up[0] >= up[1]) == uphill else 1
-    x, y = probe[pick]
-    return x, y, float(hm.at(data["height"], np.array([[x, y]]))[0]), _facing(probe[pick], ring[i])
+    x, y = probe[pick] if clear_px is None else _off_roads(data, ring[i], side * (1, -1)[pick], clear_px)
+    return x, y, float(hm.at(data["height"], np.array([[x, y]]))[0]), _facing((x, y), ring[i])
+
+
+def _mill_water(data):
+    """The watermill's flume and tailrace for the site's water: the flume's surface from the sluice to the spout over
+    the wheel, and the tailrace from upstream of the wheel to the point on the stream's line where it joins the stream,
+    level with the stream's water there; the stream carries the water on from that point (streamFrom, its s), and its
+    bed between the dam and that point is dry because the flume takes the water."""
+    from island.assets import watermill
+    anchor = hm.ANCHORS["mill"]
+    water = watermill.water_lines()
+    flume = {"points": [_px(*hm.anchor_to_px(anchor, *p), z / hm.PEAK_M) for p, z in water["flume"]],
+             "widthM": water["flume_width"]}
+    points, level = stream_water(data)
+    along, _ = hm.arc_length(points, closed=False)
+    up, down = (hm.anchor_to_px(anchor, *p) for p in water["race"])
+    join = int(np.argmin(np.hypot(*(points - down).T)))
+    tailrace = {"points": [_px(*up, level[join]), _px(*points[join], level[join])], "widthM": water["race_width"],
+                "streamFrom": round(float(along[join]), 2)}
+    return flume, tailrace
 
 
 def landmarks(data):
     """Where each Island v2 landmark's origin lands on this terrain and which way its front faces, each origin being
     as its module describes: the castle and its stair on the bailey (with the stair's foot at the road's edge), the
-    barracks across the ring from the stair facing the road, the watermill on its anchor and its wheel at the axle it
-    turns about, the bridge on the stream's bed under the ring, the lighthouse on its anchor, the standing stones with their
-    QH stone toward the square, the shrine and a signpost beside the ring facing it; the breakwater and the quay wall
-    are built in the terrain's own space and land on the map's origin. The two ends of the breakwater's arm and of
-    the pier face along them, out from the shore."""
-    from island.assets import breakwater, castle_stair, watermill
+    garrison house and the market stalls at the castle gate, the watermill on its anchor and its wheel at the axle it
+    turns about, the bridge on the stream's bed under the beach walk, the bell tower, sawmill, stable and lighthouse
+    clear of the roads facing them, the windmill on its hummock with its sails into the wind, the standing stones with
+    their QH stone toward the square, the shrine and the signposts beside the ring facing it; the breakwater, the quay
+    wall and the pier are built in the terrain's own space and land on the map's origin. The two ends of the
+    breakwater's arm and of the pier face along them, out from the shore, and the pier's berth gives the bollards the
+    ship lies against, the way the pier runs and the side the berth faces."""
+    from island.assets import breakwater, castle_keep, pier, watermill
     h = data["height"]
 
     def anchor(name):
         x, y = hm.ANCHORS[name]
         return x, y, float(h[y, x])
 
+    def ground(x, y):
+        return float(hm.at(h, np.array([[x, y]]))[0])
+
+    def building(name):
+        (x, y), facing = BUILDINGS[name]
+        return _landing(x, y, ground(x, y), _toward_road(data, (x, y)) if facing is None else facing)
+
     mill_x, mill_y, mill_h = anchor("mill")
     offset, turn = watermill.wheel_placement()
-    ring = data["roads"]["ring"]
-    along, total = hm.arc_length(ring["points"], closed=True)
-    crown = along[int(np.argmin(np.hypot(*(ring["points"] - hm.ANCHORS["bridge"]).T)))]
+    flume, tailrace = _mill_water(data)
+    walk = data["roads"][hm.BRIDGE_ROAD]
+    along, total = hm.arc_length(walk["points"], closed=False)
+    crown = along[int(np.argmin(np.hypot(*(walk["points"] - hm.ANCHORS["bridge"]).T)))]
     arm, crest = breakwater.PATH, breakwater.CREST / hm.PEAK_M
-    pier = _facing(*PIER_PX)
     origin = (hm.W / 2, hm.H / 2, 0.0)
-    stair = castle_stair.site()
+    stair = data["stair"]
     bx, by = hm.ANCHORS["bailey"]
-    foot = (bx + stair["lower_x"] / hm.M_PER_PX, by - stair["lower"][1] / hm.M_PER_PX)
-    road_by_barracks = ring["points"][int(np.argmin(np.hypot(*(ring["points"] - BARRACKS_PX).T)))]
-    # The mill lane leaves downhill, so the signpost stands across the ring from it with its side arm pointing down it.
+    gate = (bx, by + castle_keep.WALL_R / hm.M_PER_PX)
+    foot = (bx + stair["foot_xy"][0] / hm.M_PER_PX, by - stair["foot_xy"][1] / hm.M_PER_PX)
+    quay = pier.placement()
+    deck = quay["deck"] / hm.PEAK_M
+    windmill = _facing((0.0, 0.0), WIND_TOWARD) + 180.0
+    signpost_clear = _signpost_clear_px()
+    # The mill lane leaves downhill, so the upper village's signpost stands across the ring from it.
     return {"castle_keep": _landing(*anchor("bailey")),
             "castle_stair": _landing(*anchor("bailey"), foot=_px(*foot, (stair["floor"] + stair["foot"]) / hm.PEAK_M)),
-            "barracks": _landing(*BARRACKS_PX, float(h[BARRACKS_PX[1], BARRACKS_PX[0]]), _facing(BARRACKS_PX, road_by_barracks)),
+            "barracks": _landing(*BARRACKS_PX, ground(*BARRACKS_PX), _facing(BARRACKS_PX, gate)),
+            "market_stand_01": building("market_stand_01"),
+            "market_stand_02": building("market_stand_02"),
             "watermill": _landing(mill_x, mill_y, mill_h, pondLevel=round(watermill.POND_LEVEL_M / hm.PEAK_M, 5),
-                                  damCrest=round(watermill.DAM_CREST_M / hm.PEAK_M, 5)),
+                                  damCrest=round(watermill.DAM_CREST_M / hm.PEAK_M, 5), flume=flume, tailrace=tailrace),
             "watermill_wheel": _landing(mill_x + offset.x / hm.M_PER_PX, mill_y - offset.y / hm.M_PER_PX,
                                         mill_h + offset.z / hm.PEAK_M, 180.0 - math.degrees(turn),
                                         spinsAbout="its own x axis"),
-            "stone_bridge": _landing(*anchor("bridge"), ringT=[round(float((crown - hm.BRIDGE_HALF_PX) / total), 6),
-                                                                round(float((crown + hm.BRIDGE_HALF_PX) / total), 6)]),
+            "stone_bridge": _landing(*anchor("bridge"), road=hm.BRIDGE_ROAD,
+                                     roadT=[round(float(max(0.0, crown - hm.BRIDGE_HALF_PX) / total), 6),
+                                            round(float(min(total, crown + hm.BRIDGE_HALF_PX) / total), 6)]),
             "breakwater": _landing(*origin),
             "breakwater_root": _landing(*arm[0], crest, _facing(arm[0], arm[1])),
             "breakwater_head": _landing(*arm[-1], crest, _facing(arm[-2], arm[-1])),
             "quay_wall": _landing(*origin),
-            "pier_root": _landing(*PIER_PX[0], float(h[PIER_PX[0][1], PIER_PX[0][0]]), pier),
-            "pier_head": _landing(*PIER_PX[1], 0.0, pier),
-            "lighthouse": _landing(*anchor("lighthouse")),
+            "pier": _landing(*origin),
+            "pier_root": _landing(*quay["root"], deck, quay["facing"]),
+            "pier_head": _landing(*pier.HEAD, deck, quay["facing"]),
+            "pier_berth": _landing(*quay["bollards"][1], deck, quay["berthFacing"],
+                                   bollards=[_px(x, y, deck) for x, y in quay["bollards"]],
+                                   alongside=round(quay["facing"], 1)),
+            "bell_tower": building("bell_tower"),
+            "sawmill": building("sawmill"),
+            "stable": building("stable"),
+            "mill": _landing(*WINDMILL_PX, ground(*WINDMILL_PX), windmill, sails="mill_sails"),
+            "lighthouse": building("lighthouse"),
             "standing_stones": _landing(*anchor("standing_stones"),
                                         _facing(hm.ANCHORS["standing_stones"], hm.ANCHORS["square"])),
             "shrine": _landing(*_beside_road(data, hm.ANCHORS["shrine"], 7.0)),
-            "signpost": _landing(*_beside_road(data, SIGNPOST_PX, 6.0))}
+            "signpost": _landing(*_beside_road(data, SIGNPOST_PX, 6.0, clear_px=signpost_clear)),
+            "signpost_lighthouse": _landing(*_inside_turn(data, LIGHTHOUSE_TURN_PX, signpost_clear))}
 
 
 def fields(data):
@@ -557,17 +669,20 @@ def _beach(data, outline, start, end):
 
 def coast(data):
     """The island's outline at the waterline with its bay, counter-clockwise on the map, the islets' loops, and the
-    stretches of it the quay wall and the beach take, as index ranges walked forward: the quay wall from end to end,
-    the beach the gentle shore between it and the breakwater's root."""
+    stretches of it the quay wall, its revetment past the bridge and the beach take, as index ranges walked forward:
+    the quay wall and the revetment from end to end, the beach the gentle shore between the quay wall and the
+    breakwater's root."""
     from island.assets import breakwater, quay_wall
     loops = [hm.simplify(loop, OUTLINE_TOLERANCE_PX)[:-1] for loop in hm.coastline(data["height"])
              if hm.loop_area(loop) >= OUTLINE_MIN_AREA_PX]
     # Counter-clockwise as drawn with north up: with y growing south its shoelace sum is negative.
     loops = [lp if _shoelace(lp) < 0 else lp[::-1] for lp in loops]
     outline = np.array(max(loops, key=hm.loop_area))
-    wall = quay_wall.line()
-    quay = _forward(len(outline), _nearest(outline, wall[0]), _nearest(outline, wall[-1]),
-                    _nearest(outline, wall[len(wall) // 2]))
+    def span(line):
+        return _forward(len(outline), _nearest(outline, line[0]), _nearest(outline, line[-1]),
+                        _nearest(outline, line[len(line) // 2]))
+
+    quay, revetment = span(quay_wall.line()), span(quay_wall.revetment_line())
     beach = _beach(data, outline, quay[1], _nearest(outline, breakwater.PATH[0]))
 
     def ends(span):
@@ -577,7 +692,7 @@ def coast(data):
     return {"outline": [[round(float(x), 2), round(float(y), 2)] for x, y in outline],
             "islands": [[[round(float(x), 2), round(float(y), 2)] for x, y in lp] for lp in loops
                         if not np.array_equal(np.array(lp), outline)],
-            "quayWall": ends(quay), "beach": ends(beach)}
+            "quayWall": ends(quay), "revetment": ends(revetment), "beach": ends(beach)}
 
 
 def _shoelace(loop):
@@ -628,13 +743,15 @@ def manifest(data, ob, glb_bytes):
                                       "gravel outside) and on the quay apron and the square, and also takes the bare "
                                       "rock of the cliffs and crags; earth is the worn verges out to %g px, the "
                                       "stream's bed (kept under the bridge and at the watermill) and the pond; sand "
-                                      "is the beach and the sea floor" % (PAVED_PX[0], VERGE_PX[1])}},
+                                      "is the beach and the sea floor" % (hm.PAVED_PX[0], VERGE_PX[1])}},
         "roads": {"columns": columns, "units": "x, y map px; h a fraction of the peak; s the plan distance in px "
                   "from the first row; t = s / lengthPx",
                   "notes": "every row is 1 px apart; h is the road surface after relaxation, camber not included. The "
-                           "ring starts at the quay (365, 505) and runs in the document's order, with the stone "
-                           "bridge's hump (%g m at (398, 524), easing out over %g px either side); each spur's first "
-                           "row lies on the ring" % (hm.BRIDGE_RISE_M, hm.BRIDGE_HALF_PX),
+                           "ring starts at the quay (365, 505) and runs in the document's order; each spur's first "
+                           "row lies on the ring. The %s spur is a causeway, not relaxed to the ground: from the quay "
+                           "down to %g m at the stone bridge, the bridge's %g m hump over %g px either side of "
+                           "(398, 524), then %g%% down to its end" % (hm.BRIDGE_ROAD, hm.ABUTMENT_M, hm.BRIDGE_RISE_M,
+                                                                      hm.BRIDGE_HALF_PX, hm.BEACH_GRADE * 100),
                   "ring": profiles.pop("ring"), "spurs": profiles},
         "stream": {"columns": columns, "points": _rows(stream, water, closed=False),
                    "notes": "h is the water surface, not the bed: %g m over the bed, never rising downstream, level "

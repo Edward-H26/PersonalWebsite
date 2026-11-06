@@ -26,6 +26,7 @@ export const ISLAND_MODEL_SIZES_M = {
   bunting: [8.012, 0.082, 1.037],
   cart: [1.2, 2.232, 1.911],
   castle_keep: [30.915, 26.344, 34.827],
+  castle_stair: [7.147, 8.32, 6.817],
   cornflower: [0.66, 0.429, 0.563],
   crate: [0.948, 0.41, 0.373],
   cypress: [2.032, 1.892, 13],
@@ -73,14 +74,15 @@ export const ISLAND_MODEL_SIZES_M = {
   market_stand_01: [1.27, 2.82, 2.444],
   market_stand_02: [2.4, 3.25, 2.623],
   market_stand_02_b: [2.4, 3.25, 2.62],
-  mill: [11.723, 9.659, 15.211],
+  mill: [8.74, 9.659, 11.455],
+  mill_sails: [0.378, 11.723, 11.723],
   moss_rocks: [2.021, 1.995, 1.05],
   moss_rocks_b: [2.111, 2.733, 1.25],
   net_rack: [3.9, 1.146, 2.355],
-  pier: [3.337, 19.137, 7.418],
+  pier: [30.269, 19.515, 11.162],
   planter_hydrangea: [0.688, 0.733, 0.859],
   poppy: [0.69, 0.723, 0.591],
-  quay_wall: [36.866, 11.384, 8.046],
+  quay_wall: [55.915, 38.241, 8.358],
   raised_bed: [2.48, 1.28, 0.541],
   rowing_boat: [1.529, 6.315, 0.907],
   rowing_boat_b: [1.529, 6.315, 0.907],
@@ -94,7 +96,7 @@ export const ISLAND_MODEL_SIZES_M = {
   spruce_b: [5.368, 5.173, 10.689],
   stable: [12.201, 8.46, 6.802],
   standing_stones: [9.775, 12.088, 2.947],
-  stone_bridge: [12.953, 10.013, 3.405],
+  stone_bridge: [12.386, 11.289, 4.389],
   tree_small: [3.399, 4.919, 5.314],
   tree_small_b: [2.726, 4.279, 4.262],
   tree_stump: [1.812, 2.015, 0.722],
@@ -117,6 +119,21 @@ export function islandSize(path: string) {
   const [width, depth, height] = sizeM.map((metres) => metres * ISLAND_UNITS_PER_METRE)
   return { width, depth, height }
 }
+
+/** Where a model that turns hangs on the model it turns on; it spins about its own x. */
+export type ModelMount = {
+  /** The model it hangs on. */
+  on: string
+  /** Its origin's offset from the host's origin in metres, in the host's frame: x right, y up, z out of its front. */
+  offset: readonly [number, number, number]
+  /** Degrees it is turned about the host's vertical. */
+  rotationY: number
+}
+
+/** The mounts blender/island/build/stats.json records; modelSizes.test.ts keeps the two in step. */
+export const ISLAND_MOUNTS = {
+  mill_sails: { on: "mill", offset: [0, 9.35, 3.579], rotationY: 90 }
+} as const satisfies Record<string, ModelMount>
 
 /** The fitted height that draws a generated model at its scale on the island. */
 export function islandFitHeight(path: string) {

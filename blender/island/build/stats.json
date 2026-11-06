@@ -485,56 +485,6 @@
     "preview_day": "blender/previews/day/house_03_c.png",
     "silhouette": "blender/previews/silhouettes/house_03_c.png"
   },
-  "pier": {
-    "tris": 5756,
-    "size": [
-      3.337,
-      19.137,
-      7.418
-    ],
-    "materials": 2,
-    "seed": 7,
-    "budget": 6000,
-    "glb": "public/models/island/pier.glb",
-    "glb_bytes": 64752,
-    "glb_size": [
-      3.337,
-      19.137,
-      7.417
-    ],
-    "glb_min_z": -0.988,
-    "glb_tris": 5756,
-    "glb_meshes": 1,
-    "glb_materials": 2,
-    "glb_material_names": [
-      "isl_vertex_colour",
-      "isl_lantern_glass"
-    ],
-    "glb_primitives": 2,
-    "glb_vertex_colors": true,
-    "sky_facing": 1.0,
-    "greens": {
-      "hue": null,
-      "share": 0.0,
-      "window": [
-        70.0,
-        175.0
-      ]
-    },
-    "original_size": [
-      3.1,
-      19.03,
-      7.51
-    ],
-    "ratio_change": [
-      0.09,
-      0.018
-    ],
-    "fit_height_factor": 1.0,
-    "preview": "blender/previews/pier.png",
-    "preview_day": "blender/previews/day/pier.png",
-    "silhouette": "blender/previews/silhouettes/pier.png"
-  },
   "ship": {
     "tris": 13502,
     "size": [
@@ -893,24 +843,24 @@
     "silhouette": "blender/previews/silhouettes/bell_tower.png"
   },
   "mill": {
-    "tris": 8432,
+    "tris": 7612,
     "size": [
-      11.723,
+      8.74,
       9.659,
-      15.211
+      11.455
     ],
     "materials": 2,
     "seed": 7,
     "budget": 20000,
     "glb": "public/models/island/mill.glb",
-    "glb_bytes": 88224,
+    "glb_bytes": 83424,
     "glb_size": [
-      11.723,
+      8.74,
       9.659,
-      15.211
+      11.455
     ],
     "glb_min_z": 0.0,
-    "glb_tris": 8432,
+    "glb_tris": 7612,
     "glb_meshes": 1,
     "glb_materials": 2,
     "glb_material_names": [
@@ -919,10 +869,10 @@
     ],
     "glb_primitives": 2,
     "glb_vertex_colors": true,
-    "sky_facing": 0.96,
+    "sky_facing": 0.999,
     "greens": {
       "hue": [
-        86.7,
+        87.6,
         89.8
       ],
       "share": 0.005,
@@ -937,13 +887,65 @@
       4.8
     ],
     "ratio_change": [
-      0.088,
-      0.116
+      0.077,
+      0.483
     ],
-    "fit_height_factor": 1.0,
+    "fit_height_factor": 0.775,
     "preview": "blender/previews/mill.png",
     "preview_day": "blender/previews/day/mill.png",
     "silhouette": "blender/previews/silhouettes/mill.png"
+  },
+  "mill_sails": {
+    "tris": 820,
+    "size": [
+      0.378,
+      11.723,
+      11.723
+    ],
+    "materials": 1,
+    "mount": {
+      "on": "mill",
+      "offset": [
+        0.0,
+        9.35,
+        3.579
+      ],
+      "rotationY": 90.0,
+      "spinsAbout": "x"
+    },
+    "seed": 7,
+    "budget": 4000,
+    "glb": "public/models/island/mill_sails.glb",
+    "glb_bytes": 8144,
+    "glb_size": [
+      0.378,
+      11.723,
+      11.723
+    ],
+    "glb_min_z": -5.861,
+    "glb_tris": 820,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 0.998,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "preview": "blender/previews/mill_sails.png",
+    "preview_day": "blender/previews/day/mill_sails.png",
+    "silhouette": "blender/previews/silhouettes/mill_sails.png"
   },
   "blacksmith": {
     "tris": 8486,
@@ -3945,7 +3947,10 @@
       "NORMAL",
       "POSITION",
       "TEXCOORD_0"
-    ]
+    ],
+    "preview": "blender/previews/hedgerow.png",
+    "preview_day": "blender/previews/day/hedgerow.png",
+    "silhouette": "blender/previews/silhouettes/hedgerow.png"
   },
   "hedgerow_b": {
     "tris": 1200,
@@ -3999,7 +4004,10 @@
       "NORMAL",
       "POSITION",
       "TEXCOORD_0"
-    ]
+    ],
+    "preview": "blender/previews/hedgerow_b.png",
+    "preview_day": "blender/previews/day/hedgerow_b.png",
+    "silhouette": "blender/previews/silhouettes/hedgerow_b.png"
   },
   "dry_stone_wall": {
     "tris": 1156,
@@ -4053,7 +4061,10 @@
       "NORMAL",
       "POSITION",
       "TEXCOORD_0"
-    ]
+    ],
+    "preview": "blender/previews/dry_stone_wall.png",
+    "preview_day": "blender/previews/day/dry_stone_wall.png",
+    "silhouette": "blender/previews/silhouettes/dry_stone_wall.png"
   },
   "dry_stone_wall_b": {
     "tris": 156,
@@ -4104,7 +4115,10 @@
       "NORMAL",
       "POSITION",
       "TEXCOORD_0"
-    ]
+    ],
+    "preview": "blender/previews/dry_stone_wall_b.png",
+    "preview_day": "blender/previews/day/dry_stone_wall_b.png",
+    "silhouette": "blender/previews/silhouettes/dry_stone_wall_b.png"
   },
   "haystack": {
     "tris": 684,
@@ -4143,7 +4157,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/haystack.png",
+    "preview_day": "blender/previews/day/haystack.png",
+    "silhouette": "blender/previews/silhouettes/haystack.png"
   },
   "haystack_b": {
     "tris": 684,
@@ -4182,7 +4199,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/haystack_b.png",
+    "preview_day": "blender/previews/day/haystack_b.png",
+    "silhouette": "blender/previews/silhouettes/haystack_b.png"
   },
   "standing_stones": {
     "tris": 2021,
@@ -4236,7 +4256,10 @@
       "NORMAL",
       "POSITION",
       "TEXCOORD_0"
-    ]
+    ],
+    "preview": "blender/previews/standing_stones.png",
+    "preview_day": "blender/previews/day/standing_stones.png",
+    "silhouette": "blender/previews/silhouettes/standing_stones.png"
   },
   "castle_keep": {
     "tris": 22134,
@@ -4280,7 +4303,52 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/castle_keep.png",
+    "preview_day": "blender/previews/day/castle_keep.png",
+    "silhouette": "blender/previews/silhouettes/castle_keep.png"
+  },
+  "castle_stair": {
+    "tris": 2396,
+    "size": [
+      7.147,
+      8.32,
+      6.817
+    ],
+    "materials": 1,
+    "seed": 7,
+    "budget": 6000,
+    "glb": "public/models/island/castle_stair.glb",
+    "glb_bytes": 22776,
+    "glb_size": [
+      7.147,
+      8.32,
+      6.817
+    ],
+    "glb_min_z": -6.017,
+    "glb_tris": 2396,
+    "glb_meshes": 1,
+    "glb_materials": 1,
+    "glb_material_names": [
+      "isl_vertex_colour"
+    ],
+    "glb_primitives": 1,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "preview": "blender/previews/castle_stair.png",
+    "preview_day": "blender/previews/day/castle_stair.png",
+    "silhouette": "blender/previews/silhouettes/castle_stair.png"
   },
   "watermill": {
     "tris": 10358,
@@ -4289,11 +4357,11 @@
       27.647,
       12.128
     ],
-    "materials": 3,
+    "materials": 4,
     "seed": 7,
     "budget": 16000,
     "glb": "public/models/island/watermill.glb",
-    "glb_bytes": 106308,
+    "glb_bytes": 107124,
     "glb_size": [
       37.207,
       27.646,
@@ -4302,13 +4370,14 @@
     "glb_min_z": -2.0,
     "glb_tris": 10358,
     "glb_meshes": 1,
-    "glb_materials": 3,
+    "glb_materials": 4,
     "glb_material_names": [
       "isl_vertex_colour",
+      "isl_pond_water",
       "isl_lantern_glass",
       "isl_window_glass"
     ],
-    "glb_primitives": 3,
+    "glb_primitives": 4,
     "glb_vertex_colors": true,
     "sky_facing": 0.998,
     "greens": {
@@ -4324,7 +4393,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/watermill.png",
+    "preview_day": "blender/previews/day/watermill.png",
+    "silhouette": "blender/previews/silhouettes/watermill.png"
   },
   "watermill_wheel": {
     "tris": 772,
@@ -4363,27 +4435,30 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/watermill_wheel.png",
+    "preview_day": "blender/previews/day/watermill_wheel.png",
+    "silhouette": "blender/previews/silhouettes/watermill_wheel.png"
   },
   "stone_bridge": {
-    "tris": 3566,
+    "tris": 3616,
     "size": [
-      12.953,
-      10.013,
-      3.405
+      12.386,
+      11.289,
+      4.389
     ],
     "materials": 1,
     "seed": 7,
     "budget": 4000,
     "glb": "public/models/island/stone_bridge.glb",
-    "glb_bytes": 34036,
+    "glb_bytes": 33440,
     "glb_size": [
-      12.953,
-      10.013,
-      3.405
+      12.386,
+      11.289,
+      4.389
     ],
     "glb_min_z": -0.6,
-    "glb_tris": 3566,
+    "glb_tris": 3616,
     "glb_meshes": 1,
     "glb_materials": 1,
     "glb_material_names": [
@@ -4402,7 +4477,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/stone_bridge.png",
+    "preview_day": "blender/previews/day/stone_bridge.png",
+    "silhouette": "blender/previews/silhouettes/stone_bridge.png"
   },
   "breakwater": {
     "tris": 5270,
@@ -4442,27 +4520,30 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/breakwater.png",
+    "preview_day": "blender/previews/day/breakwater.png",
+    "silhouette": "blender/previews/silhouettes/breakwater.png"
   },
   "quay_wall": {
-    "tris": 1930,
+    "tris": 2824,
     "size": [
-      36.866,
-      11.384,
-      8.046
+      55.915,
+      38.241,
+      8.358
     ],
     "materials": 1,
     "seed": 7,
     "budget": 6000,
     "glb": "public/models/island/quay_wall.glb",
-    "glb_bytes": 25172,
+    "glb_bytes": 35460,
     "glb_size": [
-      36.866,
-      11.384,
-      8.047
+      55.915,
+      38.239,
+      8.358
     ],
     "glb_min_z": -3.2,
-    "glb_tris": 1930,
+    "glb_tris": 2824,
     "glb_meshes": 1,
     "glb_materials": 1,
     "glb_material_names": [
@@ -4481,7 +4562,53 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/quay_wall.png",
+    "preview_day": "blender/previews/day/quay_wall.png",
+    "silhouette": "blender/previews/silhouettes/quay_wall.png"
+  },
+  "pier": {
+    "tris": 7084,
+    "size": [
+      30.269,
+      19.515,
+      11.162
+    ],
+    "materials": 2,
+    "seed": 7,
+    "budget": 8000,
+    "glb": "public/models/island/pier.glb",
+    "glb_bytes": 77944,
+    "glb_size": [
+      30.269,
+      19.516,
+      11.161
+    ],
+    "glb_min_z": -3.164,
+    "glb_tris": 7084,
+    "glb_meshes": 1,
+    "glb_materials": 2,
+    "glb_material_names": [
+      "isl_vertex_colour",
+      "isl_lantern_glass"
+    ],
+    "glb_primitives": 2,
+    "glb_vertex_colors": true,
+    "sky_facing": 1.0,
+    "greens": {
+      "hue": null,
+      "share": 0.0,
+      "window": [
+        70.0,
+        175.0
+      ]
+    },
+    "original_size": null,
+    "ratio_change": null,
+    "fit_height_factor": null,
+    "preview": "blender/previews/pier.png",
+    "preview_day": "blender/previews/day/pier.png",
+    "silhouette": "blender/previews/silhouettes/pier.png"
   },
   "lighthouse": {
     "tris": 8228,
@@ -4525,7 +4652,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/lighthouse.png",
+    "preview_day": "blender/previews/day/lighthouse.png",
+    "silhouette": "blender/previews/silhouettes/lighthouse.png"
   },
   "signpost": {
     "tris": 714,
@@ -4564,7 +4694,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/signpost.png",
+    "preview_day": "blender/previews/day/signpost.png",
+    "silhouette": "blender/previews/silhouettes/signpost.png"
   },
   "shrine": {
     "tris": 1134,
@@ -4607,7 +4740,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/shrine.png",
+    "preview_day": "blender/previews/day/shrine.png",
+    "silhouette": "blender/previews/silhouettes/shrine.png"
   },
   "rowing_boat": {
     "tris": 1484,
@@ -4646,7 +4782,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/rowing_boat.png",
+    "preview_day": "blender/previews/day/rowing_boat.png",
+    "silhouette": "blender/previews/silhouettes/rowing_boat.png"
   },
   "rowing_boat_b": {
     "tris": 1484,
@@ -4685,7 +4824,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/rowing_boat_b.png",
+    "preview_day": "blender/previews/day/rowing_boat_b.png",
+    "silhouette": "blender/previews/silhouettes/rowing_boat_b.png"
   },
   "net_rack": {
     "tris": 1350,
@@ -4724,7 +4866,10 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/net_rack.png",
+    "preview_day": "blender/previews/day/net_rack.png",
+    "silhouette": "blender/previews/silhouettes/net_rack.png"
   },
   "lobster_pots": {
     "tris": 1828,
@@ -4763,6 +4908,9 @@
     },
     "original_size": null,
     "ratio_change": null,
-    "fit_height_factor": null
+    "fit_height_factor": null,
+    "preview": "blender/previews/lobster_pots.png",
+    "preview_day": "blender/previews/day/lobster_pots.png",
+    "silhouette": "blender/previews/silhouettes/lobster_pots.png"
   }
 }

@@ -1,10 +1,10 @@
-"""stone_bridge: the humpback bridge that carries the ring road over the stream's mouth between the beach and the quay
-(DESIGN.md section 17), in the honey stone of the village. The terrain humps the ring over the stream and the deck
+"""stone_bridge: the humpback bridge that carries the beach walk over the stream's mouth between the quay and the beach
+(DESIGN.md section 17), in the honey stone of the village. The terrain humps the walk over the stream and the deck
 follows that road surface exactly; under it two round segmental arches spring from just below the water either side of
 a central pier whose pointed cutwaters part the stream, the arches' voussoirs standing proud of the rough stone courses
 on both faces. Parapets with a coping follow the deck and end in squared posts where the cut and fill has brought the
 ground up to the road. Its origin is the bridge anchor of heightmap.py on the ground there (the stream's bed) and it is
-laid along the ring, so the site sets it down with no turn."""
+laid along the walk, so the site sets it down with no turn."""
 
 import functools
 import math
@@ -28,21 +28,22 @@ STONES = {"keys": parts.WARM_HONEY_KEYS, "course": (0.3, 0.42), "length": (0.5, 
 
 @functools.lru_cache(maxsize=1)
 def site():
-    """The bridge's setting from the terrain, in metres about the anchor's ground: the ring's direction along it, the
-    stations along it and the deck's height at each (the ring's surface, its hump included), the water's height,
+    """The bridge's setting from the terrain, in metres about the anchor's ground: the walk's direction along it, the
+    stations along it and the deck's height at each (the walk's surface, its hump included), the water's height,
     the arches' springing and each arch's centre and rise."""
     data = hm.cached()
     ax, ay = hm.ANCHORS["bridge"]
     bed = float(data["height"][ay, ax]) * hm.PEAK_M
-    ring = data["roads"]["ring"]
-    points = ring["points"]
+    walk = data["roads"][hm.BRIDGE_ROAD]
+    points = walk["points"]
     i = int(np.argmin(np.hypot(points[:, 0] - ax, points[:, 1] - ay)))
-    a, b = points[i - 6], points[(i + 6) % len(points)]
+    a, b = points[max(i - 6, 0)], points[min(i + 6, len(points) - 1)]
     along = Vector((b[0] - a[0], -(b[1] - a[1]))).normalized()
-    s, total = hm.arc_length(points, closed=True)
+    s, _ = hm.arc_length(points, closed=False)
     xs = np.linspace(-END, END, STATIONS)
-    # Local +X runs the way the ring does, so a station x metres along is x / M_PER_PX px further round it.
-    deck = np.interp(s[i] + xs / hm.M_PER_PX, s, ring["road"], period=total) * hm.PEAK_M - bed
+    # Local +X runs the way the walk does, so a station x metres along is x / M_PER_PX px further along it; past the
+    # walk's end on the beach the deck keeps the walk's last height.
+    deck = np.interp(s[i] + xs / hm.M_PER_PX, s, walk["road"]) * hm.PEAK_M - bed
     spring = hm.STREAM_WATER_M - SPRING_UNDER_WATER
     arches = []
     for side in (-1, 1):
