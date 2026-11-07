@@ -28,7 +28,7 @@ export const INFO_STAGE: StoryStage = {
       title: "Education",
       bullets: [
         {
-          text: "Columbia University, New York, NY\nM.S. in Data Science\nFu Foundation School of Engineering and Applied Science\nCourses: High Performance Machine Learning, Algorithms, Continual Learning and Memory Models, Computer Systems\n2026.08 - Expected 2028.05",
+          text: "Columbia University, New York, NY\nM.S. in Data Science\nFu Foundation School of Engineering and Applied Science\nCourses: High Performance Machine Learning, Algorithms, Continual Learning and Memory Models, Computer Systems\n2026.09 - Expected 2028.05",
           logo: INSTITUTION_LOGOS.columbia,
           url: "https://www.engineering.columbia.edu/"
         },
