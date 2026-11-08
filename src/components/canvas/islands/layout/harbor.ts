@@ -1,6 +1,6 @@
 import { Vector3 } from "three"
 import { MODEL_PATHS } from "@/config/modelPaths"
-import { ISLAND_UNITS_PER_METRE, islandFitHeight } from "@/config/modelSizes"
+import { ISLAND_UNITS_PER_METRE, islandFitHeight, islandSize } from "@/config/modelSizes"
 import type { InstancedGroup, Placement, Vec3Tuple } from "../village/types"
 import { type MapPoint, type TerrainData, facingToYaw, mapToScene } from "../terrain/terrainData"
 import type { TerrainSite } from "../terrain/terrainSite"
@@ -28,19 +28,23 @@ const MARKER_FLOAT_RADIUS_M = 1.5
 /** Metres between the pier's side and the ship's, where her fenders hang. */
 const SHIP_FENDER_GAP_M = 0.8
 /**
- * Metres of water the ship keeps all round her hull. Moored with her middle at the berth's middle bollard her
- * stern would lie on the quay, so she slides out along the berth, in steps, until she keeps this much.
+ * Metres of water the ship's whole box keeps from the land, bowsprit to rudder and rail to rail. Moored with her middle
+ * beside the berth's middle bollard her bow would lie on the quay, so she slides out along the berth, in steps, until
+ * she keeps this much; the approach she sails in on keeps it too.
  */
-const SHIP_SEA_ROOM_M = 1.5
+export const SHIP_LAND_CLEARANCE_M = 1
 const SHIP_SLIDE_STEP_M = 0.5
 const SHIP_SLIDE_MAX_M = 20
+/** How far apart the ship's box is sampled for land: under half the heightmap's 0.6 m pixel, so no shore slips between. */
+const SHIP_BOX_STEP_M = 0.25
 /**
- * The two lateral marks of the bay's mouth, in map pixels: the port mark off the breakwater's head and
- * the starboard mark opposite it, the channel between them about 24 m wide.
+ * The two lateral marks of the bay's mouth, in map pixels: the port mark off the breakwater's head and the starboard
+ * mark opposite it, the channel between them about 24 m wide. The starboard mark stands north of the line a ship
+ * steers into the basin, so her hull passes it with room to spare.
  */
 const MARKER_POINTS: readonly MapPoint[] = [
   [296, 578],
-  [268, 552]
+  [264, 534]
 ]
 /**
  * Shares of the beach's length where the two rowing boats are drawn up, each lying where the sand stands
@@ -123,20 +127,29 @@ function pierBents(data: TerrainData) {
 }
 
 /**
- * Whether the ship's waterline, widened by SHIP_SEA_ROOM_M and taken as a box, lies over water all round with
- * her middle at the map point x/y and her bow along the unit map direction ahead.
+ * Whether the ship's whole box, widened by SHIP_LAND_CLEARANCE_M all round, lies over water with her middle at the map
+ * point x/y and her bow along the unit map direction ahead.
  */
-function hullAfloat(site: TerrainSite, x: number, y: number, [aheadX, aheadY]: readonly [number, number]) {
-  const pxPerMetre = 1 / site.terrain.data.map.metresPerPx
-  const halfBeam = SHIP_HALF_BEAM_M + SHIP_SEA_ROOM_M
-  for (let along = -SHIP_TRANSOM_M - SHIP_SEA_ROOM_M; along <= SHIP_STEM_M + SHIP_SEA_ROOM_M; along += 1) {
-    for (let across = -halfBeam; across <= halfBeam; across += halfBeam) {
+export function shipBoxAfloat(site: TerrainSite, x: number, y: number, [aheadX, aheadY]: readonly [number, number]) {
+  const { map } = site.terrain.data
+  const pxPerMetre = 1 / map.metresPerPx
+  const box = islandSize(MODEL_PATHS.earth.ship)
+  const alongSamples = spanSamples(box.depth / ISLAND_UNITS_PER_METRE / 2 + SHIP_LAND_CLEARANCE_M)
+  const acrossSamples = spanSamples(box.width / ISLAND_UNITS_PER_METRE / 2 + SHIP_LAND_CLEARANCE_M)
+  for (const along of alongSamples) {
+    for (const across of acrossSamples) {
       const px = x + (aheadX * along - aheadY * across) * pxPerMetre
       const py = y + (aheadY * along + aheadX * across) * pxPerMetre
       if (site.h(px, py) >= 0) return false
     }
   }
   return true
+}
+
+/** Evenly spread offsets from -half to half, both ends included, at most SHIP_BOX_STEP_M apart. */
+function spanSamples(half: number) {
+  const intervals = Math.ceil((2 * half) / SHIP_BOX_STEP_M)
+  return Array.from({ length: intervals + 1 }, (_, i) => -half + (2 * half * i) / intervals)
 }
 
 /**
@@ -177,20 +190,23 @@ export function buildHarbor(site: TerrainSite): Harbor {
     pivot: "origin"
   })
 
-  // The ship lies along the berth on the pier's north side with her bow out to sea, her middle from beside the
-  // middle bollard slid out along the berth until she floats clear of the quay.
+  // The ship lies along the berth on the pier's north side bow in, as she sailed in through the bay's mouth: the basin
+  // is too narrow for her to turn. Her middle starts beside the middle bollard and slides out along the berth until her
+  // whole box floats clear of the land.
   const berth = landmarks.pier_berth
   const [outX, outY] = mapDirection(berth.facing)
-  const ahead = mapDirection(berth.alongside!)
+  const [seawardX, seawardY] = mapDirection(berth.alongside!)
+  const bowFacing = (berth.alongside! + 180) % 360
+  const ahead = mapDirection(bowFacing)
   const besidePx = (BOLLARD_INSET_M + SHIP_FENDER_GAP_M + SHIP_HALF_BEAM_M) * pxPerMetre
   const shipAt = (slide: number): MapPoint => [
-    berth.at[0] + outX * besidePx + ahead[0] * slide * pxPerMetre,
-    berth.at[1] + outY * besidePx + ahead[1] * slide * pxPerMetre
+    berth.at[0] + outX * besidePx + seawardX * slide * pxPerMetre,
+    berth.at[1] + outY * besidePx + seawardY * slide * pxPerMetre
   ]
   let slide = 0
-  while (slide < SHIP_SLIDE_MAX_M && !hullAfloat(site, ...shipAt(slide), ahead)) slide += SHIP_SLIDE_STEP_M
+  while (slide < SHIP_SLIDE_MAX_M && !shipBoxAfloat(site, ...shipAt(slide), ahead)) slide += SHIP_SLIDE_STEP_M
   const [shipX, , shipZ] = mapToScene(map, ...shipAt(slide))
-  const shipYaw = facingToYaw(berth.alongside!)
+  const shipYaw = facingToYaw(bowFacing)
 
   const markers = MARKER_POINTS.map(([x, y]) => {
     const [sx, , sz] = mapToScene(map, x, y)

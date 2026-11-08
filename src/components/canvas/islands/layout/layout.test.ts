@@ -10,6 +10,7 @@ import { TerrainSite } from "../terrain/terrainSite"
 import type { IslandTerrain } from "../terrain/islandTerrain"
 import { createLayoutContext } from "./context"
 import { placeFields } from "./fields"
+import { shipBoxAfloat } from "./harbor"
 import { type IslandLayout, buildIslandLayout } from "./index"
 import { mountRotor } from "./landmarks"
 import { type GroundRect, type RoadSample, distanceToRoadEdge, rectDistanceToRoadEdge } from "./placement"
@@ -221,37 +222,39 @@ describe("the harbour", () => {
     expect(layout.placements.filter((p) => p.path === MODEL_PATHS.earth.pier)).toHaveLength(1)
   })
 
-  it("moors the ship along the berth on the pier's north side, her bow out to sea, alongside its bollards and afloat", () => {
+  it("moors the ship bow in along the berth on the pier's north side, alongside its bollards, her whole box clear of land", () => {
     const berth = terrain.data.landmarks.pier_berth
     const ship = layout.placements.find((p) => p.key === "ship")!
-    expect(ship.rotation[1]).toBeCloseTo(facingToYaw(berth.alongside!), 9)
-    const unit = (facing: number) => [Math.sin((facing * Math.PI) / 180), -Math.cos((facing * Math.PI) / 180)]
+    const bowFacing = (berth.alongside! + 180) % 360
+    expect(ship.rotation[1]).toBeCloseTo(facingToYaw(bowFacing), 9)
+    const unit = (facing: number) => [Math.sin((facing * Math.PI) / 180), -Math.cos((facing * Math.PI) / 180)] as const
     const [x, y] = mapPoint(ship.position)
+    const { metresPerPx } = terrain.data.map
     const [outX, outY] = unit(berth.facing)
-    const besideMetres = ((x - berth.at[0]) * outX + (y - berth.at[1]) * outY) * terrain.data.map.metresPerPx
+    const besideMetres = ((x - berth.at[0]) * outX + (y - berth.at[1]) * outY) * metresPerPx
     expect(besideMetres).toBeCloseTo(0.3 + 0.8 + 4.5, 6)
+    // Slid out along the berth only as far as the land asks: half a metre less and her box would come too near it.
+    const ahead = unit(bowFacing)
+    const slideMetres = -((x - berth.at[0]) * ahead[0] + (y - berth.at[1]) * ahead[1]) * metresPerPx
+    expect(slideMetres).toBeCloseTo(11.5, 6)
+    expect(shipBoxAfloat(site, x, y, ahead)).toBe(true)
+    const halfMetrePx = 0.5 / metresPerPx
+    expect(shipBoxAfloat(site, x + ahead[0] * halfMetrePx, y + ahead[1] * halfMetrePx, ahead)).toBe(false)
     // At least two of the berth's bollards lie within her waterline length, 16.5 m aft to 15 m forward of her middle.
-    const [aheadX, aheadY] = unit(berth.alongside!)
     const alongside = berth.bollards!.filter(([bx, by]) => {
-      const metres = ((bx - x) * aheadX + (by - y) * aheadY) * terrain.data.map.metresPerPx
+      const metres = ((bx - x) * ahead[0] + (by - y) * ahead[1]) * metresPerPx
       return metres > -16.5 && metres < 15
     })
     expect(alongside.length).toBeGreaterThanOrEqual(2)
-    // The hull's waterline outline lies over open water.
-    const hull = islandSize(MODEL_PATHS.earth.ship)
-    const yaw = ship.rotation[1]
-    for (const [across, along] of [
-      [0, 0],
-      [0, 0.45],
-      [0, -0.45],
-      [0.45, 0],
-      [-0.45, 0]
-    ]) {
-      const x = ship.position[0] + Math.cos(yaw) * across * hull.width + Math.sin(yaw) * along * hull.depth
-      const z = ship.position[2] - Math.sin(yaw) * across * hull.width + Math.cos(yaw) * along * hull.depth
-      const [mx, my] = sceneToMap(terrain.data.map, x, z)
-      expect(site.h(mx, my)).toBeLessThan(0)
-    }
+  })
+
+  it("sets the starboard mark north of the line into the basin, at sea, the port mark off the breakwater's head", () => {
+    const [port, starboard] = instancesOf(groups(/^seaMarkers$/)).map((marker) => mapPoint(marker.position))
+    expect(port[0]).toBeCloseTo(296, 6)
+    expect(port[1]).toBeCloseTo(578, 6)
+    expect(starboard[0]).toBeCloseTo(264, 6)
+    expect(starboard[1]).toBeCloseTo(534, 6)
+    expect(site.h(...starboard)).toBeLessThan(0)
   })
 
   it("draws the rowing boats up on the beach above the water", () => {
