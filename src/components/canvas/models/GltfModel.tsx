@@ -116,5 +116,11 @@ export function GltfModel({
     return cloned
   }, [scene, castShadow, receiveShadow, excludeFromReflection, fitHeight, pivot, scale, path, materialOverrides])
 
-  return <primitive object={object} {...props} />
+  // The pivot's offset lives on the clone and the placement on a group round it: a `position` prop on the clone itself
+  // would replace the offset, and this way the offset also turns with the model.
+  return (
+    <group {...props}>
+      <primitive object={object} />
+    </group>
+  )
 }

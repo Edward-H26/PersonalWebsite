@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Euler, Matrix4, Mesh, Quaternion, Vector3 } from "three"
+import { BufferAttribute, BufferGeometry, Box3, Euler, Matrix4, Mesh, Quaternion, Vector3 } from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js"
 import type { Placement } from "../village/types"
@@ -131,13 +131,25 @@ export async function loadModelTriangles(asset: string): Promise<BufferGeometry>
   return merged
 }
 
-/** The transform GltfModel gives a placement: its `position` prop replaces the offset a pivot would have made. */
-export function placementMatrix(placement: Pick<Placement, "position" | "rotation" | "scale">) {
-  return new Matrix4().compose(
+/**
+ * The transform GltfModel gives a placement of a model whose triangles span `bounds`: scaled and shifted by its pivot in
+ * its own frame, then turned and moved to the placement.
+ */
+export function placementMatrix(placement: Pick<Placement, "position" | "rotation" | "scale" | "fitHeight" | "pivot">, bounds: Box3) {
+  const size = bounds.getSize(new Vector3())
+  const centre = bounds.getCenter(new Vector3())
+  const scale = (placement.fitHeight && size.y > 0 ? placement.fitHeight / size.y : 1) * placement.scale
+  const pivot = placement.pivot ?? "center-bottom"
+  const offset =
+    pivot === "origin"
+      ? new Vector3()
+      : new Vector3(-centre.x, pivot === "center" ? -centre.y : -bounds.min.y, -centre.z).multiplyScalar(scale)
+  const placed = new Matrix4().compose(
     new Vector3(...placement.position),
     new Quaternion().setFromEuler(new Euler(...placement.rotation)),
-    new Vector3().setScalar(placement.scale)
+    new Vector3(1, 1, 1)
   )
+  return placed.multiply(new Matrix4().compose(offset, new Quaternion(), new Vector3().setScalar(scale)))
 }
 
 function placedBy(harbor: Harbor, key: string) {
@@ -151,8 +163,11 @@ export async function loadHarborBodies() {
   const terrain = await loadIslandTerrain()
   const site = new TerrainSite(terrain)
   const harbor = buildHarbor(site)
-  const inWorld = async (asset: string, key: string) =>
-    (await loadModelTriangles(asset)).applyMatrix4(placementMatrix(placedBy(harbor, key)))
+  const inWorld = async (asset: string, key: string) => {
+    const triangles = await loadModelTriangles(asset)
+    const bounds = new Box3().setFromBufferAttribute(triangles.getAttribute("position") as BufferAttribute)
+    return triangles.applyMatrix4(placementMatrix(placedBy(harbor, key), bounds))
+  }
   const [ship, pier, quayWall, breakwater, ground] = await Promise.all([
     inWorld("ship", "ship"),
     inWorld("pier", "pier"),

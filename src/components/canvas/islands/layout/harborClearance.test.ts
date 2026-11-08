@@ -55,10 +55,7 @@ describe("the moored ship", () => {
     expect(clearanceMetres("ship", "breakwater")).toBeGreaterThan(12)
   })
 
-  // Her keel lies about 2.3 m into the harbour floor: GltfModel's position prop replaces the offset that would have stood
-  // her on her lowest point, as harbor.ts intends, so she floats 2.4 m low. Stood on it, she clears the floor by 0.1 m;
-  // once GltfModel keeps the offset, this test passes and vitest asks for the `fails` to go.
-  it.fails("floats clear of the harbour floor", () => {
+  it("floats clear of the harbour floor", () => {
     expect(intersect("ship", "ground")).toBe(false)
   })
 })
