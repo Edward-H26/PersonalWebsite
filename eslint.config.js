@@ -6,7 +6,18 @@ import reactRefresh from "eslint-plugin-react-refresh"
 import tseslint from "typescript-eslint"
 
 export default tseslint.config(
-  { ignores: [".cache/**", ".tools/**", "dist/**", "node_modules/**", "public/**", "test-results/**", "playwright-report/**"] },
+  {
+    ignores: [
+      ".cache/**",
+      ".tools/**",
+      "dist/**",
+      "node_modules/**",
+      "public/**",
+      "test-results/**",
+      "playwright-report/**",
+      "blender/previews/**"
+    ]
+  },
   js.configs.recommended,
   {
     // The build and asset scripts run in Node.
