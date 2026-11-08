@@ -550,14 +550,22 @@ visible at that device's pixel size.
    on a fast connection and under 6 s on throttled 4G. Every pass that follows (lighting, living features) must
    re-run this measurement and stay inside the budget before it is accepted.
 2. Load in layers. The React shell and the loader ship first; the three.js scene is a lazy chunk; routes, the deck
-   sections and heavy UI split by route. Models load by priority: hero view (island ground, harbor, the buildings
-   in the first frame) first, the far village next, vegetation last and in chunks so no single frame parses
-   everything. Draco and glTF parsing run in a worker; instanced vegetation is uploaded in slices across frames.
-   Fonts, the draco decoder and the first-view GLBs get preload hints; everything else loads after first paint.
+   sections and heavy UI split by route. Every load the island needs starts at once behind the loader, so the
+   total is known from the first moment and the progress only grows, and the island mounts once all of it has
+   arrived, so nothing pops in after the loader lifts. Each model is parsed in a task of its own, with Draco
+   decoding in workers; the layout, the sea's mesh and its shore field are computed once, in a worker; images
+   decode off the main thread. The mounted scene then warms up a slice per frame behind the loader: textures
+   uploaded, programs linked through `compileAsync`, buffers uploaded in batches of about 512 KB and the shadow
+   pass's programs linked, so its first frame links only the post-processing passes' programs. Fonts, the draco
+   decoder and the first-view GLBs get preload hints; everything else loads after first paint.
 3. Keep per-frame work bounded. No React state updates inside the render loop; animations drive refs and
    uniforms. No allocations in hot paths (reuse vectors, matrices and arrays). Static shadow maps update only when
-   the sun or the scene changes, not every frame. Bloom renders at half resolution. Frustum culling on, static
-   objects merged or instanced, materials shared (the phase 4 bake), textures compressed (KTX2) and mipmapped.
+   the sun or the scene changes, not every frame: on the overview the camera and the sun stand still, so the map is
+   held and drawn again ten times a second, as often as the windmill's turning sails need, while the walk draws it
+   every frame. Bloom renders at half resolution. Frustum culling on, and ground cover split into squares that are
+   dropped once every copy in them has faded out (grass past 60 m, flowers past 260 m). Static objects merged or
+   instanced, materials shared (the phase 4 bake), textures compressed (KTX2) and mipmapped; until the KTX2 arrays
+   of 18.4 land, the PNG atlases decode off the main thread.
 4. Transitions never drop frames. Camera moves, lantern fades and section changes are tweened on the GPU side or
    with cheap scalar updates; heavy work (loading, instancing, layout) is scheduled outside transitions.
 5. Memory stays flat. No growth in JS heap across a full page-through; geometries and textures disposed when a
@@ -905,3 +913,7 @@ it changed and where the current design lives.
 - **2026-11-01, phone post-processing (12.4) and the map entry (14.2).** Was: no post-processing on phones as a
   blanket rule, and the map reached through the lantern pager. Why: section 15 cuts quality last and only
   invisibly, and the pager was removed. Now: 12.4 defers to section 15; the map opens from a navigation button.
+- **2026-11-07, load order (section 15.2).** Was: models loaded by priority, the hero view first, the far village
+  next and vegetation last. Why: the island appears only once all of it is ready, so the order bought nothing and
+  hid the total, which let the loader's percentage fall back to 0 whenever a new batch began. Now: 15.2, every load
+  at once behind the loader.
