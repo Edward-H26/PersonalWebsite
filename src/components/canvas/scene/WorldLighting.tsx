@@ -16,6 +16,11 @@ const OVERVIEW_SHADOW_HALF = 420
 const WALK_SHADOW_LEAD = 90
 /** Where the overview's shadow box is centred: the middle of the island. */
 const ISLAND_CENTRE = new THREE.Vector3(0, 0, 25)
+/**
+ * How often the overview's held shadow map is drawn again, in seconds. Only the windmill's sails move it: their tips,
+ * 6.9 m out at 3 turns a minute, cover 0.22 m in this time, less than one of the overview's 0.32 m shadow texels.
+ */
+const HELD_SHADOW_REDRAW_S = 0.1
 
 const KEY_DIRECTION = keyLightDirection()
 // The shadow box's own axes across the sun's rays, for snapping its centre to whole texels.
@@ -58,9 +63,22 @@ function followView(light: THREE.DirectionalLight, camera: THREE.Camera, overvie
 /** The sun, a cool fill from behind, the sky and ground hemisphere, and a warm point light over the village. */
 export function WorldLighting({ levels }: { levels: LightLevels }) {
   const sun = useRef<THREE.DirectionalLight>(null)
+  const heldShadows = useRef<boolean | null>(null)
+  const heldShadowDrawnAt = useRef(0)
 
-  useFrame(({ camera }) => {
-    if (sun.current) followView(sun.current, camera, useWorldStore.getState().overviewBlend)
+  useFrame(({ camera, gl, clock }) => {
+    const { overviewBlend } = useWorldStore.getState()
+    if (sun.current) followView(sun.current, camera, overviewBlend)
+    // On the overview the shadow box stands still over the whole island, whatever the camera does, so the map is drawn
+    // only as often as the sails need; at that distance the wind's sway is under a texel of it.
+    const hold = overviewBlend === 0
+    const now = clock.elapsedTime
+    if (hold !== heldShadows.current || (hold && now - heldShadowDrawnAt.current >= HELD_SHADOW_REDRAW_S)) {
+      heldShadows.current = hold
+      heldShadowDrawnAt.current = now
+      gl.shadowMap.autoUpdate = !hold
+      gl.shadowMap.needsUpdate = true
+    }
   })
 
   return (
