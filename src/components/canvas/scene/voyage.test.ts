@@ -3,7 +3,7 @@ import keyframesCss from "@/styles/keyframes.css?raw"
 import notFoundHtml from "../../../../public/404.html?raw"
 import { Color } from "three"
 import { DEFAULT_SKY_HOUR, skyAt } from "@/components/canvas/environment/skyPalette"
-import { VOYAGE_FROM, VOYAGE_TO, announcedPercent, fogDensity, voyageColours, voyagePosition } from "./voyage"
+import { VOYAGE_COLOURS, VOYAGE_FROM, VOYAGE_TO, announcedPercent, fogDensity, voyagePosition } from "./voyage"
 
 const PROGRESS_STEPS = Array.from({ length: 1001 }, (_, i) => i / 10)
 
@@ -67,34 +67,30 @@ describe("announcedPercent", () => {
   })
 })
 
-describe("voyageColours", () => {
+describe("VOYAGE_COLOURS", () => {
+  const sky = skyAt(DEFAULT_SKY_HOUR)
   const relativeLuminance = (c: Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
   const contrast = (a: Color, b: Color) => {
     const [light, dark] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x)
     return (light + 0.05) / (dark + 0.05)
   }
 
-  it("paints the loader's sky in the scene's colours for the same hour", () => {
-    const sky = skyAt(DEFAULT_SKY_HOUR)
-    const colours = voyageColours(sky)
-    expect(colours["--voyage-sky-upper"]).toBe(`#${sky.upper.getHexString()}`)
-    expect(colours["--voyage-sky-mid"]).toBe(`#${sky.mid.getHexString()}`)
-    expect(colours["--voyage-sky-horizon"]).toBe(`#${sky.horizon.getHexString()}`)
-    expect(colours["--voyage-sky-haze"]).toBe(`#${sky.haze.getHexString()}`)
+  it("paints the loader's sky in the scene's colours for the hour the island opens at", () => {
+    expect(VOYAGE_COLOURS["--voyage-sky-upper"]).toBe(`#${sky.upper.getHexString()}`)
+    expect(VOYAGE_COLOURS["--voyage-sky-mid"]).toBe(`#${sky.mid.getHexString()}`)
+    expect(VOYAGE_COLOURS["--voyage-sky-horizon"]).toBe(`#${sky.horizon.getHexString()}`)
+    expect(VOYAGE_COLOURS["--voyage-sky-haze"]).toBe(`#${sky.haze.getHexString()}`)
   })
 
-  it("draws the ship in deep-sea navy against the dusk and in moonlit white against the night", () => {
-    expect(voyageColours(skyAt(DEFAULT_SKY_HOUR))["--voyage-ship"]).toBe("#0b1e3f")
-    expect(voyageColours(skyAt(0))["--voyage-ship"]).toBe("rgba(226, 236, 255, 0.92)")
+  it("starts the loader's sea in that haze, sixty percent of the way to the night sea", () => {
+    const sea = sky.haze.clone().lerp(new Color("#0b1e3f"), 0.6)
+    expect(VOYAGE_COLOURS["--voyage-sea"]).toBe(`#${sea.getHexString()}`)
   })
 
-  it("keeps the ship at 3:1 or more against the sky behind it at every hour", () => {
-    for (let hour = 0; hour < 24; hour += 0.25) {
-      const sky = skyAt(hour)
-      const fill = voyageColours(sky)["--voyage-ship"]
-      const ship = new Color(fill.startsWith("#") ? fill : "#e2ecff")
-      expect(contrast(ship, sky.haze), `hour ${hour}`).toBeGreaterThanOrEqual(3)
-    }
+  it("draws the ship in deep-sea navy, at 3:1 or more against the dusk behind it", () => {
+    const ship = new Color(VOYAGE_COLOURS["--voyage-ship"])
+    expect(contrast(ship, sky.haze)).toBeGreaterThanOrEqual(3)
+    expect(contrast(ship, sky.haze)).toBeGreaterThan(contrast(new Color("#e2ecff"), sky.haze))
   })
 })
 

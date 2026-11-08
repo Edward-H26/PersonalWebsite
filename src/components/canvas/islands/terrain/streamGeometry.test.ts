@@ -4,7 +4,7 @@ import { type BufferAttribute, type BufferGeometry, Vector3 } from "three"
 import { buildStreamGeometry, streamFoam, streamToSea } from "./streamGeometry"
 import type { ProfileRow } from "./terrainData"
 import { loadIslandTerrain } from "./terrainFixture"
-import type { IslandTerrain } from "./useTerrain"
+import type { IslandTerrain } from "./islandTerrain"
 
 const POND_OVERLAP_PX = 4
 

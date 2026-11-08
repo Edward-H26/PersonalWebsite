@@ -1,162 +1,64 @@
-import { useEffect, useRef, useState } from "react"
-import { useProgress } from "@react-three/drei"
+import { useEffect, useState } from "react"
+import { useIsMobile } from "@/hooks/useIsMobile"
 import { useWorldStore } from "@/store/worldStore"
-import { clamp } from "@/utils/math"
 
-/** A download that sits at 99% or more for this long counts as finished. */
+/** A load that sits at 99% or more for this long counts as finished. */
 const STALL_AFTER_MS = 4000
-const STALL_POLL_MS = 500
 /** Phones keep the overlay up at least this long so a fast load does not flash. */
 const MIN_OVERLAY_MS_MOBILE = 1200
 const MIN_OVERLAY_MS_DESKTOP = 0
-/** The overlay lifts at least this long after the scene is ready, so the last models can settle. */
-const MIN_LIFT_DELAY_MS = 500
-/** The displayed progress eases towards the real one by this fraction per frame, and snaps when closer than this. */
+/** The displayed percentage eases towards the real one by this fraction per frame, and snaps when closer than this. */
 const PROGRESS_EASING = 0.12
 const PROGRESS_SNAP = 0.2
 
+/** One frame of the displayed percentage on its way to the real one. */
+function easedPercent(shown: number, target: number) {
+  const gap = target - shown
+  return Math.abs(gap) < PROGRESS_SNAP ? target : shown + gap * PROGRESS_EASING
+}
+
 /**
- * Drives the loading overlay: tracks drei's download progress, treats errors and stalled downloads
- * as done, lifts the overlay only when every download has finished and the island has drawn with
- * all of its models in place, and eases the displayed percentage so it never jumps.
+ * Drives the loading overlay from one animation-frame loop, which only reads the store: it eases the displayed
+ * percentage towards the load's progress and hands each new value to `paint`, treats a stalled load as finished, and
+ * lifts the overlay once the island is ready and the percentage has arrived at 100. React state changes only at the lift.
  */
-export function useWorldLoading({ isMobile }: { isMobile: boolean }) {
-  const setLoaderBypassed = useWorldStore((state) => state.setLoaderBypassed)
-  const isLoaderBypassed = useWorldStore((state) => state.isLoaderBypassed)
-  const setLoadingOverlayVisible = useWorldStore((state) => state.setLoadingOverlayVisible)
-  const isEarthSceneReady = useWorldStore((state) => state.isEarthSceneReady)
-  const isLoadingActive = useProgress((state) => state.active)
-  const loadingProgress = useProgress((state) => state.progress)
-  const loadingLoaded = useProgress((state) => state.loaded)
-  const loadingTotal = useProgress((state) => state.total)
-  const loadingErrors = useProgress((state) => state.errors)
-
-  const [forceReady, setForceReady] = useState(false)
-  const lastProgressRef = useRef(0)
-  const lastProgressTimeRef = useRef(0)
-  const progressRef = useRef(0)
-  const rafProgressRef = useRef<number | null>(null)
-  const [displayProgress, setDisplayProgress] = useState(0)
-  const [isFullyLoaded, setIsFullyLoaded] = useState(false)
-  const fullyLoadedRef = useRef(false)
-  const loadCompleteTimerRef = useRef<number | null>(null)
-  const overlayStartRef = useRef<number | null>(null)
-  const minOverlayMs = isMobile ? MIN_OVERLAY_MS_MOBILE : MIN_OVERLAY_MS_DESKTOP
+export function useWorldLoading(paint: (percent: number) => void) {
+  const isMobile = useIsMobile()
+  const [isVisible, setVisible] = useState(true)
+  // Read once: a window resized across the breakpoint must not restart the loop, and the percentage with it.
+  const [minOverlayMs] = useState(isMobile ? MIN_OVERLAY_MS_MOBILE : MIN_OVERLAY_MS_DESKTOP)
 
   useEffect(() => {
-    if (!isLoadingActive) {
-      if (isFullyLoaded) {
-        setForceReady(false)
-        setLoaderBypassed(false)
+    let frame = 0
+    let shown = 0
+    let lastMovedAt = performance.now()
+    const startedAt = lastMovedAt
+
+    const tick = (now: number) => {
+      const { loadProgress, isEarthSceneReady, isLoaderBypassed, setLoaderBypassed } = useWorldStore.getState()
+      const isFinished = isEarthSceneReady || isLoaderBypassed
+      const target = isFinished ? 100 : loadProgress * 100
+      const next = easedPercent(shown, target)
+      if (next !== shown) {
+        shown = next
+        lastMovedAt = now
+        paint(shown)
       }
-      return
-    }
-    lastProgressTimeRef.current = performance.now()
-    if (loadingProgress !== lastProgressRef.current) {
-      lastProgressRef.current = loadingProgress
-      lastProgressTimeRef.current = performance.now()
-    }
-  }, [isFullyLoaded, isLoadingActive, loadingProgress, setLoaderBypassed])
-
-  useEffect(() => {
-    if (loadingErrors.length === 0) return
-    setForceReady(true)
-    setLoaderBypassed(true)
-  }, [loadingErrors.length, setLoaderBypassed])
-
-  useEffect(() => {
-    if (!isLoadingActive) return
-    const intervalId = window.setInterval(() => {
-      const stagnantMs = performance.now() - lastProgressTimeRef.current
-      const isStalled = loadingProgress >= 99 && stagnantMs > STALL_AFTER_MS
-      if (isStalled) {
-        setForceReady(true)
-        setLoaderBypassed(true)
-      }
-    }, STALL_POLL_MS)
-    return () => window.clearInterval(intervalId)
-  }, [isLoadingActive, isMobile, loadingProgress, setLoaderBypassed])
-
-  const showOverlay = !isFullyLoaded
-  const targetProgress = forceReady ? 100 : clamp(loadingProgress, 0, 100)
-
-  useEffect(() => {
-    if (!isLoadingActive) return
-    progressRef.current = 0
-    setDisplayProgress(0)
-  }, [isLoadingActive])
-
-  useEffect(() => {
-    if (overlayStartRef.current == null) {
-      overlayStartRef.current = performance.now()
-    }
-  }, [])
-
-  // The overlay lifts only when every download has finished and the island has drawn with all of
-  // its models in place, so nothing pops in afterwards. Errors or a stalled download still let the
-  // page through rather than leaving the loader up forever.
-  useEffect(() => {
-    if (fullyLoadedRef.current) return
-    const isLoadComplete =
-      loadingTotal > 0 && loadingLoaded >= loadingTotal && !isLoadingActive && loadingProgress >= 100 && isEarthSceneReady
-    const shouldForceComplete = isLoaderBypassed
-    if (!isLoadComplete && !shouldForceComplete) {
-      if (loadCompleteTimerRef.current != null) {
-        window.clearTimeout(loadCompleteTimerRef.current)
-        loadCompleteTimerRef.current = null
-      }
-      return
-    }
-    if (loadCompleteTimerRef.current != null) return
-    const startAt = overlayStartRef.current ?? performance.now()
-    const elapsed = performance.now() - startAt
-    const delay = Math.max(MIN_LIFT_DELAY_MS, minOverlayMs - elapsed)
-    loadCompleteTimerRef.current = window.setTimeout(() => {
-      fullyLoadedRef.current = true
-      setIsFullyLoaded(true)
-      loadCompleteTimerRef.current = null
-    }, delay)
-  }, [isEarthSceneReady, isLoadingActive, isLoaderBypassed, loadingLoaded, loadingProgress, loadingTotal, minOverlayMs])
-
-  useEffect(() => {
-    setLoadingOverlayVisible(showOverlay)
-  }, [setLoadingOverlayVisible, showOverlay])
-
-  useEffect(() => {
-    if (!showOverlay) {
-      progressRef.current = targetProgress
-      setDisplayProgress(targetProgress)
-      return
-    }
-
-    const tick = () => {
-      const current = progressRef.current
-      const desired = isLoadingActive ? Math.max(targetProgress, current) : targetProgress
-      const diff = desired - current
-      if (Math.abs(diff) < PROGRESS_SNAP) {
-        progressRef.current = desired
-        setDisplayProgress(desired)
-        rafProgressRef.current = null
+      if (target >= 99 && now - lastMovedAt > STALL_AFTER_MS) setLoaderBypassed(true)
+      if (isFinished && shown >= 100 && now - startedAt >= minOverlayMs) {
+        setVisible(false)
         return
       }
-      const next = current + diff * PROGRESS_EASING
-      progressRef.current = next
-      setDisplayProgress(next)
-      rafProgressRef.current = requestAnimationFrame(tick)
+      frame = requestAnimationFrame(tick)
     }
 
-    if (rafProgressRef.current != null) {
-      cancelAnimationFrame(rafProgressRef.current)
-    }
-    rafProgressRef.current = requestAnimationFrame(tick)
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [minOverlayMs, paint])
 
-    return () => {
-      if (rafProgressRef.current != null) {
-        cancelAnimationFrame(rafProgressRef.current)
-        rafProgressRef.current = null
-      }
-    }
-  }, [isLoadingActive, showOverlay, targetProgress])
+  useEffect(() => {
+    useWorldStore.getState().setLoadingOverlayVisible(isVisible)
+  }, [isVisible])
 
-  return { showOverlay, displayProgress }
+  return isVisible
 }

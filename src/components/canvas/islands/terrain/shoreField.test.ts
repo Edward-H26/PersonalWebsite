@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeAll, describe, expect, it } from "vitest"
 import { HalfFloatType, RedFormat } from "three"
-import { ShoreField } from "./shoreField"
+import { ShoreField, shoreTexture } from "./shoreField"
 import { mapToScene } from "./terrainData"
 import { TERRAIN, loadIslandTerrain } from "./terrainFixture"
 
@@ -45,7 +45,7 @@ describe("ShoreField", () => {
   })
 
   it("hands the shader a half-float texture of the same field", () => {
-    const texture = shore.texture()
+    const texture = shoreTexture(shore.halfFloats())
     expect(texture.type).toBe(HalfFloatType)
     expect(texture.format).toBe(RedFormat)
     expect(texture.image.width * (shore.rect.sizeZ / shore.rect.sizeX)).toBeCloseTo(texture.image.height, 0)

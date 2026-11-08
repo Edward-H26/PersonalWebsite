@@ -1,3 +1,4 @@
+import { FLOWER_CULLING, GRASS_CULLING } from "@/config/groundCover"
 import { MODEL_PATHS } from "@/config/modelPaths"
 import { islandFitHeight, islandSize } from "@/config/modelSizes"
 import { seededRandom, smoothstep } from "@/utils/math"
@@ -293,6 +294,10 @@ function group(spec: Pick<ScatterSpec, "key" | "path" | "castShadow">, instances
   }
 }
 
+function flowerGroup(spec: ScatterSpec, instances: InstanceTransform[]): InstancedGroup {
+  return { ...group(spec, instances), culling: FLOWER_CULLING }
+}
+
 /** Half a model's width in map pixels: how far its crown reaches from its trunk. */
 function crownRadiusPx(ctx: LayoutContext, path: string) {
   return islandSize(path).width / 2 / ctx.site.terrain.data.map.unitsPerPx
@@ -513,11 +518,11 @@ export function placeVegetation(ctx: LayoutContext, villageSeeds: readonly MapPo
     )
   ])
 
-  const grass = GRASS.map((spec) => group(spec, ground.place(spec, ground.dense())))
-  const flowers = FLOWERS.map((spec) => group(spec, ground.place(spec, ground.dense())))
+  const grass = GRASS.map((spec) => ({ ...group(spec, ground.place(spec, ground.dense())), culling: GRASS_CULLING }))
+  const flowers = FLOWERS.map((spec) => flowerGroup(spec, ground.place(spec, ground.dense())))
   // Each field takes its share of the poppies by its area, drawn from the field's own box.
   const fieldsArea = fields.reduce((sum, outline) => sum + fieldArea(outline), 0)
-  const poppies = group(
+  const poppies = flowerGroup(
     POPPIES,
     fields.flatMap((outline, i) => {
       const box = {
@@ -538,7 +543,7 @@ export function placeVegetation(ctx: LayoutContext, villageSeeds: readonly MapPo
     for (const { position } of flower.instances) flowerRings.add({ x: position[0], z: position[2], radius: DAISY_REACH })
   }
   const nearFlowers = (x: number, z: number) => flowerRings.overlaps(x, z, 0) && ground.grassy(x, z)
-  const daisies = group(DAISIES, ground.place(DAISIES, ground.dense(nearFlowers)))
+  const daisies = flowerGroup(DAISIES, ground.place(DAISIES, ground.dense(nearFlowers)))
 
   return [...trees, ...rocks, stumps, ferns, ...grass, ...flowers, poppies, daisies]
 }

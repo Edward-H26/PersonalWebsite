@@ -1,4 +1,3 @@
-import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef } from "react"
 import { Mesh, MeshStandardMaterial, type Object3D } from "three"
@@ -7,6 +6,7 @@ import { useRealtimeMaterials } from "@/hooks/useRealtimeMaterials"
 import { useReducedMotion } from "@/hooks/useReducedMotion"
 import { useWorldStore } from "@/store/worldStore"
 import { smoothstep01 } from "@/utils/math"
+import { useIslandModel } from "./assets/IslandAssetsContext"
 import { LANTERN_GLASS_MATERIAL, isLanternLit, stepGlow } from "./lanternGlow"
 import type { RoadLanternGroup } from "./village/types"
 
@@ -26,7 +26,7 @@ function findLanternGlass(scene: Object3D): MeshStandardMaterial | null {
  * when the visitor pages back. The lanterns built into the houses keep their shared, always-lit glass.
  */
 export function RoadLanterns({ lanterns }: { lanterns: RoadLanternGroup }) {
-  const { scene } = useGLTF(lanterns.path)
+  const scene = useIslandModel(lanterns.path)
   // Prepared before cloning, so every copy of the glass inherits the scene-wide material settings.
   useRealtimeMaterials(scene)
   const reducedMotion = useReducedMotion()

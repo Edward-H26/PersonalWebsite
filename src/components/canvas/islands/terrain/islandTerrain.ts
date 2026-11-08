@@ -1,12 +1,10 @@
-import { useLoader } from "@react-three/fiber"
-import { FileLoader, Loader } from "three"
 import { withBase } from "@/utils/assets"
 import { type HeightField, decodeHeightPng, groundHeightSampler } from "./heightField"
 import { RoadPath } from "./roadPath"
 import type { SpurName, TerrainData } from "./terrainData"
 
 /** terrain.json, written by blender/island beside terrain.glb and the heightmap it names. */
-export const TERRAIN_DATA_PATH = withBase("/models/island/terrain.json")
+const TERRAIN_DATA_PATH = withBase("/models/island/terrain.json")
 
 /**
  * Rows either side over which the walk averages the ring's plan: its corners become arcs of about 12 m
@@ -42,23 +40,16 @@ export function islandTerrain(data: TerrainData, heights: HeightField): IslandTe
   }
 }
 
-async function readTerrain(loader: TerrainLoader, url: string) {
-  const json = new FileLoader(loader.manager).setResponseType("json")
-  const binary = new FileLoader(loader.manager).setResponseType("arraybuffer")
-  const data = (await json.loadAsync(url)) as unknown as TerrainData
-  const heightmapUrl = url.slice(0, url.lastIndexOf("/") + 1) + data.heightmap.file
-  const png = (await binary.loadAsync(heightmapUrl)) as ArrayBuffer
+async function fetchOk(url: string) {
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`${url} answered ${response.status}`)
+  return response
+}
+
+/** Downloads terrain.json and its heightmap and decodes them into the island's terrain. */
+export async function fetchIslandTerrain(): Promise<IslandTerrain> {
+  const data = (await (await fetchOk(TERRAIN_DATA_PATH)).json()) as TerrainData
+  const heightmapUrl = TERRAIN_DATA_PATH.slice(0, TERRAIN_DATA_PATH.lastIndexOf("/") + 1) + data.heightmap.file
+  const png = await (await fetchOk(heightmapUrl)).arrayBuffer()
   return islandTerrain(data, await decodeHeightPng(png, data.heightmap.range))
-}
-
-/** Loads terrain.json and then its heightmap through the loading manager, so the loading screen counts both. */
-class TerrainLoader extends Loader<IslandTerrain> {
-  load(url: string, onLoad: (terrain: IslandTerrain) => void, _onProgress?: unknown, onError?: (error: unknown) => void) {
-    readTerrain(this, url).then(onLoad, onError)
-  }
-}
-
-/** The island's terrain, loaded once and shared by everything that suspends on it. */
-export function useTerrain() {
-  return useLoader(TerrainLoader, TERRAIN_DATA_PATH)
 }

@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useWorldStore } from "@/store/worldStore"
+import { LoadingOverlay } from "./scene/LoadingOverlay"
 import { WorldScene } from "./WorldScene"
 import type { StillShot } from "./camera"
 
@@ -10,5 +11,10 @@ import type { StillShot } from "./camera"
 export function StillScene({ shot }: { shot: StillShot }) {
   useEffect(() => useWorldStore.getState().setRouteT(1), [])
 
-  return <WorldScene section={0} still={shot} />
+  return (
+    <>
+      <WorldScene section={0} still={shot} />
+      <LoadingOverlay />
+    </>
+  )
 }

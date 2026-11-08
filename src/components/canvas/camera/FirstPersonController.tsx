@@ -57,6 +57,7 @@ export function FirstPersonController() {
   const smoothedOverviewBlend = useRef(0)
   const smoothedTitleBlend = useRef(0)
   const smoothedLookYaw = useRef(0)
+  const hasOpened = useRef(false)
 
   useFrame((_, delta) => {
     const worldState = useWorldStore.getState()
@@ -67,8 +68,15 @@ export function FirstPersonController() {
     const mousePosition = worldState.mousePosition
     const groundHeightAt = worldState.groundHeightAt
     const route = worldState.walkRoute
-    // Until the island has loaded there is no road to walk; the loading screen covers the canvas meanwhile.
+    // Until the island has loaded there is no road to walk, and the frame loop waits for it.
     if (!route || !overview) return
+
+    // The first frame is the overview itself, with no drift from the canvas's default pose: it opens behind the loader.
+    if (!hasOpened.current) {
+      hasOpened.current = true
+      camera.position.copy(overview.position)
+      currentLookAt.current.copy(overview.lookAt)
+    }
 
     const routeTarget = clamp01(routeT)
     const overviewTarget = clamp01(overviewBlend)

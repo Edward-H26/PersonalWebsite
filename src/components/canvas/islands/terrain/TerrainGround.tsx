@@ -1,9 +1,9 @@
-import { useGLTF } from "@react-three/drei"
-import { useLoader, useThree } from "@react-three/fiber"
+import { useThree } from "@react-three/fiber"
 import { useEffect, useMemo } from "react"
 import * as THREE from "three"
 import { useRockAtlas } from "@/components/canvas/models/vegetationMaterials"
 import { islandAtlas, islandModel } from "@/config/modelPaths"
+import { useIslandModel, useIslandTextures } from "../assets/IslandAssetsContext"
 import { GROUND_LAYERS, GROUND_TEXTURES, type GroundLayer, type GroundLayerName, createGroundMaterial, paintMeans } from "./groundMaterial"
 import { type MapFrame, mapToScene } from "./terrainData"
 
@@ -19,8 +19,8 @@ const GRAVEL_FROM_PX = 170
 const MAX_ANISOTROPY = 8
 /** The island's ground: terrain.glb in metres, scaled into the scene and drawn with the splat material in one call. */
 export function TerrainGround({ map }: { map: MapFrame }) {
-  const { scene } = useGLTF(islandModel("terrain"))
-  const textures = useLoader(THREE.TextureLoader, TEXTURE_URLS)
+  const scene = useIslandModel(islandModel("terrain"))
+  const textures = useIslandTextures(TEXTURE_URLS)
   const rock = useRockAtlas()
   const maxAnisotropy = useThree((state) => state.gl.capabilities.getMaxAnisotropy())
 

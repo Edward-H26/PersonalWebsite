@@ -29,6 +29,8 @@ interface WorldState {
   walkRoute: WalkRoute | null
   /** What the overview camera fits into view, published with the island's layout. */
   overviewScene: OverviewScene | null
+  /** How much of the island's load is done, from 0 to 1; it only ever grows. */
+  loadProgress: number
   isEarthSceneReady: boolean
   isLoaderBypassed: boolean
   isLoadingOverlayVisible: boolean
@@ -44,6 +46,7 @@ interface WorldActions {
   setGroundHeightSampler: (sampler: GroundHeightSampler | null) => void
   setWalkRoute: (route: WalkRoute | null) => void
   setOverviewScene: (scene: OverviewScene | null) => void
+  reportLoadProgress: (share: number) => void
   setEarthSceneReady: (ready: boolean) => void
   setLoaderBypassed: (bypassed: boolean) => void
   setLoadingOverlayVisible: (visible: boolean) => void
@@ -61,6 +64,7 @@ export const useWorldStore = create<WorldStore>((set) => ({
   groundHeightAt: null,
   walkRoute: null,
   overviewScene: null,
+  loadProgress: 0,
   isEarthSceneReady: false,
   isLoaderBypassed: false,
   isLoadingOverlayVisible: true,
@@ -93,6 +97,10 @@ export const useWorldStore = create<WorldStore>((set) => ({
 
   setOverviewScene: (scene) => {
     set({ overviewScene: scene })
+  },
+
+  reportLoadProgress: (share) => {
+    set((state) => ({ loadProgress: Math.max(state.loadProgress, clamp01(share)) }))
   },
 
   setEarthSceneReady: (ready) => {

@@ -1,9 +1,8 @@
-import { useGLTF } from "@react-three/drei"
 import { GroupProps } from "@react-three/fiber"
 import { useMemo } from "react"
 import { Box3, type Material, Mesh, Object3D, SkinnedMesh, Vector3 } from "three"
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js"
-import { withBase } from "@/utils/assets"
+import { useIslandModel } from "@/components/canvas/islands/assets/IslandAssetsContext"
 import { useRealtimeMaterials } from "@/hooks/useRealtimeMaterials"
 import { REFLECTION_EXCLUDED_LAYER } from "@/config/renderLayers"
 
@@ -11,8 +10,6 @@ type Pivot = "origin" | "center" | "center-bottom"
 
 /** Materials to draw in place of a model's own, by the name the model gives its material. */
 export type MaterialOverrides = Readonly<Record<string, Material>>
-
-useGLTF.setDecoderPath(withBase("/draco/"))
 
 interface GltfModelProps extends Omit<GroupProps, "scale"> {
   path: string
@@ -83,7 +80,7 @@ export function GltfModel({
   materialOverrides,
   ...props
 }: GltfModelProps) {
-  const { scene } = useGLTF(path)
+  const scene = useIslandModel(path)
   useRealtimeMaterials(scene)
 
   const object = useMemo(() => {

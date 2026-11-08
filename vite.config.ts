@@ -4,6 +4,17 @@ import path from "path"
 import { VitePWA } from "vite-plugin-pwa"
 import { BASE_PATH, SITE_DESCRIPTION } from "./scripts/seo.mjs"
 
+/**
+ * The vendor chunks. React, the store and the bundler's own helpers stand apart from the scene's libraries: the shell and
+ * the loader run on them alone, and in a chunk with r3f they would pull three.js in ahead of the loader.
+ */
+function vendorChunk(id: string) {
+  if (/vite\/preload-helper|commonjsHelpers/.test(id)) return "react"
+  if (/node_modules\/(react|react-dom|scheduler|zustand|use-sync-external-store)\//.test(id)) return "react"
+  if (/node_modules\/three\/build\//.test(id)) return "three"
+  if (/node_modules\/(@react-three|three-stdlib|postprocessing)\//.test(id)) return "r3f"
+}
+
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production"
   const basePath = isProd ? BASE_PATH : "/"
@@ -69,10 +80,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       rollupOptions: {
         output: {
-          manualChunks: {
-            three: ["three"],
-            r3f: ["@react-three/fiber", "@react-three/drei", "@react-three/postprocessing"]
-          }
+          manualChunks: vendorChunk
         }
       }
     }

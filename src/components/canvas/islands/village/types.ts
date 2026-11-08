@@ -1,3 +1,5 @@
+import type { GroundCoverCulling } from "@/config/groundCover"
+
 export type Vec3Tuple = [number, number, number]
 
 /** One model placed on the island, in island-local coordinates. */
@@ -22,6 +24,8 @@ export type InstancedGroup = {
   instances: InstanceTransform[]
   castShadow: boolean
   excludeFromReflection: boolean
+  /** Ground cover only: how its copies are culled by distance. */
+  culling?: GroundCoverCulling
 }
 
 /** The lanterns along the main road, ordered by `routeT`, the route position at which each stands. */

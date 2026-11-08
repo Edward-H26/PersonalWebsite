@@ -1,7 +1,10 @@
 import { DataTexture, DataUtils, HalfFloatType, LinearFilter, RedFormat } from "three"
 import { DistanceField } from "./distanceField"
 import { type MapPoint, mapToScene } from "./terrainData"
-import type { IslandTerrain } from "./useTerrain"
+import type { IslandTerrain } from "./islandTerrain"
+
+/** The shore field's cells as half floats, row by row. */
+export type ShoreHalfFloats = { data: Uint16Array; columns: number; rows: number }
 
 /** Open sea kept round the map in the field, in map pixels; past it the distance grows with the way out. */
 const SHORE_MARGIN_PX = 120
@@ -94,14 +97,19 @@ export class ShoreField {
     return inside + Math.hypot(u - cu, v - cv) * cell
   }
 
-  /** The field as a half-float texture, linearly filtered, for the sea's shader. */
-  texture() {
+  /** The field as half floats, cell by cell, ready to become the sea's texture. */
+  halfFloats(): ShoreHalfFloats {
     const data = new Uint16Array(this.signed.length)
     for (let k = 0; k < data.length; k += 1) data[k] = DataUtils.toHalfFloat(this.signed[k])
-    const texture = new DataTexture(data, this.columns, this.rows, RedFormat, HalfFloatType)
-    texture.magFilter = LinearFilter
-    texture.minFilter = LinearFilter
-    texture.needsUpdate = true
-    return texture
+    return { data, columns: this.columns, rows: this.rows }
   }
+}
+
+/** The shore field's half floats as a linearly filtered texture, for the sea's shader. */
+export function shoreTexture({ data, columns, rows }: ShoreHalfFloats) {
+  const texture = new DataTexture(data, columns, rows, RedFormat, HalfFloatType)
+  texture.magFilter = LinearFilter
+  texture.minFilter = LinearFilter
+  texture.needsUpdate = true
+  return texture
 }

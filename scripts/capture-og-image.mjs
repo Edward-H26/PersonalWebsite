@@ -46,6 +46,8 @@ const browser = await chromium.launch({
 try {
   const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: SCALE })
   await page.goto(`${server.resolvedUrls.local[0]}?shot=og`, { waitUntil: "domcontentloaded" })
+  // The still's scene is imported on demand, so the loader only appears a moment after the document has loaded.
+  await page.waitForSelector(".voyage", { timeout: LOAD_TIMEOUT_MS })
   await page.waitForSelector(".voyage", { state: "detached", timeout: LOAD_TIMEOUT_MS })
   await page.waitForTimeout(SETTLE_MS)
   const capture = await page.screenshot({ type: "png" })

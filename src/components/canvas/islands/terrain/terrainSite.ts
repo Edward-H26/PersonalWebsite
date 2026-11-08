@@ -1,5 +1,5 @@
 import { smoothstep } from "@/utils/math"
-import type { IslandTerrain } from "./useTerrain"
+import type { IslandTerrain } from "./islandTerrain"
 import { type MapPoint, distanceToSegment, mapToScene } from "./terrainData"
 
 /** Side of the buckets that index the roads and the stream for nearest-row lookups, in map pixels. */

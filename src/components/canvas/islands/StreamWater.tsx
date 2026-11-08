@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react"
 import * as THREE from "three"
 import { createStreamMaterial } from "@/components/canvas/environment/streamShader"
 import { buildStreamGeometry } from "./terrain/streamGeometry"
-import type { IslandTerrain } from "./terrain/useTerrain"
+import type { IslandTerrain } from "./terrain/islandTerrain"
 
 /** The stream's water, one mesh from the spring to the bay, on the sea's clock and wind. */
 export function StreamWater({ terrain }: { terrain: IslandTerrain }) {

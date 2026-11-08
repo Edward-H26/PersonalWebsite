@@ -1,9 +1,12 @@
-import { useEffect } from "react"
-import { WorldScene } from "@/components/canvas"
+import { Suspense, lazy, useEffect } from "react"
+import { LoadingOverlay } from "@/components/canvas/scene/LoadingOverlay"
 import { Navigation, ScrollDeck, ParticleBackground, NoiseOverlay, SkipLink } from "@/components/ui"
 import { useWorldStore } from "@/store/worldStore"
 import { useScrollSnapNavigation } from "@/hooks/useScrollSnapNavigation"
 import { useIsMobile } from "@/hooks/useIsMobile"
+
+// three.js and the scene arrive behind the loader, which is why the loader lives out here.
+const WorldScene = lazy(() => import("@/components/canvas/WorldScene").then(({ WorldScene }) => ({ default: WorldScene })))
 
 function App() {
   const setMousePosition = useWorldStore((state) => state.setMousePosition)
@@ -30,7 +33,11 @@ function App() {
 
       <ParticleBackground opacity={0.4} className="z-[50]" />
 
-      <WorldScene section={section} />
+      <Suspense fallback={null}>
+        <WorldScene section={section} />
+      </Suspense>
+
+      <LoadingOverlay />
 
       <NoiseOverlay opacity={0.025} blendMode="overlay" />
 

@@ -2,7 +2,7 @@ import { BufferGeometry, Float32BufferAttribute } from "three"
 import { smoothstep } from "@/utils/math"
 import { roundCorners } from "./roadPath"
 import { type MapFrame, type ProfileRow, mapToScene } from "./terrainData"
-import type { IslandTerrain } from "./useTerrain"
+import type { IslandTerrain } from "./islandTerrain"
 
 /** Half the water's width: about 5 m of water down a channel carved wider (DESIGN.md section 17), whose banks hide its edges. */
 const HALF_WIDTH_M = 2.5

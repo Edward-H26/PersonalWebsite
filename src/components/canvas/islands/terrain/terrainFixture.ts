@@ -1,7 +1,7 @@
 import terrainJson from "../../../../../public/models/island/terrain.json?raw"
 import { decodeHeightPng } from "./heightField"
 import type { TerrainData } from "./terrainData"
-import { islandTerrain } from "./useTerrain"
+import { islandTerrain } from "./islandTerrain"
 
 // The published terrain files, read for the unit tests. vitest runs on Node, whose types the app leaves
 // out, so the heightmap's bytes come through Node's file system reached from the process object.

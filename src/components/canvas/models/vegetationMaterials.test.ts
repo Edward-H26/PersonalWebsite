@@ -110,9 +110,17 @@ describe("vegetation materials", () => {
     expect(fade).toBeGreaterThan(grass.fragmentShader.indexOf("#include <color_fragment>"))
     expect(fade).toBeLessThan(grass.fragmentShader.indexOf("#include <alphahash_fragment>"))
 
-    for (const card of [foliage, prepareShader(materials.isl_flowers, THREE.ShaderLib.standard)]) {
-      expect(card.vertexShader).not.toContain("vColor.rgb *=")
-      expect(card.fragmentShader).not.toContain("length( vViewPosition )")
-    }
+    const flowers = prepareShader(materials.isl_flowers, THREE.ShaderLib.standard)
+    for (const card of [foliage, flowers]) expect(card.vertexShader).not.toContain("vColor.rgb *=")
+    expect(foliage.fragmentShader).not.toContain("length( vViewPosition )")
+  })
+
+  it("fade the flowers out between 200 and 260 m, ahead of their cut-out test", () => {
+    const { materials } = createVegetationMaterials(blankAtlases(), 8)
+    const flowers = prepareShader(materials.isl_flowers, THREE.ShaderLib.standard)
+    const [start, end] = [200, 260].map((metres) => (metres * ISLAND_UNITS_PER_METRE).toFixed(1))
+    const fade = flowers.fragmentShader.indexOf(`diffuseColor.a *= 1.0 - smoothstep( ${start}, ${end}, length( vViewPosition ) );`)
+    expect(fade).toBeGreaterThan(flowers.fragmentShader.indexOf("#include <color_fragment>"))
+    expect(fade).toBeLessThan(flowers.fragmentShader.indexOf("#include <alphatest_fragment>"))
   })
 })
